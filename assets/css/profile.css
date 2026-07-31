@@ -1,0 +1,497 @@
+/* ── Profile page ── */
+.profile-body { min-height:100vh; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; }
+
+#profile-bg { position:fixed; inset:0; z-index:0; }
+#particle-canvas { position:fixed; inset:0; z-index:1; pointer-events:none; }
+
+.profile-wrapper { position:relative; z-index:10; display:flex; align-items:center; justify-content:center; min-height:100vh; width:100%; padding:3rem 1rem; }
+
+.profile-card {
+    width:100%; max-width:780px; text-align:center; position:relative;
+    animation:profileLoad .8s ease both;
+    background:rgba(6,6,16,0.88);
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:18px;
+    padding:2rem 2.5rem 1.75rem;
+    backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px);
+    box-shadow:0 16px 50px rgba(0,0,0,.75), 0 0 0 1px rgba(255,255,255,.04) inset;
+    transform-style:preserve-3d;
+    will-change:transform;
+    transform-origin: center center;
+}
+
+@keyframes profileLoad { from{opacity:0;transform:translateY(30px) scale(.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+/* ════════════════════════════════════════════════════════════════════════
+   AVATAR RING SYSTEM
+   Technique: .avatar-ring-shell clips the spinning gradient via
+   overflow:hidden — the shell's border-radius defines the shape,
+   the inner .avatar-ring-spin is always a big rotating square.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── Wrapper ── */
+.avatar-wrapper { position:relative; display:inline-block; margin-bottom:.75rem; }
+
+/* ── Ring shell — clips the spinning gradient, owns the shape ── */
+.avatar-ring-shell {
+    position: absolute;
+    overflow: hidden;        /* clips .avatar-ring-spin to the correct shape */
+    border-radius: 50%;      /* default circle; overridden per shape class */
+    z-index: 0;
+}
+.avatar-ring-shell.ring-normal  { inset: -4px; }
+.avatar-ring-shell.ring-premium { inset: -7px; }
+
+/* ── Premium shell glow (shape-aware because it's on the shell itself) ── */
+.avatar-ring-shell.ring-premium {
+    box-shadow:
+        0 0 18px 6px  rgba(255,215,0,.55),
+        0 0 42px 10px rgba(255,180,0,.30);
+    animation: premiumGlow 2.2s ease-in-out infinite;
+}
+@keyframes premiumGlow {
+    0%,100%{ box-shadow: 0 0 18px 6px rgba(255,215,0,.55), 0 0 42px 10px rgba(255,180,0,.30); }
+    50%    { box-shadow: 0 0 30px 12px rgba(255,215,0,.30), 0 0 65px 18px rgba(255,180,0,.15); }
+}
+
+/* ── Spinning gradient — always a big square, clipped by shell ── */
+.avatar-ring-spin {
+    position: absolute;
+    inset: -60%;             /* oversized so corners always cover at any angle */
+    border-radius: 0;
+    animation: ringRotate 3s linear infinite;
+}
+.ring-normal  .avatar-ring-spin {
+    background: conic-gradient(var(--accent,#00d4ff), var(--accent2,#ff00ff), var(--accent,#00d4ff));
+}
+.ring-premium .avatar-ring-spin {
+    background: conic-gradient(
+        #ffd700 0deg, #ffec6e 40deg, #fff4a0 80deg,
+        #ffd700 120deg, #b8860b 160deg, #ffd700 200deg,
+        #ffe066 240deg, #fff4a0 280deg, #ffd700 320deg, #ffd700 360deg
+    );
+}
+@keyframes ringRotate { to { transform: rotate(360deg); } }
+
+/* ── Inner background (hides gradient center, reveals avatar) ── */
+.avatar-ring-inner {
+    position: absolute; inset: 2px;
+    border-radius: 50%;
+    background: var(--bg-overlay, #050507);
+    z-index: 1;
+}
+.ring-premium ~ .avatar-ring-inner { inset: 5px; }
+
+/* ── Avatar image ── */
+.avatar-img {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    object-fit: cover; display: block;
+    position: relative; z-index: 2;
+}
+
+/* ── Outer pulse ring for premium (outside the shell, follows shape too) ── */
+.avatar-ring-pulse {
+    position: absolute; inset: -11px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,215,0,.35);
+    animation: premiumPulse 2.2s ease-in-out infinite;
+    pointer-events: none; z-index: 0;
+}
+@keyframes premiumPulse {
+    0%,100%{ box-shadow:0 0 10px 2px rgba(255,215,0,.4); opacity:1; }
+    50%    { box-shadow:0 0 28px 10px rgba(255,215,0,.15); opacity:.7; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   SHAPE VARIANTS — only shell, inner, img, pulse need border-radius
+   (.avatar-ring-spin is always 0; clipping is done by shell overflow:hidden)
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* Square */
+.avatar-shape-square .avatar-ring-shell,
+.avatar-shape-square .avatar-ring-inner,
+.avatar-shape-square .avatar-img,
+.avatar-shape-square .avatar-ring-pulse { border-radius: 8px; }
+
+/* Soft */
+.avatar-shape-soft .avatar-ring-shell,
+.avatar-shape-soft .avatar-ring-inner,
+.avatar-shape-soft .avatar-img,
+.avatar-shape-soft .avatar-ring-pulse { border-radius: 22px; }
+
+/* Rounded */
+.avatar-shape-rounded .avatar-ring-shell,
+.avatar-shape-rounded .avatar-ring-inner,
+.avatar-shape-rounded .avatar-img,
+.avatar-shape-rounded .avatar-ring-pulse { border-radius: 36px; }
+
+/* Circle */
+.avatar-shape-circle .avatar-ring-shell,
+.avatar-shape-circle .avatar-ring-inner,
+.avatar-shape-circle .avatar-img,
+.avatar-shape-circle .avatar-ring-pulse { border-radius: 50%; }
+
+/* ── Clip-path shape helpers ─────────────────────────────────────────────
+   For non-border-radius shapes the shell still clips its spin child
+   via the clip-path (which applies to painted output incl. children).
+   overflow:hidden on the shell keeps the spin clipped too.             */
+
+/* Heart */
+.avatar-shape-heart .avatar-ring-shell,
+.avatar-shape-heart .avatar-ring-inner,
+.avatar-shape-heart .avatar-img,
+.avatar-shape-heart .avatar-ring-pulse {
+    border-radius: 0;
+    clip-path: polygon(50% 28%,58% 16%,68% 10%,80% 10%,90% 18%,95% 30%,93% 44%,82% 58%,70% 72%,50% 100%,30% 72%,18% 58%,7% 44%,5% 30%,10% 18%,20% 10%,32% 10%,42% 16%);
+}
+
+/* Star */
+.avatar-shape-star .avatar-ring-shell,
+.avatar-shape-star .avatar-ring-inner,
+.avatar-shape-star .avatar-img,
+.avatar-shape-star .avatar-ring-pulse {
+    border-radius: 0;
+    clip-path: polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+}
+
+/* Eye (lens / almond) */
+.avatar-shape-eye .avatar-ring-shell,
+.avatar-shape-eye .avatar-ring-inner,
+.avatar-shape-eye .avatar-img,
+.avatar-shape-eye .avatar-ring-pulse {
+    border-radius: 0;
+    clip-path: polygon(0% 50%,10% 30%,25% 15%,50% 5%,75% 15%,90% 30%,100% 50%,90% 70%,75% 85%,50% 95%,25% 85%,10% 70%);
+}
+
+/* Diamond */
+.avatar-shape-diamond .avatar-ring-shell,
+.avatar-shape-diamond .avatar-ring-inner,
+.avatar-shape-diamond .avatar-img,
+.avatar-shape-diamond .avatar-ring-pulse {
+    border-radius: 0;
+    clip-path: polygon(50% 0%,100% 50%,50% 100%,0% 50%);
+}
+
+/* Egg */
+.avatar-shape-egg .avatar-ring-shell,
+.avatar-shape-egg .avatar-ring-inner,
+.avatar-shape-egg .avatar-img,
+.avatar-shape-egg .avatar-ring-pulse { border-radius: 50% 50% 50% 50% / 35% 35% 60% 60%; }
+
+/* Sun (8 rays) */
+.avatar-shape-sun .avatar-ring-shell,
+.avatar-shape-sun .avatar-ring-inner,
+.avatar-shape-sun .avatar-img,
+.avatar-shape-sun .avatar-ring-pulse {
+    border-radius: 0;
+    clip-path: polygon(50% 0%,63% 18%,85% 15%,82% 37%,100% 50%,82% 63%,85% 85%,63% 82%,50% 100%,37% 82%,15% 85%,18% 63%,0% 50%,18% 37%,15% 15%,37% 18%);
+}
+
+/* ── Text ── */
+.profile-username { font-size:1.65rem; font-weight:800; letter-spacing:-.03em; color:#fff; display:flex; align-items:center; justify-content:center; gap:.5rem; margin-bottom:.2rem; text-shadow:0 0 30px rgba(255,255,255,0.2); }
+
+.profile-bio { color:rgba(255,255,255,.7); font-size:.875rem; font-style:italic; margin-bottom:.5rem; line-height:1.5; padding:0 1rem; }
+
+.profile-location { display:inline-flex; align-items:center; gap:.35rem; color:rgba(255,255,255,.5); font-size:.8rem; margin-bottom:1rem; }
+.profile-location svg { width:13px; height:13px; color:var(--accent,#00d4ff); }
+
+/* ── Social icons ── */
+.social-icons { display:flex; align-items:center; justify-content:center; gap:.65rem; flex-wrap:wrap; margin-bottom:1rem; }
+
+.social-icon {
+    width:42px; height:42px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.1);
+    color:#fff; text-decoration:none;
+    transition:all .25s cubic-bezier(.34,1.56,.64,1);
+    backdrop-filter:blur(10px); position:relative; overflow:hidden;
+}
+.social-icon svg { width:20px; height:20px; position:relative; z-index:1; }
+.social-icon::before { content:''; position:absolute; inset:0; background:var(--platform-color,rgba(255,255,255,.1)); opacity:0; transition:opacity .25s; }
+.social-icon:hover { transform:translateY(-4px) scale(1.1); border-color:rgba(255,255,255,.3); box-shadow:0 8px 25px rgba(0,0,0,.4), 0 0 20px var(--platform-color); }
+.social-icon:hover::before { opacity:.25; }
+
+/* ── Stats ── */
+.profile-views { display:inline-flex; align-items:center; gap:.35rem; color:rgba(255,255,255,.35); font-size:.78rem; margin-top:.5rem; font-family:'Space Mono',monospace; }
+.profile-views svg { width:14px; height:14px; }
+.profile-joined { color:rgba(255,255,255,.2); font-size:.72rem; margin-top:.35rem; font-family:'Space Mono',monospace; }
+
+/* ── Volume widget ── */
+.vol-widget {
+    position:fixed; top:1rem; left:1rem; z-index:100;
+    display:flex; align-items:center; gap:.4rem;
+    background:rgba(8,8,15,0.8);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:99px;
+    padding:.4rem .65rem .4rem .4rem;
+    box-shadow:0 4px 20px rgba(0,0,0,.4);
+    transition:all .25s;
+}
+
+.vol-btn {
+    width:32px; height:32px; border-radius:50%; background:none; border:none;
+    color:rgba(255,255,255,.8); cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:color .2s; flex-shrink:0; padding:0;
+}
+.vol-btn:hover { color:#fff; }
+.vol-btn svg { width:18px; height:18px; pointer-events:none; }
+
+.vol-slider {
+    -webkit-appearance:none; appearance:none;
+    width:90px; height:4px; border-radius:2px;
+    background:rgba(255,255,255,.2); outline:none; cursor:pointer;
+}
+.vol-slider::-webkit-slider-thumb {
+    -webkit-appearance:none; width:14px; height:14px; border-radius:50%;
+    background:var(--accent,#00d4ff); cursor:pointer;
+    box-shadow:0 0 6px var(--accent,#00d4ff); transition:transform .15s;
+}
+.vol-slider::-webkit-slider-thumb:hover { transform:scale(1.2); }
+.vol-slider::-moz-range-thumb { width:14px; height:14px; border-radius:50%; background:var(--accent,#00d4ff); border:none; cursor:pointer; }
+
+/* X remove music button — hidden for owner (not needed on profile view) */
+.vol-remove-btn { display:none; }
+
+/* ── Volume slider collapses when not hovering widget ── */
+.vol-slider-wrap {
+    max-width:0;
+    overflow:hidden;
+    transition:max-width .3s ease, opacity .3s ease;
+    opacity:0;
+    display:flex; align-items:center;
+}
+.vol-widget:hover .vol-slider-wrap {
+    max-width:110px;
+    opacity:1;
+}
+
+/* ── Misc ── */
+.edit-profile-btn { display:none; }
+.profile-footer { position:fixed; bottom:1rem; left:50%; transform:translateX(-50%); z-index:100; }
+.profile-footer a { display:flex; align-items:center; gap:.35rem; color:rgba(255,255,255,.2); font-size:.72rem; text-decoration:none; font-family:'Space Mono',monospace; transition:color .2s; white-space:nowrap; }
+.profile-footer a:hover { color:var(--accent,#00d4ff); }
+
+/* ── Tooltip ── */
+.social-tooltip { position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%); background:rgba(10,10,20,.95); color:#fff; font-size:.72rem; padding:.3rem .6rem; border-radius:5px; white-space:nowrap; pointer-events:none; opacity:0; transition:opacity .2s; font-family:'Outfit',sans-serif; font-weight:500; border:1px solid rgba(255,255,255,.1); z-index:100; }
+
+/* ── Cursor trail ── */
+.cursor-trail { border-radius:50%; position:fixed; pointer-events:none; z-index:9998; opacity:0; mix-blend-mode:screen; }
+
+/* ── Anims ── */
+@keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+.fade-in    { animation:fadeInUp .6s ease forwards; }
+.fade-in-d1 { animation:fadeInUp .6s .1s ease both; }
+.fade-in-d2 { animation:fadeInUp .6s .2s ease both; }
+.fade-in-d3 { animation:fadeInUp .6s .3s ease both; }
+.fade-in-d4 { animation:fadeInUp .6s .4s ease both; }
+
+@media (max-width:520px) {
+    .profile-card { max-width:100%; padding:1.5rem .75rem 1.25rem; }
+    .profile-username { font-size:1.4rem; }
+    .avatar-img { width:76px; height:76px; }
+    .vol-slider { width:70px; }
+}
+
+/* ══════════════════════════════════════════
+   SPLASH SCREEN - click to enter
+══════════════════════════════════════════ */
+#splash-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: #080808;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.9s ease;
+    /* subtle vignette */
+    background: radial-gradient(ellipse at center, #111 0%, #000 100%);
+}
+
+#splash-screen.splash-exit {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#splash-text {
+    font-family: 'Syne', 'Outfit', sans-serif;
+    font-size: clamp(1.6rem, 4vw, 2.8rem);
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+    user-select: none;
+    position: relative;
+}
+
+/* Subtle breathing glow on the text */
+#splash-text {
+    animation: splashBreath 3s ease-in-out infinite;
+}
+
+@keyframes splashBreath {
+    0%, 100% { opacity: 0.75; }
+    50%       { opacity: 1; }
+}
+
+/* Blinking dots */
+.splash-dots {
+    display: inline-block;
+    animation: splashDots 1.4s steps(4, end) infinite;
+    overflow: hidden;
+    vertical-align: bottom;
+    width: 0;
+}
+
+@keyframes splashDots {
+    0%   { width: 0; }
+    25%  { width: 0.6em; }
+    50%  { width: 1.2em; }
+    75%  { width: 1.8em; }
+    100% { width: 0; }
+}
+
+/* Tiny hint at the bottom */
+#splash-screen::after {
+    content: 'tap anywhere';
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.18);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    animation: splashBreath 3s ease-in-out infinite;
+}
+
+@media (pointer: fine) {
+    #splash-screen::after { content: 'click anywhere'; }
+}
+
+/* ── Profile Badges ─────────────────────────────────── */
+.profile-badges {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    margin: .25rem 0 .5rem;
+}
+.profile-badge {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+    transition: transform .2s ease, filter .2s ease;
+}
+.profile-badge svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+    filter: drop-shadow(0 0 4px currentColor);
+}
+.profile-badge:hover { transform: translateY(-3px) scale(1.15); }
+
+/* Badge colours */
+.badge-og           { color: #a78bfa; background: rgba(167,139,250,.15); border: 1px solid rgba(167,139,250,.35); }
+.badge-views_master { color: #38bdf8; background: rgba(56,189,248,.13);  border: 1px solid rgba(56,189,248,.35); }
+.badge-verified     { color: #34d399; background: rgba(52,211,153,.13);  border: 1px solid rgba(52,211,153,.35); }
+.badge-owner        { color: #fbbf24; background: rgba(251,191,36,.18);  border: 1.5px solid rgba(251,191,36,.6); box-shadow: 0 0 14px rgba(251,191,36,.45); }
+.badge-admin        { color: #00d4ff; background: rgba(0,212,255,.14);   border: 1.5px solid rgba(0,212,255,.5);  box-shadow: 0 0 12px rgba(0,212,255,.3); }
+.badge-known        { color: #60a5fa; background: rgba(96,165,250,.13);  border: 1px solid rgba(96,165,250,.35); }
+.badge-rich         { color: #fbbf24; background: rgba(251,191,36,.13);  border: 1px solid rgba(251,191,36,.35); }
+.badge-trapstar     { color: #f97316; background: rgba(249,115,22,.13);  border: 1px solid rgba(249,115,22,.35); }
+.badge-the_killer   { color: #ef4444; background: rgba(239,68,68,.13);   border: 1px solid rgba(239,68,68,.35); }
+.badge-hall_of_fame { color: #f59e0b; background: rgba(245,158,11,.14);  border: 1.5px solid rgba(245,158,11,.45); box-shadow: 0 0 12px rgba(245,158,11,.3); }
+.badge-mod          { color: #a855f7; background: rgba(168,85,247,.14);  border: 1.5px solid rgba(168,85,247,.45); box-shadow: 0 0 12px rgba(168,85,247,.3); }
+.badge-discord      { color: #5865F2; background: rgba(88,101,242,.15);  border: 1.5px solid rgba(88,101,242,.5);  box-shadow: 0 0 12px rgba(88,101,242,.3); }
+.badge-booster         { color: #ff73fa; background: rgba(255,115,250,.13); border: 1.5px solid rgba(255,115,250,.55); box-shadow: 0 0 14px rgba(255,115,250,.4); }
+.badge-lover           { color: #ff6ba0; background: rgba(255,107,160,.13); border: 1.5px solid rgba(255,107,160,.45); box-shadow: 0 0 12px rgba(255,107,160,.3); }
+.badge-fresh           { color: #a8d8ff; background: rgba(168,216,255,.11); border: 1px solid rgba(168,216,255,.35); }
+.badge-crew            { color: #8b5cf6; background: rgba(139,92,246,.14);  border: 1.5px solid rgba(139,92,246,.45); box-shadow: 0 0 12px rgba(139,92,246,.3); }
+.badge-billionaire     { color: #6aff99; background: rgba(106,255,153,.11); border: 1.5px solid rgba(106,255,153,.4);  box-shadow: 0 0 12px rgba(106,255,153,.25); }
+.badge-promoter        { color: #9ca3af; background: rgba(156,163,175,.12); border: 1px solid rgba(156,163,175,.35); }
+.badge-promoter_elite  { color: #d1d5db; background: linear-gradient(135deg, rgba(75,85,99,.25), rgba(31,41,55,.35)); border: 1.5px solid rgba(107,114,128,.55); box-shadow: 0 0 10px rgba(75,85,99,.3); }
+.badge-content_creator {
+    color: #4ade80;
+    background: rgba(22,101,52,.18);
+    border: 1.5px solid rgba(132,204,22,.45);
+    box-shadow: 0 0 14px rgba(132,204,22,.3);
+    animation: cc-chroma-border 2.5s ease-in-out infinite alternate;
+}
+@keyframes cc-chroma-border {
+    0%   { border-color: rgba(22,101,52,.7);  box-shadow: 0 0 12px rgba(22,101,52,.4);  color: #16a34a; }
+    100% { border-color: rgba(132,204,22,.8); box-shadow: 0 0 18px rgba(132,204,22,.5); color: #a3e635; }
+}
+
+/* Designer — pink/rose badge with brush glow animation */
+.badge-designer {
+    color: #f472b6;
+    background: rgba(244,114,182,.14);
+    border: 1.5px solid rgba(244,114,182,.5);
+    box-shadow: 0 0 14px rgba(244,114,182,.35);
+    animation: designer-glow 2.5s ease-in-out infinite alternate;
+}
+.badge-designer svg {
+    filter: drop-shadow(0 0 5px rgba(244,114,182,.7));
+}
+@keyframes designer-glow {
+    0%   { border-color: rgba(236,72,153,.55);  box-shadow: 0 0 10px rgba(236,72,153,.35);  color: #ec4899; }
+    100% { border-color: rgba(244,114,182,.75); box-shadow: 0 0 20px rgba(244,114,182,.55); color: #f9a8d4; }
+}
+
+/* Champion — static silver badge, no animation */
+.badge-champion {
+    color: #e8e8e8;
+    background: linear-gradient(135deg, rgba(192,192,192,.2), rgba(255,255,255,.08));
+    border: 1.5px solid rgba(192,192,192,.6);
+    box-shadow: 0 0 10px rgba(192,192,192,.25);
+}
+.badge-champion svg {
+    filter: drop-shadow(0 0 4px rgba(255,255,255,.4));
+}
+
+/* Champion — plain silver name, no animation */
+.champion-name {
+    color: #d8d8d8;
+}
+
+/* Tooltip */
+.badge-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    background: rgba(8,8,20,.95);
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 600;
+    font-family: 'Outfit', sans-serif;
+    white-space: nowrap;
+    padding: .3rem .65rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,.1);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .18s ease, transform .18s ease;
+    z-index: 99;
+}
+.badge-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: rgba(8,8,20,.95);
+}
+.profile-badge:hover .badge-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}

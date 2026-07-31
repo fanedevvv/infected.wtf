@@ -1,0 +1,39 @@
+# ── Blochează accesul direct la fișierele API din browser ────────────────────
+# Permite doar requesturi fetch/XHR care vin de pe același site (cu X-Requested-With)
+# și requesturi cu Referer de pe domeniul nostru
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Permite OPTIONS (preflight CORS)
+    RewriteCond %{REQUEST_METHOD} OPTIONS
+    RewriteRule ^ - [L]
+
+    # Permite dacă are headerul X-Requested-With: XMLHttpRequest (fetch/ajax din JS)
+    RewriteCond %{HTTP:X-Requested-With} XMLHttpRequest [OR]
+    # Permite dacă Referer-ul vine de pe același domeniu
+    RewriteCond %{HTTP_REFERER} ^https?://(www\.)?getfame\.wtf [OR]
+    # Permite requesturi interne (fără Referer - ex: server-to-server)
+    RewriteCond %{HTTP_REFERER} ^$
+    RewriteRule ^ - [L]
+
+    # Blochează orice altceva (acces direct din browser cu Referer extern)
+    RewriteCond %{HTTP:X-Requested-With} !XMLHttpRequest
+    RewriteCond %{HTTP_REFERER} !^https?://(www\.)?getfame\.wtf
+    RewriteCond %{HTTP_REFERER} !^$
+    RewriteRule ^ - [F,L]
+</IfModule>
+
+# ── Nu afișa directorul ───────────────────────────────────────────────────────
+Options -Indexes
+
+# ── Headers de securitate pentru răspunsurile API ────────────────────────────
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Cache-Control "no-store, no-cache, must-revalidate, private"
+    Header always set Pragma "no-cache"
+    # Nu permite afișarea în iframe
+    Header always set X-Frame-Options "DENY"
+    # Ascunde că e PHP
+    Header always unset X-Powered-By
+</IfModule>
