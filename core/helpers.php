@@ -238,7 +238,7 @@ HTML;
 // ── Internal mail helper ──────────────────────────────────────────────────────
 function _sendMail(string $to, string $subject, string $html, string $plain): bool {
     try {
-        $fromEmail = '_mainaccount@getfame.wtf';
+        $fromEmail = '_mainaccount@infected.wtf';
         $fromName  = SITE_NAME;
         $boundary  = '----=_Boundary_' . md5(uniqid('', true));
 

@@ -1,5 +1,5 @@
 /**
- * GETFAME.WTF — Admin Panel JS
+ * INFECTED.WTF — Admin Panel JS
  */
 
 let epUser = null;

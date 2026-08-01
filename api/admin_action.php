@@ -1,6 +1,6 @@
 <?php
 // ============================================
-// GETFAME.WTF — Admin Action API
+// INFECTED.WTF — Admin Action API
 // All actions go through here with full permission checks
 // ============================================
 define('ROOT', dirname(__DIR__));
@@ -283,7 +283,7 @@ function incrementRateLimit(PDO $pdo, int $actorId, string $actionType): void {
 // ── Trimite embed direct pe Discord via Webhook ───────────────────────────────
 function notifyBot(string $event, int $actorId, string $actorUsername, string $actorGrade, string $targetUsername, int $targetId, string $targetGrade, string $extra = ''): void {
     $webhookUrl = 'https://discord.com/api/webhooks/1506738451960303646/zY9t3aC9GadvxEyjJQ9Go5ZFHYGgOAUzupgMihMxKWw_8p104B_VImBR-U282XQeP1sU';
-    $siteUrl    = defined('SITE_URL') ? rtrim(SITE_URL, '/') : 'https://getfame.wtf';
+    $siteUrl    = defined('SITE_URL') ? rtrim(SITE_URL, '/') : 'https://infected.wtf';
 
     $isBan    = $event === 'ban';
     $isDelete = $event === 'delete';
@@ -337,13 +337,13 @@ function notifyBot(string $event, int $actorId, string $actorUsername, string $a
     }
 
     $payload = json_encode([
-        'username'   => 'GetFame · Admin Log',
+        'username'   => 'Infected · Admin Log',
         'avatar_url' => $siteUrl . '/assets/img/logo.png',
         'embeds'     => [[
             'title'     => $title,
             'color'     => $color,
             'fields'    => $fields,
-            'footer'    => ['text' => 'GetFame · Admin Log'],
+            'footer'    => ['text' => 'Infected · Admin Log'],
             'timestamp' => $timestamp,
         ]],
     ]);

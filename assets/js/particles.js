@@ -1,5 +1,5 @@
 /**
- * GETFAME.WTF v2 - Particle Engine
+ * INFECTED.WTF v2 - Particle Engine
  * Stars, shooting stars, cursor trail
  */
 

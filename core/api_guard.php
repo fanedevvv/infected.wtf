@@ -4,7 +4,7 @@
 // Permite doar requesturi fetch/XHR legitime din interiorul site-ului
 
 (function() {
-    $allowedOrigin = 'getfame.wtf'; // <-- domeniul tău
+    $allowedOrigin = 'infected.wtf'; // <-- domeniul tău
 
     // 1. Verifică că requestul are X-Requested-With (setat de fetch/axios/jQuery)
     $xrw = $_SERVER['HTTP_X_REQUESTED_WITH'] ?? '';

@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════════════════
---  MIGRATION — Rulează pe baza de date existentă (getfamew)
+--  MIGRATION — Rulează pe baza de date existentă (infectedw)
 --  Adaugă coloanele lipsă: email_blind_index + cookie_consent
 --  + mărește câmpul email pentru a stoca valoarea criptată (AES-CBC base64)
 -- ═══════════════════════════════════════════════════════════════════════════

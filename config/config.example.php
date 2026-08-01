@@ -1,6 +1,6 @@
 <?php
 /* ── Site ── */
-define('SITE_NAME', 'GETFAME.WTF');
+define('SITE_NAME', 'INFECTED.WTF');
 define('SITE_URL',  'https://localhost');
 
 /* ── Database ── */

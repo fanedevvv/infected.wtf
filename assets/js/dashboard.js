@@ -1,5 +1,5 @@
 /**
- * GETFAME.WTF v2 - Dashboard JS
+ * INFECTED.WTF v2 - Dashboard JS
  */
 
 // ── Toast ─────────────────────────────────────────────

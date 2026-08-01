@@ -1,5 +1,5 @@
 /**
- * GETFAME.WTF v2 - Profile JS
+ * INFECTED.WTF v2 - Profile JS
  * Splash screen + volume widget + tooltips
  */
 

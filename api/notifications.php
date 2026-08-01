@@ -84,18 +84,18 @@ if ($action === 'read_one') {
     jsonOk(['message' => 'Marked as read']);
 }
 
-// ── POST: send getfame mail (owner only) ──────────────────────────────────
-if ($action === 'getfame_mail') {
+// ── POST: send infected mail (owner only) ──────────────────────────────────
+if ($action === 'infected_mail') {
     // Only owners can use this
     $ownerCheck = $pdo->prepare("SELECT is_owner FROM users WHERE id=?");
     $ownerCheck->execute([$userId]);
     $isOwner = (bool)($ownerCheck->fetchColumn() ?? false);
-    if (!$isOwner) jsonErr('Only owners can send GetFame mails.', 403);
+    if (!$isOwner) jsonErr('Only owners can send Infected mails.', 403);
 
     $title      = trim($input['title']      ?? '');
     $body       = trim($input['body']       ?? '');
     $recipient  = trim($input['recipient']  ?? ''); // 'all','premium','verified','content_creator'
-    $author     = trim($input['author']     ?? 'GetFame Team');
+    $author     = trim($input['author']     ?? 'Infected Team');
 
     if (!$title || !$body) jsonErr('Title and description are required.');
     $allowed = ['all', 'premium', 'verified', 'content_creator'];

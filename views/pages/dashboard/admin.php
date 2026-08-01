@@ -314,18 +314,18 @@ ob_start();
 </div><!-- /panel-tab-staff -->
 
 <!-- ═══════════════════════════════════════════
-     TAB 2 — OWNER (GetFame Mail, Bundles, Maintenance, x2)
+     TAB 2 — OWNER (Infected Mail, Bundles, Maintenance, x2)
      Vizibil DOAR pentru owners
 ═══════════════════════════════════════════ -->
 <?php if ($iAmOwner): ?>
 <div id="panel-tab-owner" class="admin-tab-panel" style="display:none;opacity:0">
 
-<!-- ── GetFame Mail Card ──────────────────────────────────────────────── -->
-<div class="dash-card" style="margin-bottom:1.5rem;border-color:rgba(168,85,247,.35);background:linear-gradient(160deg,rgba(168,85,247,.05) 0%,rgba(99,102,241,.03) 100%)" id="getfame-mail-card">
+<!-- ── Infected Mail Card ──────────────────────────────────────────────── -->
+<div class="dash-card" style="margin-bottom:1.5rem;border-color:rgba(168,85,247,.35);background:linear-gradient(160deg,rgba(168,85,247,.05) 0%,rgba(99,102,241,.03) 100%)" id="infected-mail-card">
     <div class="dash-card-header" style="border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:1rem;margin-bottom:1.2rem">
         <span class="dash-card-title" style="display:flex;align-items:center;gap:.6rem">
             <svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" width="18" height="18"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
-            <span style="color:#a855f7">GetFame Mail</span>
+            <span style="color:#a855f7">Infected Mail</span>
             <span style="font-size:.65rem;padding:.2rem .55rem;background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.4);border-radius:99px;color:#a855f7;font-weight:700;letter-spacing:.05em">OWNER</span>
         </span>
         <span style="font-size:.78rem;color:rgba(255,255,255,.35)">Send an announcement notification to a group of users</span>
@@ -355,13 +355,13 @@ ob_start();
         </div>
         <div>
             <label style="font-size:.75rem;color:rgba(255,255,255,.5);font-weight:600;display:block;margin-bottom:.4rem">AUTHOR</label>
-            <input type="text" id="gfm-author" placeholder="e.g. GetFame Team" maxlength="80" value="GetFame Team"
+            <input type="text" id="gfm-author" placeholder="e.g. Infected Team" maxlength="80" value="Infected Team"
                    style="width:100%;padding:.6rem .85rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:.85rem;outline:none;box-sizing:border-box;transition:border-color .2s"
                    onfocus="this.style.borderColor='rgba(168,85,247,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
         </div>
     </div>
     <div style="display:flex;align-items:center;gap:.75rem">
-        <button onclick="sendGetFameMail()" id="gfm-send-btn"
+        <button onclick="sendInfectedMail()" id="gfm-send-btn"
                 style="display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.2rem;background:linear-gradient(135deg,#a855f7,#6366f1);border:none;border-radius:8px;color:#fff;font-size:.85rem;font-weight:700;cursor:pointer;transition:opacity .2s">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
             Send Announcement
@@ -370,7 +370,7 @@ ob_start();
     </div>
 </div>
 <script>
-async function sendGetFameMail() {
+async function sendInfectedMail() {
     const title     = document.getElementById('gfm-title').value.trim();
     const body      = document.getElementById('gfm-body').value.trim();
     const recipient = document.getElementById('gfm-recipient').value;
@@ -393,7 +393,7 @@ async function sendGetFameMail() {
         const r = await fetch('/api/notifications.php', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({action: 'getfame_mail', title, body, recipient, author})
+            body: JSON.stringify({action: 'infected_mail', title, body, recipient, author})
         });
         const j = await r.json();
         if (j.success) {
@@ -401,7 +401,7 @@ async function sendGetFameMail() {
             statusEl.style.color = '#4ade80';
             document.getElementById('gfm-title').value  = '';
             document.getElementById('gfm-body').value   = '';
-            document.getElementById('gfm-author').value = 'GetFame Team';
+            document.getElementById('gfm-author').value = 'Infected Team';
         } else {
             statusEl.textContent = '✗ ' + (j.error || 'Unknown error');
             statusEl.style.color = '#ff8080';
