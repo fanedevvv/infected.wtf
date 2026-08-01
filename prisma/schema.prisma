@@ -1,0 +1,289 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    Int       @id @default(autoincrement())
+  username              String    @unique @db.VarChar(30)
+  email                 String    @db.VarChar(500)
+  emailBlindIndex       String?   @map("email_blind_index") @db.VarChar(64)
+  password              String    @db.VarChar(255)
+  emailVerified         Boolean   @default(false) @map("email_verified")
+  cookieConsent         String?   @map("cookie_consent") @db.VarChar(20)
+  lastLogin             DateTime? @map("last_login")
+  loginNotify           Boolean   @default(true) @map("login_notify")
+  twoFaEnabled          Boolean   @default(false) @map("two_fa_enabled")
+  twoFaSecret           String?   @map("two_fa_secret") @db.VarChar(64)
+  switchToken           String?   @map("switch_token") @db.VarChar(64)
+  switchTokenExpires    DateTime? @map("switch_token_expires")
+  isAdmin               Boolean   @default(false) @map("is_admin")
+  isOwner               Boolean   @default(false) @map("is_owner")
+  isMod                 Boolean   @default(false) @map("is_mod")
+  isPremium             Boolean   @default(false) @map("is_premium")
+  premiumExpiresAt      DateTime? @map("premium_expires_at")
+  banned                Boolean   @default(false)
+  banUntil              DateTime? @map("ban_until")
+  rememberToken         String?   @map("remember_token") @db.VarChar(64)
+  tokenExpires          DateTime? @map("token_expires")
+  tokens                Int       @default(0)
+  tokensSpent           Int       @default(0) @map("tokens_spent")
+  usdSpent              Decimal   @default(0.00) @map("usd_spent") @db.Decimal(10, 2)
+  referralCode          String?   @unique @map("referral_code") @db.VarChar(20)
+  referredBy            String?   @map("referred_by") @db.VarChar(20)
+  usernameChangedAt     DateTime? @map("username_changed_at")
+  leaderboardRegionCode String?   @map("leaderboard_region_code") @db.Char(2)
+  leaderboardRegionName String?   @map("leaderboard_region_name") @db.VarChar(80)
+  regIpHash             String?   @map("reg_ip_hash") @db.VarChar(64)
+  createdAt             DateTime  @default(now()) @map("created_at")
+
+  profile              Profile?
+  socialLinks          SocialLink[]
+  integrations         Integration[]
+  referralsMade        Referral[]           @relation("Referrer")
+  referralReceived     Referral?            @relation("Referred")
+  emailVerifications   EmailVerification[]
+  emailChangePending   EmailChangePending[]
+  actionConfirmations  ActionConfirmation[]
+  passwordReset        PasswordReset?
+  loginHistory         LoginHistory[]
+  notifications        Notification[]
+  viewsLogAsProfile    ViewsLog[]
+  linkClicks           LinkClick[]
+
+  @@index([regIpHash], map: "idx_reg_ip_hash")
+  @@index([isMod], map: "idx_users_is_mod")
+  @@map("users")
+}
+
+model Profile {
+  id                Int      @id @default(autoincrement())
+  userId            Int      @unique @map("user_id")
+  displayName       String?  @map("display_name") @db.VarChar(100)
+  bio               String?  @db.VarChar(300)
+  location          String?  @db.VarChar(100)
+  avatar            String?  @db.VarChar(300)
+  backgroundType    String   @default("particles") @map("background_type") @db.VarChar(20)
+  backgroundValue   String   @default("#050507") @map("background_value") @db.VarChar(500)
+  accentColor       String   @default("#00d4ff") @map("accent_color") @db.VarChar(7)
+  secondaryColor    String   @default("#ff00ff") @map("secondary_color") @db.VarChar(7)
+  musicPath         String?  @map("music_path") @db.VarChar(500)
+  cursorPath        String?  @map("cursor_path") @db.VarChar(500)
+  cursorTrail       Boolean  @default(false) @map("cursor_trail")
+  particleEffect    Boolean  @default(false) @map("particle_effect")
+  profileFont       String   @default("Syne") @map("profile_font") @db.VarChar(50)
+  profileOpacity    Int      @default(100) @map("profile_opacity")
+  profileBlur       Int      @default(0) @map("profile_blur")
+  typingEffect      Boolean  @default(false) @map("typing_effect")
+  views             Int      @default(0)
+  localViews        Int      @default(0) @map("local_views")
+  badges            Json?
+  badgeHidden       Json?    @map("badge_hidden")
+  badgeOrder        Json?    @map("badge_order")
+  purchasedEffects  Json?    @map("purchased_effects")
+  activeEffects     Json?    @map("active_effects")
+  avatarShape       String   @default("circle") @map("avatar_shape") @db.VarChar(20)
+  avatarRing        String   @default("none") @map("avatar_ring") @db.VarChar(20)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model SocialLink {
+  id           Int    @id @default(autoincrement())
+  userId       Int    @map("user_id")
+  platform     String @db.VarChar(50)
+  url          String @db.VarChar(500)
+  displayOrder Int    @default(0) @map("display_order")
+
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clicks LinkClick[]
+
+  @@map("social_links")
+}
+
+model ViewsLog {
+  id             Int      @id @default(autoincrement())
+  profileUserId  Int      @map("profile_user_id")
+  ipHash         String   @map("ip_hash") @db.VarChar(64)
+  deviceType     String   @default("desktop") @map("device_type") @db.VarChar(10)
+  countryCode    String   @default("XX") @map("country_code") @db.Char(2)
+  countryName    String   @default("Unknown") @map("country_name") @db.VarChar(80)
+  browser        String   @default("Unknown") @db.VarChar(50)
+  osName         String   @default("Unknown") @map("os_name") @db.VarChar(50)
+  viewedAt       DateTime @map("viewed_at") @db.Date
+
+  profileUser User @relation(fields: [profileUserId], references: [id], onDelete: Cascade)
+
+  @@unique([profileUserId, ipHash, viewedAt], map: "unique_view")
+  @@map("views_log")
+}
+
+model LinkClick {
+  id            Int      @id @default(autoincrement())
+  profileUserId Int      @map("profile_user_id")
+  linkId        Int      @map("link_id")
+  linkTitle     String?  @map("link_title") @db.VarChar(200)
+  linkUrl       String?  @map("link_url") @db.VarChar(500)
+  ipHash        String   @map("ip_hash") @db.VarChar(64)
+  clickedAt     DateTime @map("clicked_at") @db.Date
+
+  profileUser User       @relation(fields: [profileUserId], references: [id], onDelete: Cascade)
+  link        SocialLink @relation(fields: [linkId], references: [id])
+
+  @@map("link_clicks")
+}
+
+model Integration {
+  id                     Int       @id @default(autoincrement())
+  userId                 Int       @map("user_id")
+  type                   String    @default("discord") @db.VarChar(30)
+  discordUserId          String?   @map("discord_user_id") @db.VarChar(25)
+  discordUsername        String?   @map("discord_username") @db.VarChar(100)
+  discordGlobalName      String?   @map("discord_global_name") @db.VarChar(100)
+  discordAvatar          String?   @map("discord_avatar") @db.VarChar(100)
+  discordServerInvite    String?   @map("discord_server_invite") @db.VarChar(255)
+  discordServerId        String?   @map("discord_server_id") @db.VarChar(30)
+  discordServerName      String?   @map("discord_server_name") @db.VarChar(100)
+  discordServerIcon      String?   @map("discord_server_icon") @db.VarChar(100)
+  discordServerOnline    Int?      @map("discord_server_online")
+  discordServerTotal     Int?      @map("discord_server_total")
+  discordServerVisible   Boolean   @default(true) @map("discord_server_visible")
+  discordServerUpdated   DateTime? @map("discord_server_updated")
+  visible                Boolean   @default(true)
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type], map: "uniq_user_type")
+  @@map("integrations")
+}
+
+model Referral {
+  id           Int      @id @default(autoincrement())
+  referrerId   Int      @map("referrer_id")
+  referredId   Int      @unique @map("referred_id")
+  tokensGiven  Int      @default(10) @map("tokens_given")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  referrer User @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referred User @relation("Referred", fields: [referredId], references: [id], onDelete: Cascade)
+
+  @@map("referrals")
+}
+
+model EmailVerification {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  token     String    @unique @db.VarChar(64)
+  expiresAt DateTime  @map("expires_at")
+  used      Boolean   @default(false)
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_user_id")
+  @@map("email_verifications")
+}
+
+model EmailChangePending {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  newEmail  String   @map("new_email") @db.VarChar(255)
+  token     String   @unique @db.VarChar(64)
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_user_id_ecp")
+  @@map("email_change_pending")
+}
+
+model ActionConfirmation {
+  id         Int       @id @default(autoincrement())
+  userId     Int       @map("user_id")
+  actionType String    @map("action_type") @db.VarChar(50)
+  payload    String?   @db.Text
+  token      String    @unique @db.VarChar(64)
+  expiresAt  DateTime  @map("expires_at")
+  used       Boolean   @default(false)
+  usedAt     DateTime? @map("used_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, actionType], map: "idx_user_action")
+  @@map("action_confirmations")
+}
+
+model PasswordReset {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique @map("user_id")
+  tokenHash String   @unique @map("token_hash") @db.VarChar(64)
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_resets")
+}
+
+model LoginHistory {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @map("user_id")
+  ipHash     String   @map("ip_hash") @db.VarChar(64)
+  ipDisplay  String?  @map("ip_display") @db.VarChar(20)
+  deviceType String   @default("desktop") @map("device_type") @db.VarChar(10)
+  browser    String   @default("Unknown") @db.VarChar(50)
+  loggedAt   DateTime @default(now()) @map("logged_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, ipHash], map: "idx_user_ip")
+  @@map("login_history")
+}
+
+model SiteSettings {
+  id                Int       @id @default(autoincrement())
+  whitelistEnabled  Boolean   @default(false) @map("whitelist_enabled")
+  x2TokensEnabled   Boolean   @default(false) @map("x2_tokens_enabled")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  updatedBy         Int?      @map("updated_by")
+
+  @@map("site_settings")
+}
+
+model RateLimit {
+  id           Int      @id @default(autoincrement())
+  type         String   @db.VarChar(32)
+  ipHash       String   @map("ip_hash") @db.VarChar(64)
+  attemptedAt  DateTime @default(now()) @map("attempted_at")
+
+  @@index([type, ipHash, attemptedAt], map: "idx_rl")
+  @@map("rate_limits")
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  type      String   @db.VarChar(50)
+  title     String   @db.VarChar(200)
+  body      String?  @db.VarChar(500)
+  icon      String   @default("bell") @db.VarChar(50)
+  link      String?  @db.VarChar(300)
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead], map: "idx_user_unread")
+  @@map("notifications")
+}
