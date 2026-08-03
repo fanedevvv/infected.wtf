@@ -39,6 +39,7 @@ model User {
   leaderboardRegionCode String?   @map("leaderboard_region_code") @db.Char(2)
   leaderboardRegionName String?   @map("leaderboard_region_name") @db.VarChar(80)
   regIpHash             String?   @map("reg_ip_hash") @db.VarChar(64)
+  purchasedBundles      Json?     @map("purchased_bundles")
   createdAt             DateTime  @default(now()) @map("created_at")
 
   profile              Profile?
@@ -286,4 +287,18 @@ model Notification {
 
   @@index([userId, isRead], map: "idx_user_unread")
   @@map("notifications")
+}
+
+model Bundle {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(100)
+  price        Decimal  @default(0) @db.Decimal(8, 2)
+  priceType    String   @default("euro") @map("price_type") @db.VarChar(10)
+  badges       Json?
+  effects      Json?
+  premiumDays  Int      @default(0) @map("premium_days")
+  createdBy    Int?     @map("created_by")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("bundles")
 }

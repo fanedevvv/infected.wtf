@@ -20,6 +20,23 @@ export async function createSession(userId: number) {
   });
 }
 
+export const SESSION_COOKIE_NAME = COOKIE_NAME;
+
+export function buildSessionCookie(userId: number) {
+  const token = jwt.sign({ userId } as SessionPayload, JWT_SECRET, { expiresIn: "30d" });
+  return {
+    name: COOKIE_NAME,
+    value: token,
+    options: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax" as const,
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+    },
+  };
+}
+
 export async function destroySession() {
   const store = await cookies();
   store.delete(COOKIE_NAME);

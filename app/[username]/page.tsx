@@ -3,19 +3,8 @@ import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { getProfileBadges } from "@/lib/badges";
 import { recordProfileView } from "@/lib/views";
-
-const PLATFORM_COLORS: Record<string, string> = {
-  steam: "#1b2838",
-  spotify: "#1DB954",
-  discord: "#5865F2",
-  instagram: "#E1306C",
-  twitter: "#000000",
-  youtube: "#FF0000",
-  twitch: "#9146FF",
-  github: "#333333",
-  tiktok: "#010101",
-  website: "#555555",
-};
+import { getCurrentUser } from "@/lib/auth-helpers";
+import ProfileView from "@/components/ProfileView";
 
 export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
@@ -28,74 +17,77 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   if (!user || !user.profile) notFound();
   if (user.banned) notFound();
 
-  const h = await headers();
-  const ip = (h.get("x-forwarded-for") || h.get("cf-connecting-ip") || "0.0.0.0").split(",")[0].trim();
-  const ua = h.get("user-agent") || "";
-  const country = h.get("cf-ipcountry") || "";
-  recordProfileView(user.id, ip, ua, country).catch(() => {});
+  const viewer = await getCurrentUser();
+  const isOwner = viewer?.id === user.id;
+
+  if (!isOwner) {
+    const h = await headers();
+    const ip = (h.get("x-forwarded-for") || h.get("cf-connecting-ip") || "0.0.0.0").split(",")[0].trim();
+    const ua = h.get("user-agent") || "";
+    const country = h.get("cf-ipcountry") || "";
+    recordProfileView(user.id, ip, ua, country).catch(() => {});
+  }
 
   const badges = await getProfileBadges(user.id);
   const profile = user.profile;
+  const isPremium = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date());
 
-  const bg =
-    profile.backgroundType === "gradient"
-      ? { backgroundImage: profile.backgroundValue }
-      : profile.backgroundType === "color"
-        ? { backgroundColor: profile.backgroundValue }
-        : { backgroundColor: "#050507" };
+  const integration = await prisma.integration.findFirst({ where: { userId: user.id, type: "discord" } });
+  const discordInt = integration && integration.discordUserId && integration.visible ? integration : null;
+  const discordServerInt = integration && integration.discordServerId && integration.discordServerVisible ? integration : null;
+
+  const purchasedEffects = ((profile.purchasedEffects as string[] | null) ?? []) as string[];
+  const activeEffects = (profile.activeEffects as Record<string, string> | null) ?? {};
 
   return (
-    <main className="flex-1 flex items-center justify-center px-4 py-16" style={bg}>
-      <div
-        className="gf-card w-full max-w-sm p-8 text-center"
-        style={{ opacity: (profile.profileOpacity ?? 100) / 100 }}
-      >
-        <div
-          className="w-24 h-24 mx-auto mb-4 rounded-full bg-cover bg-center border-2"
-          style={{
-            backgroundImage: profile.avatar ? `url(${profile.avatar})` : undefined,
-            backgroundColor: "#111",
-            borderColor: profile.accentColor,
-          }}
-        />
-        <h1 className="font-[var(--font-display)] text-xl font-bold">
-          {profile.displayName || user.username}
-        </h1>
-        <p className="text-white/40 text-sm mb-2">@{user.username}</p>
-
-        {badges.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-1.5 mb-3">
-            {badges.map((b) => (
-              <span
-                key={b.id}
-                className="text-[10px] font-semibold px-2 py-0.5 rounded-full border"
-                style={{ borderColor: profile.accentColor, color: profile.accentColor }}
-              >
-                {b.label}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {profile.bio && <p className="text-white/70 text-sm mb-5 whitespace-pre-wrap">{profile.bio}</p>}
-
-        <div className="space-y-2">
-          {user.socialLinks.map((link) => (
-            <a
-              key={link.id}
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 rounded-[10px] border border-white/10 px-4 py-2.5 text-sm font-medium hover:bg-white/5 transition-colors"
-              style={{ borderColor: PLATFORM_COLORS[link.platform] + "40" }}
-            >
-              {link.platform}
-            </a>
-          ))}
-        </div>
-
-        <p className="text-white/25 text-[11px] mt-6">{profile.views} views</p>
-      </div>
-    </main>
+    <ProfileView
+      username={user.username}
+      displayName={profile.displayName || user.username}
+      bio={profile.bio}
+      location={profile.location}
+      avatar={profile.avatar}
+      avatarShape={profile.avatarShape}
+      avatarRing={profile.avatarRing as "none" | "normal" | "premium"}
+      accentColor={profile.accentColor}
+      backgroundType={profile.backgroundType}
+      backgroundValue={profile.backgroundValue}
+      isPremium={isPremium}
+      particleEffect={profile.particleEffect}
+      cursorTrail={profile.cursorTrail}
+      typingEffect={profile.typingEffect}
+      musicPath={profile.musicPath}
+      cursorPath={profile.cursorPath}
+      views={profile.views}
+      createdAt={user.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+      isOwner={isOwner}
+      socialLinks={user.socialLinks}
+      badges={badges}
+      discordInt={
+        discordInt
+          ? {
+              discordUserId: discordInt.discordUserId!,
+              discordUsername: discordInt.discordUsername || "",
+              discordGlobalName: discordInt.discordGlobalName,
+              discordAvatar: discordInt.discordAvatar,
+            }
+          : null
+      }
+      discordServerInt={
+        discordServerInt
+          ? {
+              invite: discordServerInt.discordServerInvite || "",
+              serverName: discordServerInt.discordServerName || "Discord Server",
+              serverIcon: discordServerInt.discordServerIcon,
+              serverId: discordServerInt.discordServerId || "",
+              online: discordServerInt.discordServerOnline || 0,
+              total: discordServerInt.discordServerTotal || 0,
+            }
+          : null
+      }
+      purchasedEffects={purchasedEffects}
+      activeCursorEffect={activeEffects.cursor || ""}
+      activeAvatarEffect={activeEffects.avatar || ""}
+      activeBgEffect={activeEffects.bg || ""}
+    />
   );
 }

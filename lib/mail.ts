@@ -98,6 +98,22 @@ export async function sendPasswordResetEmail(email: string, username: string, to
   return sendMail(email, `Reset your password — ${SITE_NAME}`, html, text);
 }
 
+export async function sendReloginVerificationEmail(email: string, username: string, token: string) {
+  const url = `${process.env.SITE_URL}/auth/confirm-action?token=${token}&type=relogin`;
+  const html = baseTemplate({
+    accent: "#00d4ff",
+    accent2: "#ff00ff",
+    logo: SITE_NAME,
+    heading: `Welcome back, ${username}!`,
+    body: `It's been a while since you last logged in to ${SITE_NAME}. For your security, please confirm it's you by clicking the button below.`,
+    btnLabel: "Yes, It's Me — Continue",
+    btnUrl: url,
+    small: "This link expires in 1 hour. If you didn't try to log in, change your password immediately.",
+  });
+  const text = `Welcome back to ${SITE_NAME}\n\nHi ${username},\n\nPlease confirm it's you:\n${url}\n\nExpires in 1 hour.\n`;
+  return sendMail(email, `Confirm it's you — ${SITE_NAME}`, html, text);
+}
+
 export async function sendNewLoginEmail(
   email: string,
   username: string,
@@ -116,4 +132,44 @@ export async function sendNewLoginEmail(
   });
   const text = `New login on ${SITE_NAME}\n\nTime: ${info.time}\nBrowser: ${info.browser}\nDevice: ${info.device}\nIP: ${info.ip}\nCountry: ${info.country}\n\nSecure: ${settingsUrl}\n`;
   return sendMail(email, `New login detected — ${SITE_NAME}`, html, text);
+}
+
+const ACTION_LABELS: Record<string, string> = {
+  change_password: "Password Change",
+  delete_account: "Account Deletion",
+  email_change: "Email Change",
+};
+
+export async function sendActionConfirmEmail(email: string, username: string, type: "change_password" | "delete_account", token: string) {
+  const url = `${process.env.SITE_URL}/auth/confirm-action?token=${token}&type=${type}`;
+  const label = ACTION_LABELS[type];
+  const isDelete = type === "delete_account";
+  const html = baseTemplate({
+    accent: isDelete ? "#ff4444" : "#00d4ff",
+    accent2: isDelete ? "#ff8080" : "#ff00ff",
+    logo: SITE_NAME,
+    heading: `Confirm ${label}`,
+    body: `Hi ${username}, please confirm this ${label.toLowerCase()} request by clicking the button below.`,
+    btnLabel: `Confirm ${label}`,
+    btnUrl: url,
+    small: "This link expires in 1 hour. If you didn't request this, ignore this email.",
+  });
+  const text = `Confirm ${label} — ${SITE_NAME}\n\nHi ${username},\n\n${url}\n\nExpires in 1 hour.\n`;
+  return sendMail(email, `Confirm ${label} — ${SITE_NAME}`, html, text);
+}
+
+export async function sendEmailChangeVerification(email: string, username: string, newEmail: string, token: string) {
+  const url = `${process.env.SITE_URL}/auth/confirm-action?token=${token}&type=email_change`;
+  const html = baseTemplate({
+    accent: "#00d4ff",
+    accent2: "#ff00ff",
+    logo: SITE_NAME,
+    heading: "Confirm your new email",
+    body: `Hi ${username}, please confirm changing your ${SITE_NAME} account email to <strong style="color:#fff">${newEmail}</strong> by clicking the button below.`,
+    btnLabel: "Confirm Email Change",
+    btnUrl: url,
+    small: "This link expires in 24 hours. If you didn't request this, ignore this email.",
+  });
+  const text = `Confirm your new email — ${SITE_NAME}\n\nHi ${username},\n\n${url}\n\nExpires in 24 hours.\n`;
+  return sendMail(newEmail, `Confirm your new email — ${SITE_NAME}`, html, text);
 }

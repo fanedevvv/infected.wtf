@@ -1,118 +1,113 @@
-"use client";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth-helpers";
+import AdminClient from "./AdminClient";
 
-import { useEffect, useState } from "react";
-
-type AdminUser = {
-  id: number;
-  username: string;
-  isAdmin: boolean;
-  isOwner: boolean;
-  isMod: boolean;
-  banned: boolean;
-  banUntil: string | null;
-  tokens: number;
-  createdAt: string;
-};
-
-export default function AdminPage() {
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [q, setQ] = useState("");
-  const [error, setError] = useState("");
-  const [whitelist, setWhitelist] = useState<boolean | null>(null);
-
-  async function load() {
-    const res = await fetch(`/api/admin/users?q=${encodeURIComponent(q)}`);
-    if (res.status === 403) {
-      setError("You don't have access to this page.");
-      return;
-    }
-    const data = await res.json();
-    setUsers(data.users || []);
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ page?: string; q?: string }> }) {
+  const params = await searchParams;
+  const me = await getCurrentUser();
+  if (!me) redirect("/login");
+  if (me.banned) redirect("/banned");
+  if (!me.isAdmin && !me.isOwner && !me.isMod) {
+    return (
+      <div style={{ padding: "3rem", textAlign: "center", color: "rgba(255,255,255,.5)" }}>403 Forbidden</div>
+    );
   }
 
-  async function loadSettings() {
-    const res = await fetch("/api/admin/settings");
-    if (res.ok) setWhitelist((await res.json()).whitelistEnabled);
+  const iAmOwner = me.isOwner;
+  const iAmAdmin = me.isAdmin;
+  const iAmMod = me.isMod;
+
+  let canGrantOwner = false;
+  let myOwnerRank = 0;
+  if (iAmOwner) {
+    myOwnerRank = (await prisma.user.count({ where: { isOwner: true, id: { lt: me.id } } })) + 1;
+    canGrantOwner = myOwnerRank <= 3;
   }
 
-  useEffect(() => {
-    load();
-    loadSettings();
-  }, []);
+  const [totalUsers, totalLinks, bannedCount, premiumCount] = await Promise.all([
+    prisma.user.count({ where: { emailVerified: true } }),
+    prisma.socialLink.count(),
+    prisma.user.count({ where: { banned: true } }),
+    prisma.user.count({ where: { isPremium: true, OR: [{ premiumExpiresAt: null }, { premiumExpiresAt: { gt: new Date() } }] } }),
+  ]);
+  const viewsAgg = await prisma.profile.aggregate({ _sum: { views: true } });
+  const totalViews = viewsAgg._sum.views ?? 0;
+  const tokensAgg = await prisma.user.aggregate({ _sum: { tokensSpent: true } });
+  const totalTokensSpent = tokensAgg._sum.tokensSpent ?? 0;
+  const badgeProfiles = await prisma.profile.findMany({ select: { badges: true } });
+  const verifiedCount = badgeProfiles.filter((p) => ((p.badges as string[] | null) ?? []).includes("verified")).length;
 
-  async function act(targetId: number, action: string) {
-    const res = await fetch("/api/admin/users", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ targetId, action }),
-    });
-    if (res.ok) load();
-    else setError((await res.json()).error);
-  }
+  const settings = await prisma.siteSettings.findFirst();
+  const whitelistEnabled = settings?.whitelistEnabled ?? false;
+  const x2EventEnabled = settings?.x2TokensEnabled ?? false;
 
-  async function toggleWhitelist() {
-    const res = await fetch("/api/admin/settings", { method: "POST" });
-    if (res.ok) setWhitelist((await res.json()).whitelistEnabled);
-  }
+  const allBundles = iAmOwner ? await prisma.bundle.findMany({ orderBy: { createdAt: "desc" } }) : [];
 
-  if (error) return <main className="flex-1 px-4 py-10 max-w-2xl mx-auto w-full text-red-400">{error}</main>;
+  const perPage = 10;
+  const page = Math.max(1, parseInt(params.page || "1") || 1);
+  const search = (params.q || "").trim();
+  const where = { emailVerified: true, ...(search ? { OR: [{ username: { contains: search } }, { email: { contains: search } }] } : {}) };
+
+  const totalFiltered = await prisma.user.count({ where });
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / perPage));
+  const clampedPage = Math.min(page, totalPages);
+
+  const usersRaw = await prisma.user.findMany({
+    where,
+    orderBy: { id: "asc" },
+    skip: (clampedPage - 1) * perPage,
+    take: perPage,
+    select: {
+      id: true, username: true, isAdmin: true, isOwner: true, isMod: true, banned: true, banUntil: true,
+      createdAt: true, tokens: true, isPremium: true, premiumExpiresAt: true,
+      profile: { select: { views: true, badges: true, avatar: true } },
+      _count: { select: { socialLinks: true } },
+    },
+  });
+
+  const users = usersRaw.map((u) => ({
+    id: u.id,
+    username: u.username,
+    isAdmin: u.isAdmin,
+    isOwner: u.isOwner,
+    isMod: u.isMod,
+    banned: u.banned,
+    banUntil: u.banUntil ? u.banUntil.toISOString() : null,
+    createdAt: u.createdAt.toISOString(),
+    tokens: u.tokens,
+    isPremium: u.isPremium,
+    premiumExpiresAt: u.premiumExpiresAt ? u.premiumExpiresAt.toISOString() : null,
+    views: u.profile?.views ?? 0,
+    links: u._count.socialLinks,
+    badges: (u.profile?.badges as string[] | null) ?? [],
+    avatar: u.profile?.avatar ? `/${u.profile.avatar}` : "/assets/img/default-avatar.png",
+  }));
 
   return (
-    <main className="flex-1 px-4 py-10 max-w-4xl mx-auto w-full">
-      <h1 className="font-[var(--font-display)] text-2xl font-bold mb-6">Admin</h1>
-
-      {whitelist !== null && (
-        <div className="gf-card p-4 mb-6 flex items-center justify-between">
-          <div>
-            <div className="font-semibold text-sm">Maintenance whitelist</div>
-            <div className="text-white/40 text-xs">When enabled, only staff can access the site.</div>
-          </div>
-          <button onClick={toggleWhitelist} className={`gf-btn text-xs ${whitelist ? "" : "opacity-60"}`}>
-            {whitelist ? "Enabled — disable" : "Disabled — enable"}
-          </button>
-        </div>
-      )}
-
-      <div className="flex gap-2 mb-4">
-        <input
-          className="gf-input"
-          placeholder="Search username…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && load()}
-        />
-        <button onClick={load} className="gf-btn shrink-0">
-          Search
-        </button>
-      </div>
-
-      <div className="space-y-2">
-        {users.map((u) => (
-          <div key={u.id} className="gf-card p-3 flex items-center justify-between flex-wrap gap-2">
-            <div>
-              <div className="text-sm font-medium">
-                @{u.username} <span className="text-white/30 text-xs">#{u.id}</span>
-                {u.isOwner && <span className="text-yellow-400 text-xs ml-2">owner</span>}
-                {u.isAdmin && <span className="text-red-400 text-xs ml-2">admin</span>}
-                {u.isMod && <span className="text-blue-400 text-xs ml-2">mod</span>}
-                {u.banned && <span className="text-white/40 text-xs ml-2">banned</span>}
-              </div>
-              <div className="text-white/40 text-xs">{u.tokens} tokens</div>
-            </div>
-            <div className="flex gap-1.5 text-xs">
-              <button onClick={() => act(u.id, u.banned ? "unban" : "ban")} className="px-2 py-1 rounded-lg border border-white/10 hover:bg-white/5">
-                {u.banned ? "Unban" : "Ban"}
-              </button>
-              <button onClick={() => act(u.id, u.isMod ? "revoke_mod" : "grant_mod")} className="px-2 py-1 rounded-lg border border-white/10 hover:bg-white/5">
-                {u.isMod ? "-Mod" : "+Mod"}
-              </button>
-              <button onClick={() => act(u.id, u.isAdmin ? "revoke_admin" : "grant_admin")} className="px-2 py-1 rounded-lg border border-white/10 hover:bg-white/5">
-                {u.isAdmin ? "-Admin" : "+Admin"}
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </main>
+    <AdminClient
+      iAmOwner={iAmOwner}
+      iAmAdmin={iAmAdmin}
+      iAmMod={iAmMod}
+      canGrantOwner={canGrantOwner}
+      myOwnerRank={myOwnerRank}
+      myUserId={me.id}
+      stats={{ totalUsers, totalViews, totalLinks, totalTokensSpent, premiumCount, verifiedCount, bannedCount }}
+      whitelistEnabled={whitelistEnabled}
+      x2EventEnabled={x2EventEnabled}
+      bundles={allBundles.map((b) => ({
+        id: b.id,
+        name: b.name,
+        price: Number(b.price),
+        priceType: b.priceType as "euro" | "tokens",
+        badges: (b.badges as string[] | null) ?? [],
+        effects: (b.effects as string[] | null) ?? [],
+        premiumDays: b.premiumDays,
+      }))}
+      users={users}
+      page={clampedPage}
+      totalPages={totalPages}
+      search={search}
+    />
   );
 }

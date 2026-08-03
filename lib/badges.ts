@@ -87,3 +87,69 @@ export async function getProfileBadges(userId: number): Promise<Badge[]> {
 
   return visible;
 }
+
+export type DashboardBadgeState = {
+  earned: string[];
+  hidden: Set<string>;
+  order: string[];
+  isPromoterElite: boolean;
+};
+
+/** Dashboard badge state: all earned badge ids (unfiltered), hidden set, custom order, and promoter/elite sync — mirrors badges.php. */
+export async function getDashboardBadgeState(userId: number): Promise<DashboardBadgeState> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { profile: true, integrations: { where: { type: "discord" } } },
+  });
+  if (!user || !user.profile) return { earned: [], hidden: new Set(), order: [], isPromoterElite: false };
+
+  const manual = (user.profile.badges as string[] | null) ?? [];
+  const hidden = new Set((user.profile.badgeHidden as string[] | null) ?? []);
+  const order = (user.profile.badgeOrder as string[] | null) ?? [];
+  const manualSet = new Set(manual);
+
+  const earned: string[] = [];
+  if (manualSet.has("verified")) earned.push("verified");
+
+  const rankCount = await prisma.user.count({ where: { id: { lte: userId } } });
+  if (rankCount <= 1000) earned.push("og");
+
+  const top3 = await prisma.profile.findMany({ orderBy: { views: "desc" }, take: 3, select: { userId: true } });
+  if (top3.some((p) => p.userId === userId)) earned.push("views_master");
+
+  const views = user.profile.views ?? 0;
+  if (views >= 1000) earned.push("hall_of_fame");
+  if (views >= 10000 || manualSet.has("champion")) earned.push("champion");
+
+  for (const id of ["known", "rich", "trapstar", "the_killer", "lover", "fresh", "crew", "billionaire", "content_creator", "designer"]) {
+    if (manualSet.has(id)) earned.push(id);
+  }
+
+  const isPremiumUser = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt.getTime() > Date.now());
+  if (isPremiumUser) earned.push("premium");
+  if (user.isOwner) earned.push("owner");
+  if (user.isAdmin) earned.push("admin");
+  if (user.integrations.length > 0) earned.push("discord");
+  if (manualSet.has("booster")) earned.push("booster");
+
+  const refCount = await prisma.referral.count({ where: { referrerId: userId } });
+  let isPromoterElite = false;
+  let badgesJson = manual;
+
+  if (refCount >= 20) {
+    isPromoterElite = true;
+    earned.push("promoter");
+    if (!badgesJson.includes("promoter_elite")) {
+      badgesJson = [...badgesJson.filter((b) => b !== "promoter"), "promoter_elite"];
+      await prisma.profile.update({ where: { userId }, data: { badges: badgesJson } });
+    }
+  } else if (refCount >= 10) {
+    earned.push("promoter");
+    if (!badgesJson.includes("promoter")) {
+      badgesJson = [...badgesJson, "promoter"];
+      await prisma.profile.update({ where: { userId }, data: { badges: badgesJson } });
+    }
+  }
+
+  return { earned, hidden, order, isPromoterElite };
+}

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
 import { TOTP } from "@/lib/totp";
+import { sendActionConfirmEmail } from "@/lib/mail";
 
 export async function POST(req: NextRequest) {
   let user;
@@ -30,7 +32,15 @@ export async function POST(req: NextRequest) {
   if (next.length < 6) return NextResponse.json({ error: "New password must be at least 6 characters." }, { status: 400 });
   if (next !== confirm) return NextResponse.json({ error: "Passwords do not match." }, { status: 400 });
 
-  const hash = await bcrypt.hash(next, 10);
-  await prisma.user.update({ where: { id: user.id }, data: { password: hash } });
-  return NextResponse.json({ success: true });
+  const newHash = await bcrypt.hash(next, 10);
+  const token = crypto.randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + 3600 * 1000);
+
+  await prisma.actionConfirmation.deleteMany({ where: { userId: user.id, actionType: "change_password" } });
+  await prisma.actionConfirmation.create({
+    data: { userId: user.id, actionType: "change_password", payload: newHash, token, expiresAt },
+  });
+  await sendActionConfirmEmail(user.email, user.username, "change_password", token);
+
+  return NextResponse.json({ success: true, message: `Confirmation email sent to ${user.email}. Click the link to confirm.` });
 }

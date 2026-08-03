@@ -14,6 +14,26 @@ function clientIp(req: NextRequest): string {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
+
+  // ── Resend verification email (separate lightweight flow) ──
+  if (body.resendEmail) {
+    const resendEmail = String(body.resendEmail).trim();
+    const user = await prisma.user.findFirst({ where: { emailBlindIndex: emailBlindIndex(resendEmail) } });
+    if (user && !user.emailVerified) {
+      const last = await prisma.emailVerification.findFirst({ where: { userId: user.id }, orderBy: { createdAt: "desc" } });
+      const secsLeft = last ? Math.max(0, 60 - Math.floor((Date.now() - last.createdAt.getTime()) / 1000)) : 0;
+      if (secsLeft === 0) {
+        const token = crypto.randomBytes(32).toString("hex");
+        await prisma.emailVerification.deleteMany({ where: { userId: user.id, used: false } });
+        await prisma.emailVerification.create({
+          data: { userId: user.id, token, expiresAt: new Date(Date.now() + 24 * 3600 * 1000) },
+        });
+        await sendVerificationEmail(resendEmail, user.username, token);
+      }
+    }
+    return NextResponse.json({ success: true, pendingEmail: resendEmail });
+  }
+
   const username = String(body.username || "").trim();
   const email = String(body.email || "").trim();
   const password = String(body.password || "");

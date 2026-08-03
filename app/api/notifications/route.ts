@@ -46,5 +46,47 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
   }
 
+  if (action === "infected_mail") {
+    if (!user.isOwner) return NextResponse.json({ success: false, error: "Only owners can send Infected mails." }, { status: 403 });
+
+    const title = String(body.title || "").trim();
+    const msgBody = String(body.body || "").trim();
+    const recipient = String(body.recipient || "").trim();
+    const author = String(body.author || "Infected Team").trim();
+
+    if (!title || !msgBody) return NextResponse.json({ success: false, error: "Title and description are required." });
+    if (!["all", "premium", "verified", "content_creator"].includes(recipient)) {
+      return NextResponse.json({ success: false, error: "Invalid recipient group." });
+    }
+
+    let targetIds: number[] = [];
+    if (recipient === "all") {
+      const rows = await prisma.user.findMany({ where: { emailVerified: true, banned: false }, select: { id: true } });
+      targetIds = rows.map((r) => r.id);
+    } else if (recipient === "premium") {
+      const rows = await prisma.user.findMany({
+        where: { isPremium: true, banned: false, OR: [{ premiumExpiresAt: null }, { premiumExpiresAt: { gt: new Date() } }] },
+        select: { id: true },
+      });
+      targetIds = rows.map((r) => r.id);
+    } else {
+      const profiles = await prisma.profile.findMany({ select: { userId: true, badges: true } });
+      const withBadge = profiles.filter((p) => ((p.badges as string[] | null) ?? []).includes(recipient)).map((p) => p.userId);
+      if (withBadge.length > 0) {
+        const rows = await prisma.user.findMany({ where: { id: { in: withBadge }, banned: false }, select: { id: true } });
+        targetIds = rows.map((r) => r.id);
+      }
+    }
+
+    if (targetIds.length === 0) return NextResponse.json({ success: false, error: "No users found for that recipient group." });
+
+    const fullBody = msgBody + (author ? `\n— ${author}` : "");
+    await prisma.notification.createMany({
+      data: targetIds.map((uid) => ({ userId: uid, type: "announcement", title, body: fullBody, icon: "megaphone" })),
+    });
+
+    return NextResponse.json({ success: true, sent: targetIds.length, message: `Announcement sent to ${targetIds.length} user(s).` });
+  }
+
   return NextResponse.json({ error: "Unknown action." }, { status: 400 });
 }

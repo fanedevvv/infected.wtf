@@ -22,7 +22,24 @@ export async function DELETE() {
   } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  await prisma.integration.deleteMany({ where: { userId: user.id, type: "discord" } });
+
+  const row = await prisma.integration.findUnique({ where: { userId_type: { userId: user.id, type: "discord" } } });
+  if (row) {
+    if (row.discordServerInvite) {
+      await prisma.integration.update({
+        where: { id: row.id },
+        data: {
+          discordUserId: null,
+          discordUsername: null,
+          discordAvatar: null,
+          discordGlobalName: null,
+          visible: true,
+        },
+      });
+    } else {
+      await prisma.integration.delete({ where: { id: row.id } });
+    }
+  }
 
   const profile = await prisma.profile.findUnique({ where: { userId: user.id } });
   const badges = new Set((profile?.badges as string[] | null) ?? []);
@@ -30,4 +47,18 @@ export async function DELETE() {
   await prisma.profile.update({ where: { userId: user.id }, data: { badges: Array.from(badges) } });
 
   return NextResponse.json({ success: true });
+}
+
+export async function PATCH() {
+  let user;
+  try {
+    user = await requireUser();
+  } catch {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+  const row = await prisma.integration.findUnique({ where: { userId_type: { userId: user.id, type: "discord" } } });
+  if (!row) return NextResponse.json({ success: false, error: "Integration not found." });
+  const newVal = !row.visible;
+  await prisma.integration.update({ where: { id: row.id }, data: { visible: newVal } });
+  return NextResponse.json({ success: true, message: newVal ? "Integration visible on profile." : "Integration hidden from profile." });
 }

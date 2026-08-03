@@ -23,9 +23,12 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const platform = String(body.platform || "website").slice(0, 50);
   const url = String(body.url || "").slice(0, 500);
-  if (!url) return NextResponse.json({ error: "URL is required." }, { status: 400 });
+  const allowed = ["steam", "spotify", "discord", "instagram", "twitter", "youtube", "twitch", "github", "tiktok", "website"];
+  if (!allowed.includes(platform)) return NextResponse.json({ error: "Invalid platform." }, { status: 400 });
+  if (!/^https?:\/\/.+/.test(url)) return NextResponse.json({ error: "Invalid URL." }, { status: 400 });
 
   const count = await prisma.socialLink.count({ where: { userId: user.id } });
+  if (count >= 10) return NextResponse.json({ error: "Maximum 10 links." }, { status: 400 });
   const link = await prisma.socialLink.create({
     data: { userId: user.id, platform, url, displayOrder: count },
   });
