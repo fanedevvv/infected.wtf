@@ -53,10 +53,17 @@ export default async function Home() {
       </FloatingNavbar>
 
       <div className="hero fade-in">
+        {!user && (
+          <div className="hero-promo-pill">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="12" height="12"><polyline points="20 6 9 17 4 12" /></svg>
+            Free forever — no credit card required
+          </div>
+        )}
         <h1>One profile.<br /><em>Endless identity.</em></h1>
 
         {!user && (
           <>
+            <div className="hero-claim-label">Claim your unique link</div>
             <ClaimUsername />
             <div className="hero-perks">
               <span className="hero-perk">
@@ -89,6 +96,28 @@ export default async function Home() {
               <Link href="/login" className="btn btn-secondary">Sign in</Link>
             </>
           )}
+        </div>
+
+        <div className="hero-scroll-hint">
+          Scroll down
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><polyline points="6 9 12 15 18 9" /></svg>
+        </div>
+      </div>
+
+      <div className="keyword-marquee">
+        <div className="keyword-marquee-track">
+          {Array.from({ length: 2 }).map((_, rep) => (
+            <div className="keyword-item" key={rep}>
+              <span className="accent">INFECTED.WTF</span><span className="kw-dot">✦</span>
+              <span>Custom Layouts</span><span className="kw-dot">✦</span>
+              <span>Visual Effects</span><span className="kw-dot">✦</span>
+              <span>Live Analytics</span><span className="kw-dot">✦</span>
+              <span>Audio Player</span><span className="kw-dot">✦</span>
+              <span>Image Hosting</span><span className="kw-dot">✦</span>
+              <span>Discord Sync</span><span className="kw-dot">✦</span>
+              <span>Badge Shop</span><span className="kw-dot">✦</span>
+            </div>
+          ))}
         </div>
       </div>
 
