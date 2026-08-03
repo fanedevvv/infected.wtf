@@ -51,6 +51,7 @@ export function HomeNavLinks({ user }: { user?: { username: string } | null }) {
       <div className="navbar-links">
         <a href="https://discord.gg/BAEpkJ62VM" target="_blank" rel="noreferrer">Discord</a>
         <Link href="/leaderboard">Leaderboard</Link>
+        <a href="#pricing">Pricing</a>
         {user ? (
           <Link href="/dashboard" className="btn btn-primary btn-sm">Dashboard</Link>
         ) : (
@@ -77,6 +78,7 @@ export function HomeNavLinks({ user }: { user?: { username: string } | null }) {
         <div className={`navbar-mobile-menu ${open ? "open" : ""}`}>
           <a href="https://discord.gg/BAEpkJ62VM" target="_blank" rel="noreferrer" onClick={close}>Discord</a>
           <Link href="/leaderboard" onClick={close}>Leaderboard</Link>
+          <a href="#pricing" onClick={close}>Pricing</a>
           {user ? (
             <Link href="/dashboard" className="btn btn-primary btn-sm" onClick={close}>Dashboard</Link>
           ) : (

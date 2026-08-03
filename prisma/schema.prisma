@@ -55,6 +55,8 @@ model User {
   notifications        Notification[]
   viewsLogAsProfile    ViewsLog[]
   linkClicks           LinkClick[]
+  likesReceived        ProfileLike[]        @relation("LikesReceived")
+  likesGiven           ProfileLike[]        @relation("LikesGiven")
 
   @@index([regIpHash], map: "idx_reg_ip_hash")
   @@index([isMod], map: "idx_users_is_mod")
@@ -138,6 +140,19 @@ model LinkClick {
   link        SocialLink @relation(fields: [linkId], references: [id])
 
   @@map("link_clicks")
+}
+
+model ProfileLike {
+  id            Int      @id @default(autoincrement())
+  profileUserId Int      @map("profile_user_id")
+  likerUserId   Int      @map("liker_user_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  profileUser User @relation("LikesReceived", fields: [profileUserId], references: [id], onDelete: Cascade)
+  likerUser   User @relation("LikesGiven", fields: [likerUserId], references: [id], onDelete: Cascade)
+
+  @@unique([profileUserId, likerUserId], map: "uniq_profile_liker")
+  @@map("profile_likes")
 }
 
 model Integration {

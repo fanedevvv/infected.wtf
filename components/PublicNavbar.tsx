@@ -25,6 +25,7 @@ export default function PublicNavbar({ user, active }: { user?: { username: stri
         <Link href="/leaderboard" style={active === "leaderboard" ? { color: "#fff", fontWeight: 600 } : undefined}>
           Leaderboard
         </Link>
+        <Link href="/#pricing">Pricing</Link>
         {user ? (
           <Link href="/dashboard" className="btn btn-primary btn-sm">Dashboard</Link>
         ) : (
@@ -52,6 +53,7 @@ export default function PublicNavbar({ user, active }: { user?: { username: stri
         <Link href="/leaderboard" onClick={close} style={active === "leaderboard" ? { color: "#fff", fontWeight: 600 } : undefined}>
           Leaderboard
         </Link>
+        <Link href="/#pricing" onClick={close}>Pricing</Link>
         {user ? (
           <Link href="/dashboard" className="btn btn-primary btn-sm" onClick={close}>Dashboard</Link>
         ) : (

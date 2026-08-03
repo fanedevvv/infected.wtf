@@ -39,6 +39,11 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   const purchasedEffects = ((profile.purchasedEffects as string[] | null) ?? []) as string[];
   const activeEffects = (profile.activeEffects as Record<string, string> | null) ?? {};
 
+  const [likeCount, likedByViewer] = await Promise.all([
+    prisma.profileLike.count({ where: { profileUserId: user.id } }),
+    viewer ? prisma.profileLike.findUnique({ where: { profileUserId_likerUserId: { profileUserId: user.id, likerUserId: viewer.id } } }) : null,
+  ]);
+
   return (
     <ProfileView
       username={user.username}
@@ -88,6 +93,9 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       activeCursorEffect={activeEffects.cursor || ""}
       activeAvatarEffect={activeEffects.avatar || ""}
       activeBgEffect={activeEffects.bg || ""}
+      likeCount={likeCount}
+      likedByViewer={!!likedByViewer}
+      viewerLoggedIn={!!viewer}
     />
   );
 }

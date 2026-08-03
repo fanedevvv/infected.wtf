@@ -14,6 +14,21 @@ function fmtNum(n: number): string {
   return String(n);
 }
 
+function CheckIcon({ accent }: { accent?: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={accent ? "var(--accent)" : "rgba(255,255,255,.55)"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+function DashIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.18)" strokeWidth="2.5" strokeLinecap="round" width="14" height="14">
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  );
+}
+
 export default async function Home() {
   const user = await getCurrentUser();
 
@@ -248,7 +263,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="pricing-section fade-in">
+      <section className="pricing-section fade-in" id="pricing">
         <div className="pricing-heading-label">Pricing</div>
         <div className="pricing-heading">One-Time Payment, Lifetime Access</div>
         <div className="pricing-sub">Pay once, enjoy forever — no subscriptions, no hidden fees.</div>
@@ -330,6 +345,49 @@ export default async function Home() {
               <div className="pricing-perk">Builds trust with your audience</div>
             </div>
             <Link href="/dashboard/shop" className="pricing-cta verif-btn">Learn more</Link>
+          </div>
+        </div>
+
+        <div className="compare-plans">
+          <div className="compare-plans-heading">Compare Plans</div>
+          <div className="compare-plans-sub">See what&apos;s included in each tier</div>
+          <div className="compare-table">
+            <div className="compare-row compare-row-head">
+              <div className="compare-feat" />
+              <div className="compare-col-head">Free</div>
+              <div className="compare-col-head prem">Premium</div>
+            </div>
+            {[
+              ["Unlimited links", true, true],
+              ["Profile analytics", "Basic", "Full dashboard"],
+              ["Basic customizations", true, true],
+              ["Visual effects & animations", false, true],
+              ["Golden 3D avatar ring", false, true],
+              ["Exclusive Diamond badge", false, true],
+              ["Custom cursor upload", false, true],
+              ["Priority support", false, true],
+              ["Profile watermark removed", false, true],
+              ["Tokens per profile view", "3", "5"],
+              ["Referral bonus", "10 tokens", "20 tokens"],
+            ].map(([label, free, prem]) => (
+              <div className="compare-row" key={label as string}>
+                <div className="compare-feat">{label}</div>
+                <div className="compare-col">
+                  {typeof free === "boolean" ? (
+                    free ? <CheckIcon /> : <DashIcon />
+                  ) : (
+                    <span className="compare-val">{free}</span>
+                  )}
+                </div>
+                <div className="compare-col prem">
+                  {typeof prem === "boolean" ? (
+                    prem ? <CheckIcon accent /> : <DashIcon />
+                  ) : (
+                    <span className="compare-val accent">{prem}</span>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

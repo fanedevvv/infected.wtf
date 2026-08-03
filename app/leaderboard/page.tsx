@@ -128,6 +128,30 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
       premium: isPremiumNow(u.isPremium, u.premiumExpiresAt),
     }));
 
+  const likesUsersRaw = await prisma.user.findMany({
+    where: { banned: false, emailVerified: true, profile: { isNot: null } },
+    orderBy: { likesReceived: { _count: "desc" } },
+    take: 100,
+    select: {
+      id: true,
+      username: true,
+      isPremium: true,
+      premiumExpiresAt: true,
+      profile: { select: { displayName: true, avatar: true } },
+      _count: { select: { likesReceived: true } },
+    },
+  });
+  const likesUsers = likesUsersRaw
+    .filter((u) => u._count.likesReceived > 0)
+    .map((u) => ({
+      id: u.id,
+      username: u.username,
+      displayName: u.profile!.displayName || "",
+      avatar: u.profile!.avatar || "",
+      likeCount: u._count.likesReceived,
+      premium: isPremiumNow(u.isPremium, u.premiumExpiresAt),
+    }));
+
   let myRankGlobal = 0;
   let myViewsGlobal = 0;
   if (loggedIn) {
@@ -247,6 +271,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
         <LeaderboardTabs
           globalUsers={topUsers}
           localUsers={localUsers}
+          likesUsers={likesUsers}
           searchQuery={searchQuery}
           loggedIn={loggedIn}
           myUserId={myUserId}

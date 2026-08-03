@@ -5,9 +5,18 @@ import SafeImg from "@/components/SafeImg";
 
 type GlobalUser = { id: number; username: string; displayName: string; avatar: string; views: number; premium: boolean };
 type LocalUser = { id: number; username: string; displayName: string; avatar: string; localViews: number; regionName: string; premium: boolean };
+type LikesUser = { id: number; username: string; displayName: string; avatar: string; likeCount: number; premium: boolean };
+type AnyUser = GlobalUser | LocalUser | LikesUser;
+type Metric = "views" | "localViews" | "likes";
 
 function fmtViews(v: number): string {
   return v >= 1000 ? `${Math.round((v / 1000) * 10) / 10}K` : String(v);
+}
+
+function metricValue(u: AnyUser, metric: Metric): number {
+  if (metric === "views") return (u as GlobalUser).views;
+  if (metric === "localViews") return (u as LocalUser).localViews;
+  return (u as LikesUser).likeCount;
 }
 
 function PremBadge() {
@@ -21,8 +30,8 @@ function PremBadge() {
   );
 }
 
-function Podium({ users, metric }: { users: (GlobalUser | LocalUser)[]; metric: "views" | "localViews" }) {
-  const order: { rank: number; cls: string; user: GlobalUser | LocalUser | undefined }[] = [
+function Podium({ users, metric }: { users: AnyUser[]; metric: Metric }) {
+  const order: { rank: number; cls: string; user: AnyUser | undefined }[] = [
     { rank: 2, cls: "p2", user: users[1] },
     { rank: 1, cls: "p1", user: users[0] },
     { rank: 3, cls: "p3", user: users[2] },
@@ -43,8 +52,12 @@ function Podium({ users, metric }: { users: (GlobalUser | LocalUser)[]; metric: 
                 )}
               </div>
               <div className="lb-podium-views">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
-                {fmtViews(metric === "views" ? (pod.user as GlobalUser).views : (pod.user as LocalUser).localViews)}
+                {metric === "likes" ? (
+                  <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                )}
+                {fmtViews(metricValue(pod.user, metric))}
               </div>
             </div>
           </div>
@@ -61,13 +74,14 @@ function Table({
   myUserId,
   emptyText,
 }: {
-  users: (GlobalUser | LocalUser)[];
-  metric: "views" | "localViews";
+  users: AnyUser[];
+  metric: Metric;
   loggedIn: boolean;
   myUserId: number;
   emptyText: string;
 }) {
   const rest = users.slice(3);
+  const metricLabel = metric === "views" ? "Views" : metric === "localViews" ? "Local Views" : "Likes";
   return (
     <div className="lb-table-wrap">
       <table className="lb-table">
@@ -75,7 +89,7 @@ function Table({
           <tr>
             <th style={{ width: 52 }}>#</th>
             <th>Profile</th>
-            <th style={{ textAlign: "right" }}>{metric === "views" ? "Views" : "Local Views"}</th>
+            <th style={{ textAlign: "right" }}>{metricLabel}</th>
           </tr>
         </thead>
         <tbody>
@@ -85,7 +99,7 @@ function Table({
             rest.map((u, i) => {
               const rank = i + 4;
               const isMe = loggedIn && u.id === myUserId;
-              const value = metric === "views" ? (u as GlobalUser).views : (u as LocalUser).localViews;
+              const value = metricValue(u, metric);
               return (
                 <tr key={u.id} className={isMe ? "is-me" : ""} onClick={() => window.open(`/${encodeURIComponent(u.username)}`, "_blank")}>
                   <td><span className="lb-rank-num">{rank}</span></td>
@@ -116,6 +130,7 @@ function Table({
 export default function LeaderboardTabs({
   globalUsers,
   localUsers,
+  likesUsers,
   searchQuery,
   loggedIn,
   myUserId,
@@ -130,6 +145,7 @@ export default function LeaderboardTabs({
 }: {
   globalUsers: GlobalUser[];
   localUsers: LocalUser[];
+  likesUsers: LikesUser[];
   searchQuery: string;
   loggedIn: boolean;
   myUserId: number;
@@ -142,11 +158,11 @@ export default function LeaderboardTabs({
   myViewsLocal: number;
   badgeRegionName: string;
 }) {
-  const [tab, setTab] = useState<"global" | "local">("global");
+  const [tab, setTab] = useState<"global" | "local" | "likes">("global");
   const [fading, setFading] = useState(false);
   const [regionName, setRegionName] = useState(badgeRegionName);
 
-  function switchTab(next: "global" | "local") {
+  function switchTab(next: "global" | "local" | "likes") {
     if (next === tab) return;
     setFading(true);
     setTimeout(() => {
@@ -185,6 +201,7 @@ export default function LeaderboardTabs({
           <div className="lb-tab-switch">
             <button className={`lb-tab-btn ${tab === "global" ? "active" : ""}`} onClick={() => switchTab("global")}>Global</button>
             <button className={`lb-tab-btn ${tab === "local" ? "active" : ""}`} onClick={() => switchTab("local")}>Local</button>
+            <button className={`lb-tab-btn ${tab === "likes" ? "active" : ""}`} onClick={() => switchTab("likes")}>Likes</button>
           </div>
         </div>
         {showRankPills && (
@@ -194,7 +211,7 @@ export default function LeaderboardTabs({
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" style={{ color: "var(--accent)", flexShrink: 0 }}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                 You are ranked <strong>#{myRankGlobal.toLocaleString()}</strong> with {myViewsGlobal.toLocaleString()} global views{myRankGlobal > 100 && " — Keep growing!"}
               </div>
-            ) : myRegionCode && myRegionCode !== "XX" ? (
+            ) : tab === "local" && myRegionCode && myRegionCode !== "XX" ? (
               <div className="lb-rank-pill" style={{ display: "inline-flex" }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" style={{ color: "var(--accent)", flexShrink: 0 }}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                 {myRankLocal > 0 ? (
@@ -218,7 +235,7 @@ export default function LeaderboardTabs({
             )}
             <Table users={globalUsers} metric="views" loggedIn={loggedIn} myUserId={myUserId} emptyText="No profiles yet." />
           </>
-        ) : (
+        ) : tab === "local" ? (
           <>
             {!searchQuery && localUsers.length >= 1 && (
               <div className="lb-podium-wrap">
@@ -253,6 +270,15 @@ export default function LeaderboardTabs({
             ) : null}
 
             <Table users={localUsers} metric="localViews" loggedIn={loggedIn} myUserId={myUserId} emptyText="No users with a region set yet." />
+          </>
+        ) : (
+          <>
+            {!searchQuery && likesUsers.length >= 1 && (
+              <div className="lb-podium-wrap">
+                <Podium users={likesUsers} metric="likes" />
+              </div>
+            )}
+            <Table users={likesUsers} metric="likes" loggedIn={loggedIn} myUserId={myUserId} emptyText="No liked profiles yet." />
           </>
         )}
       </div>

@@ -119,6 +119,9 @@ interface ProfileViewProps {
   activeCursorEffect: string;
   activeAvatarEffect: string;
   activeBgEffect: string;
+  likeCount: number;
+  likedByViewer: boolean;
+  viewerLoggedIn: boolean;
 }
 
 export default function ProfileView(p: ProfileViewProps) {
@@ -128,6 +131,40 @@ export default function ProfileView(p: ProfileViewProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [volume, setVolume] = useState(0.35);
   const [muted, setMuted] = useState(false);
+  const [liked, setLiked] = useState(p.likedByViewer);
+  const [likeCount, setLikeCount] = useState(p.likeCount);
+  const [likeBusy, setLikeBusy] = useState(false);
+
+  async function toggleLike() {
+    if (!p.viewerLoggedIn) {
+      window.location.href = "/login";
+      return;
+    }
+    if (likeBusy) return;
+    setLikeBusy(true);
+    const prevLiked = liked, prevCount = likeCount;
+    setLiked(!prevLiked);
+    setLikeCount(prevLiked ? prevCount - 1 : prevCount + 1);
+    try {
+      const res = await fetch("/api/profile-like", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: p.username }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setLiked(data.liked);
+        setLikeCount(data.count);
+      } else {
+        setLiked(prevLiked);
+        setLikeCount(prevCount);
+      }
+    } catch {
+      setLiked(prevLiked);
+      setLikeCount(prevCount);
+    }
+    setLikeBusy(false);
+  }
 
   useEffect(() => {
     if (!p.typingEffect || !entered) return;
@@ -408,6 +445,19 @@ export default function ProfileView(p: ProfileViewProps) {
                   <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" /></svg>
                   {p.views.toLocaleString()}
                 </div>
+                {!p.isOwner && (
+                  <button
+                    className={`profile-like-pill ${liked ? "liked" : ""}`}
+                    onClick={toggleLike}
+                    disabled={likeBusy}
+                    title={liked ? "Unlike" : "Like this profile"}
+                  >
+                    <svg viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" width="15" height="15">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                    </svg>
+                    {likeCount.toLocaleString()}
+                  </button>
+                )}
               </div>
               <div className="profile-joined">Joined {p.createdAt}</div>
             </div>
