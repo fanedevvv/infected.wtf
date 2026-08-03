@@ -72,7 +72,7 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
 
   const btnBase = "display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:38px;padding:0 .75rem;border-radius:10px;font-size:.82rem;font-weight:700;text-decoration:none;transition:all .2s;border:1px solid;";
   const btnNormal = btnBase + "background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1);color:rgba(255,255,255,.6);";
-  const btnActive = btnBase + "background:rgba(0,212,255,.12);border-color:rgba(0,212,255,.45);color:#00d4ff;box-shadow:0 0 12px rgba(0,212,255,.2);";
+  const btnActive = btnBase + "background:rgba(57,255,20,.12);border-color:rgba(57,255,20,.45);color:#39ff14;box-shadow:0 0 12px rgba(57,255,20,.2);";
   const btnDisabl = btnBase + "background:rgba(255,255,255,.02);border-color:rgba(255,255,255,.05);color:rgba(255,255,255,.2);pointer-events:none;";
 
   const pageNumbers: number[] = [];

@@ -10,7 +10,7 @@ export const SHOP_BADGES: Record<string, { name: string; price: number; desc: st
 export const SHOP_EFFECTS: Record<string, { name: string; price: number; type: "cursor" | "avatar" | "bg"; desc: string; color: string }> = {
   cursor_smoke: { name: "Smoke Trail", price: 200, type: "cursor", desc: "Gray smoke particles trailing your cursor", color: "#888" },
   cursor_fire: { name: "Fire Trail", price: 300, type: "cursor", desc: "Intense fire particles that burn behind you", color: "#ff4500" },
-  cursor_soundwave: { name: "Sound Wave", price: 400, type: "cursor", desc: "Expanding sound rings from your cursor", color: "#00d4ff" },
+  cursor_soundwave: { name: "Sound Wave", price: 400, type: "cursor", desc: "Expanding sound rings from your cursor", color: "#39ff14" },
   cursor_meteors: { name: "Meteors", price: 500, type: "cursor", desc: "Shooting meteors streaking behind cursor", color: "#ffd700" },
   cursor_leaves: { name: "Aesthetic Leaves", price: 600, type: "cursor", desc: "3D aesthetic leaves floating around cursor", color: "#4caf50" },
   cursor_water: { name: "Water Trail 3D", price: 800, type: "cursor", desc: "Smooth 3D water droplets trailing cursor", color: "#0ea5e9" },

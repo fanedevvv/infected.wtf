@@ -10,7 +10,7 @@ function strengthWidthColor(pw: string): { width: string; color: string } {
   if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
   if (/[0-9]/.test(pw)) score++;
   if (/[^A-Za-z0-9]/.test(pw)) score++;
-  const colors = ["#ff4444", "#ff8c00", "#ffd700", "#34d399", "#00d4ff"];
+  const colors = ["#ff4444", "#ff8c00", "#ffd700", "#34d399", "#39ff14"];
   const widths = ["20%", "40%", "60%", "80%", "100%"];
   const i = Math.min(score, 4);
   return pw.length ? { width: widths[i], color: colors[i] } : { width: "0%", color: "transparent" };
@@ -68,7 +68,7 @@ export default function ResetPasswordForm({
     <div className="confirm-wrap">
       <canvas id="particle-canvas" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }} />
       <div className="confirm-card">
-        <a href="/" className="site-logo">GETFAME.WTF</a>
+        <a href="/" className="site-logo">INFECTED.WTF</a>
 
         {status === "invalid" && (
           <>
@@ -101,7 +101,7 @@ export default function ResetPasswordForm({
         {status === "success" && (
           <>
             <div className="ci success">
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="7 12 10.5 15.5 17 9" /></svg>
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#39ff14" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="7 12 10.5 15.5 17 9" /></svg>
             </div>
             <h1 className="confirm-title success-text">Password Reset!</h1>
             <p className="confirm-desc">Your password has been changed successfully. You can now sign in with your new password.</p>
@@ -119,7 +119,7 @@ export default function ResetPasswordForm({
           <>
             <div className="ci lock">
               <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="32" height="32">
-                <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#ff00ff" /><stop offset="100%" stopColor="#00d4ff" /></linearGradient></defs>
+                <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#ff1a3c" /><stop offset="100%" stopColor="#39ff14" /></linearGradient></defs>
                 <rect x="3" y="11" width="18" height="11" rx="2" stroke="url(#lg)" />
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="url(#lg)" />
               </svg>

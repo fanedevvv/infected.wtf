@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { TOTP } from "@/lib/totp";
 import SettingsClient from "./SettingsClient";
 
-const SITE_NAME = process.env.SITE_NAME || "GETFAME.WTF";
+const SITE_NAME = process.env.SITE_NAME || "INFECTED.WTF";
 
 export default async function SettingsPage() {
   const user = await getCurrentUser();

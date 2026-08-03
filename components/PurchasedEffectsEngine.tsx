@@ -920,7 +920,7 @@ function runCursorEffect(CE: string): (() => void) | null {
   const configs: Record<string, any> = {
     cursor_smoke: { count: 2, life: 60, spd: 1.2, sz: () => 4 + Math.random() * 6, color: () => `hsla(0,0%,${60 + Math.random() * 20}%,`, grow: true },
     cursor_fire: { count: 3, life: 40, spd: 1.8, sz: () => 3 + Math.random() * 5, color: () => `hsla(${15 + Math.random() * 30},100%,${50 + Math.random() * 20}%,`, grow: false },
-    cursor_soundwave: { count: 1, life: 55, spd: 0, sz: () => 2, color: () => "rgba(0,212,255,", grow: true, ring: true },
+    cursor_soundwave: { count: 1, life: 55, spd: 0, sz: () => 2, color: () => "rgba(57,255,20,", grow: true, ring: true },
     cursor_meteors: { count: 1, life: 50, spd: 3.5, sz: () => 2.5, color: () => "rgba(255,215,0,", grow: false, meteor: true },
     cursor_leaves: { count: 2, life: 80, spd: 0.9, sz: () => 5 + Math.random() * 4, color: () => `hsl(${100 + Math.random() * 60},${60 + Math.random() * 20}%,${40 + Math.random() * 20}%,`, grow: false, leaf: true },
     cursor_water: { count: 2, life: 50, spd: 1.5, sz: () => 3 + Math.random() * 4, color: () => "rgba(14,165,233,", grow: false },

@@ -313,7 +313,7 @@ export default function ProfileInfoForm(props: Props) {
 
       <div className="dash-card">
         <div style={{ display: "flex", alignItems: "center", gap: ".85rem", marginBottom: "1.25rem" }}>
-          <div style={{ width: 42, height: 42, borderRadius: 12, background: "linear-gradient(135deg,rgba(0,212,255,.2),rgba(255,0,255,.15))", border: "1.5px solid rgba(0,212,255,.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 0 16px rgba(0,212,255,.15)" }}>
+          <div style={{ width: 42, height: 42, borderRadius: 12, background: "linear-gradient(135deg,rgba(57,255,20,.2),rgba(255,26,60,.15))", border: "1.5px solid rgba(57,255,20,.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 0 16px rgba(57,255,20,.15)" }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="12" y1="18" x2="12" y2="12" /><line x1="9" y1="15" x2="15" y2="15" /></svg>
           </div>
           <div>
@@ -426,7 +426,7 @@ export default function ProfileInfoForm(props: Props) {
 
         <div style={{ borderTop: "1px solid var(--border)", paddingTop: "1.25rem", marginTop: ".25rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: ".85rem", marginBottom: "1.25rem" }}>
-            <div style={{ width: 42, height: 42, borderRadius: 12, background: "linear-gradient(135deg,rgba(0,212,255,.2),rgba(255,0,255,.15))", border: "1.5px solid rgba(0,212,255,.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 0 16px rgba(0,212,255,.15)" }}>
+            <div style={{ width: 42, height: 42, borderRadius: 12, background: "linear-gradient(135deg,rgba(57,255,20,.2),rgba(255,26,60,.15))", border: "1.5px solid rgba(57,255,20,.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 0 16px rgba(57,255,20,.15)" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" width="20" height="20"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
             </div>
             <div>

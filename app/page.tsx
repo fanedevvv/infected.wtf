@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import ParticleBackground from "@/components/ParticleBackground";
 import SiteFooter from "@/components/SiteFooter";
-import { FloatingNavbar, ClaimUsername, Faq } from "@/components/HomeInteractive";
+import { FloatingNavbar, HomeNavLinks, ClaimUsername, Faq } from "@/components/HomeInteractive";
 import SafeImg from "@/components/SafeImg";
 import CookieBanner from "@/components/CookieBanner";
 import { getCookieConsent } from "@/lib/cookie-consent";
@@ -48,19 +48,8 @@ export default async function Home() {
       <ParticleBackground />
 
       <FloatingNavbar>
-        <Link href="/" className="navbar-brand">GETFAME.WTF</Link>
-        <div className="navbar-links">
-          <a href="https://discord.gg/BAEpkJ62VM" target="_blank" rel="noreferrer">Discord</a>
-          <Link href="/leaderboard">Leaderboard</Link>
-          {user ? (
-            <Link href="/dashboard" className="btn btn-primary btn-sm">Dashboard</Link>
-          ) : (
-            <>
-              <Link href="/login" className="btn btn-secondary btn-sm">Login</Link>
-              <Link href="/register" className="btn btn-primary btn-sm">Register</Link>
-            </>
-          )}
-        </div>
+        <Link href="/" className="navbar-brand">INFECTED.WTF</Link>
+        <HomeNavLinks user={user} />
       </FloatingNavbar>
 
       <div className="hero fade-in">
@@ -107,7 +96,7 @@ export default async function Home() {
         <div className="combined-inner">
           <div className="trust-card">
             <div className="trust-headline">
-              More than <span>{fmtNum(totalUsers)}</span><br />people use GETFAME.WTF.
+              More than <span>{fmtNum(totalUsers)}</span><br />people use INFECTED.WTF.
             </div>
             <div className="trust-stats">
               <div>
@@ -202,7 +191,7 @@ export default async function Home() {
           </div>
           <div className="feat-item">
             <div className="feat-item-top">
-              <div className="feat-icon" style={{ background: "rgba(255,0,255,.08)", borderColor: "rgba(255,0,255,.15)", color: "var(--accent2)" }}>
+              <div className="feat-icon" style={{ background: "rgba(255,26,60,.08)", borderColor: "rgba(255,26,60,.15)", color: "var(--accent2)" }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
               </div>
               <div className="feat-title">Colors &amp; Effects</div>

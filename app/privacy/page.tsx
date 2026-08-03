@@ -23,7 +23,7 @@ export default async function PrivacyPage() {
         <p className="legal-meta">Last updated: {today} &nbsp;&middot;&nbsp; We take your privacy seriously</p>
 
         <div className="legal-highlight">
-          This policy explains what data GETFAME.WTF collects, how it is used, and your rights regarding that data.
+          This policy explains what data INFECTED.WTF collects, how it is used, and your rights regarding that data.
         </div>
 
         <div className="legal-toc">

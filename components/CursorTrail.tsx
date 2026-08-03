@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-export default function CursorTrail({ color = "#00d4ff" }: { color?: string }) {
+export default function CursorTrail({ color = "#39ff14" }: { color?: string }) {
   useEffect(() => {
     if ("ontouchstart" in window) return;
 

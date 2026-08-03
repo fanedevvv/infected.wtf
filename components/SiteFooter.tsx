@@ -10,7 +10,7 @@ export default function SiteFooter() {
               <circle cx="12" cy="12" r="10" />
             </svg>
           </div>
-          <span className="site-footer-copy">&copy; {new Date().getFullYear()} GETFAME.WTF</span>
+          <span className="site-footer-copy">&copy; {new Date().getFullYear()} INFECTED.WTF</span>
         </div>
         <div className="site-footer-links">
           <Link href="/terms">Terms</Link>

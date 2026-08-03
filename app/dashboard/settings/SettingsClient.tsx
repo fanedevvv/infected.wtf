@@ -307,7 +307,7 @@ export default function SettingsClient(props: Props) {
         <div className="acct-info-grid">
           <div className="acct-info-item">
             <div className="acct-info-item-header">
-              <div className="acct-info-item-icon" style={{ background: "rgba(0,212,255,.12)", color: "#00d4ff" }}>
+              <div className="acct-info-item-icon" style={{ background: "rgba(57,255,20,.12)", color: "#39ff14" }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
               </div>
               <span className="acct-info-item-label">Username</span>
@@ -339,7 +339,7 @@ export default function SettingsClient(props: Props) {
         {/* Username */}
         <div className={`sv2-section ${openSections.has("sec-username") ? "open" : ""}`}>
           <div className="sv2-section-header" onClick={() => toggleSection("sec-username")}>
-            <div className="sv2-icon" style={{ background: "rgba(0,212,255,.1)", color: "#00d4ff" }}>
+            <div className="sv2-icon" style={{ background: "rgba(57,255,20,.1)", color: "#39ff14" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
             </div>
             <div>

@@ -78,7 +78,7 @@ export default function LoginForm({ verified }: { verified: boolean }) {
       <canvas id="particle-canvas" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }} />
       <div className="auth-card fade-in" style={{ position: "relative", zIndex: 1 }}>
         <div className="auth-logo">
-          <h1>GETFAME.WTF</h1>
+          <h1>INFECTED.WTF</h1>
           <p>Welcome back!</p>
         </div>
 
@@ -141,7 +141,7 @@ export default function LoginForm({ verified }: { verified: boolean }) {
             </div>
             <h2 style={{ fontWeight: 800, marginBottom: ".4rem", color: "#fbbf24" }}>Two-Factor Auth</h2>
             <p style={{ color: "var(--text-muted)", fontSize: ".82rem", marginBottom: "1.25rem" }}>
-              Open your authenticator app and enter the 6-digit code for GETFAME.WTF.
+              Open your authenticator app and enter the 6-digit code for INFECTED.WTF.
             </p>
             <form onSubmit={(e) => submit(e, twoFaCode)}>
               <input
@@ -195,8 +195,8 @@ function ForgotPasswordModal({ onClose }: { onClose: () => void }) {
     <div onClick={(e) => e.target === e.currentTarget && onClose()} style={{ position: "fixed", inset: 0, zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem", background: "rgba(5,5,10,.88)", backdropFilter: "blur(10px)" }}>
       <div style={{ background: "rgba(10,10,22,.98)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 20, padding: "2.25rem 2rem", width: "100%", maxWidth: 400, textAlign: "center", position: "relative" }}>
         <button onClick={onClose} style={{ position: "absolute", top: ".9rem", right: ".9rem", background: "rgba(255,255,255,.07)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 8, width: 30, height: 30, color: "rgba(255,255,255,.45)", cursor: "pointer" }}>✕</button>
-        <div style={{ width: 54, height: 54, borderRadius: 16, background: "linear-gradient(135deg,rgba(255,0,255,.13),rgba(0,212,255,.13))", border: "1px solid rgba(0,212,255,.22)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.2rem" }}>
-          <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" width="26" height="26"><rect x="3" y="11" width="18" height="11" rx="2" stroke="#00d4ff" /><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#00d4ff" /></svg>
+        <div style={{ width: 54, height: 54, borderRadius: 16, background: "linear-gradient(135deg,rgba(255,26,60,.13),rgba(57,255,20,.13))", border: "1px solid rgba(57,255,20,.22)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.2rem" }}>
+          <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" width="26" height="26"><rect x="3" y="11" width="18" height="11" rx="2" stroke="#39ff14" /><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#39ff14" /></svg>
         </div>
         <h2 style={{ fontWeight: 800, marginBottom: ".4rem" }}>Reset Password</h2>
         <p style={{ color: "rgba(255,255,255,.38)", fontSize: ".82rem", marginBottom: "1.4rem" }}>
@@ -211,7 +211,7 @@ function ForgotPasswordModal({ onClose }: { onClose: () => void }) {
         <button
           onClick={submit}
           disabled={loading}
-          style={{ width: "100%", padding: ".8rem", background: "linear-gradient(135deg,#ff00ff,#00d4ff)", border: "none", borderRadius: 12, color: "#fff", fontWeight: 700, cursor: "pointer" }}
+          style={{ width: "100%", padding: ".8rem", background: "linear-gradient(135deg,#ff1a3c,#39ff14)", border: "none", borderRadius: 12, color: "#fff", fontWeight: 700, cursor: "pointer" }}
         >
           {loading ? "Sending…" : "Send Reset Link"}
         </button>

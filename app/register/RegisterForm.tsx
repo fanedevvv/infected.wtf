@@ -112,10 +112,10 @@ export default function RegisterForm({ initialRef, initialUsername }: { initialR
         <canvas id="particle-canvas" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }} />
         <div className="modal-overlay">
           <div className="modal-card">
-            <span className="modal-site">GETFAME.WTF</span>
+            <span className="modal-site">INFECTED.WTF</span>
             <div className="envelope-wrap">
               <div className="envelope-bg">
-                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M22 7l-10 7L2 7" /></svg>
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#39ff14" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M22 7l-10 7L2 7" /></svg>
               </div>
             </div>
             <h2 className="modal-title">Check your inbox</h2>
@@ -125,7 +125,7 @@ export default function RegisterForm({ initialRef, initialUsername }: { initialR
               Click the link to activate your account.
             </p>
             <ul className="verify-checklist">
-              <li><span className="check">✓</span> Open the email from <strong style={{ color: "var(--text)" }}>GETFAME.WTF</strong></li>
+              <li><span className="check">✓</span> Open the email from <strong style={{ color: "var(--text)" }}>INFECTED.WTF</strong></li>
               <li><span className="check">✓</span> Click the <strong style={{ color: "var(--text)" }}>Verify My Email</strong> button inside</li>
               <li><span className="check">✓</span> Check your <strong style={{ color: "var(--text)" }}>spam / junk</strong> folder if needed</li>
             </ul>
@@ -147,7 +147,7 @@ export default function RegisterForm({ initialRef, initialUsername }: { initialR
         <canvas id="particle-canvas" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }} />
         <div className="modal-overlay">
           <div className="modal-card">
-            <span className="modal-site">GETFAME.WTF</span>
+            <span className="modal-site">INFECTED.WTF</span>
             <div className="ratelimit-icon">
               <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ff8080" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
             </div>
@@ -190,7 +190,7 @@ export default function RegisterForm({ initialRef, initialUsername }: { initialR
       <canvas id="particle-canvas" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }} />
       <div className="auth-card fade-in" style={{ position: "relative", zIndex: 1 }}>
         <div className="auth-logo">
-          <h1>GETFAME.WTF</h1>
+          <h1>INFECTED.WTF</h1>
           <p>Create your free account</p>
         </div>
 
@@ -209,7 +209,7 @@ export default function RegisterForm({ initialRef, initialUsername }: { initialR
                 autoComplete="username"
               />
             </div>
-            <div className="username-preview">GETFAME.WTF/<span>{username || "username"}</span></div>
+            <div className="username-preview">INFECTED.WTF/<span>{username || "username"}</span></div>
           </div>
           <div className="form-group">
             <label>Email</label>

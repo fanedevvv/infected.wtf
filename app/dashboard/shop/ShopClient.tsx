@@ -5,7 +5,7 @@ import { BADGE_SVG } from "@/lib/badge-defs";
 import { showToast } from "@/lib/toast";
 import EffectPreviewCanvas from "@/components/EffectPreviewCanvas";
 
-const SITE_NAME = "GETFAME.WTF";
+const SITE_NAME = "INFECTED.WTF";
 const ADMIN_EMAIL = `admin@${SITE_NAME.toLowerCase().replace(/[^a-z0-9.]/gi, "")}`;
 
 type BadgeItem = { name: string; price: number; desc: string; color: string };

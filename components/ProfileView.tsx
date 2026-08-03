@@ -416,7 +416,7 @@ export default function ProfileView(p: ProfileViewProps) {
 
         {!p.isPremium && (
           <div className="profile-footer">
-            <a href="/">⬡ GETFAME.WTF</a>
+            <a href="/">⬡ INFECTED.WTF</a>
           </div>
         )}
       </div>

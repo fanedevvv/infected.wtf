@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
 import { TOTP } from "@/lib/totp";
 
-const SITE_NAME = process.env.SITE_NAME || "GETFAME.WTF";
+const SITE_NAME = process.env.SITE_NAME || "INFECTED.WTF";
 
 /** GET: generate a fresh secret + QR URI for setup. */
 export async function GET() {

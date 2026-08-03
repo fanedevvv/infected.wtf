@@ -65,7 +65,7 @@ function ParticlesPreview() {
           s.sl++;
           ctx!.save();
           ctx!.globalAlpha = Math.max(0, 1 - s.sl / 45);
-          ctx!.strokeStyle = "rgba(0,212,255,.85)";
+          ctx!.strokeStyle = "rgba(57,255,20,.85)";
           ctx!.lineWidth = 1;
           ctx!.beginPath();
           ctx!.moveTo(s.x, s.y);
@@ -106,7 +106,7 @@ function CursorTrailPreview() {
   useEffect(() => {
     const wrap = wrapRef.current;
     if (!wrap) return;
-    const colors = ["#00d4ff", "#ff4dff", "#ffd700", "#00ffb8", "#ff6b6b", "#a78bfa", "#fb923c"];
+    const colors = ["#39ff14", "#ff4dff", "#ffd700", "#00ffb8", "#ff6b6b", "#a78bfa", "#fb923c"];
     const dots: HTMLDivElement[] = [];
     for (let i = 0; i < 9; i++) {
       const d = document.createElement("div");

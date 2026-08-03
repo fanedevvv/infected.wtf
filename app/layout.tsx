@@ -6,7 +6,7 @@ const syne = Syne({ variable: "--font-syne", subsets: ["latin"], weight: ["700",
 const outfit = Outfit({ variable: "--font-outfit", subsets: ["latin"], weight: ["400", "500", "600"] });
 
 export const metadata: Metadata = {
-  title: "GETFAME.WTF",
+  title: "INFECTED.WTF",
   description: "Your bio, your links, your fame.",
 };
 

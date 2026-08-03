@@ -23,7 +23,7 @@ export default async function TermsPage() {
         <p className="legal-meta">Last updated: {today} &nbsp;&middot;&nbsp; Effective immediately</p>
 
         <div className="legal-highlight">
-          By accessing or using GETFAME.WTF you agree to be bound by these Terms. Please read them carefully before creating an account.
+          By accessing or using INFECTED.WTF you agree to be bound by these Terms. Please read them carefully before creating an account.
         </div>
 
         <div className="legal-toc">
@@ -46,12 +46,12 @@ export default async function TermsPage() {
 
         <div className="legal-section" id="s1">
           <h2><span className="legal-num">1</span> Acceptance of Terms</h2>
-          <p>By registering for or using GETFAME.WTF (&quot;Service&quot;, &quot;Platform&quot;, &quot;we&quot;, &quot;us&quot;), you agree to these Terms of Service and our <a href="/privacy">Privacy Policy</a>. If you do not agree, please do not use the Service.</p>
+          <p>By registering for or using INFECTED.WTF (&quot;Service&quot;, &quot;Platform&quot;, &quot;we&quot;, &quot;us&quot;), you agree to these Terms of Service and our <a href="/privacy">Privacy Policy</a>. If you do not agree, please do not use the Service.</p>
         </div>
 
         <div className="legal-section" id="s2">
           <h2><span className="legal-num">2</span> Eligibility</h2>
-          <p>You must be at least 13 years old to use GETFAME.WTF. By using the Service you represent and warrant that you meet this age requirement and that you have the right, authority and capacity to agree to these Terms.</p>
+          <p>You must be at least 13 years old to use INFECTED.WTF. By using the Service you represent and warrant that you meet this age requirement and that you have the right, authority and capacity to agree to these Terms.</p>
         </div>
 
         <div className="legal-section" id="s3">

@@ -38,10 +38,10 @@ export default async function MaintenancePage() {
               <path d="M25 23v3l2 2" stroke="url(#g2)" strokeWidth="1.5" strokeLinecap="round" />
               <defs>
                 <linearGradient id="g1" x1="5" y1="5" x2="28" y2="22" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#00d4ff" /><stop offset="1" stopColor="#ff00ff" />
+                  <stop stopColor="#39ff14" /><stop offset="1" stopColor="#ff1a3c" />
                 </linearGradient>
                 <linearGradient id="g2" x1="20" y1="21" x2="30" y2="31" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#00d4ff" /><stop offset="1" stopColor="#ff00ff" />
+                  <stop stopColor="#39ff14" /><stop offset="1" stopColor="#ff1a3c" />
                 </linearGradient>
               </defs>
             </svg>

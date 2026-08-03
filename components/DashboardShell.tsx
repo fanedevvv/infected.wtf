@@ -104,7 +104,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
             </svg>
           </button>
-          <Link href="/dashboard" className="navbar-brand-mobile">GETFAME.WTF</Link>
+          <Link href="/dashboard" className="navbar-brand-mobile">INFECTED.WTF</Link>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
           <div ref={bellWrapRef} style={{ position: "relative" }}>
@@ -130,7 +130,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                   ) : (
                     notifs.map((n) => (
                       <div key={n.id} className={`notif-item ${!n.isRead ? "unread" : ""}`} onClick={() => openNotif(n.id)}>
-                        <div className="notif-item-icon" style={{ background: "rgba(0,212,255,.12)", color: "#00d4ff" }}>
+                        <div className="notif-item-icon" style={{ background: "rgba(57,255,20,.12)", color: "#39ff14" }}>
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -197,7 +197,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       <div className="dashboard-layout">
         <aside className={`sidebar ${sidebarOpen ? "sidebar-open" : ""}`} id="sidebar">
           <div className="sidebar-logo-wrap">
-            <Link href="/dashboard" className="sidebar-logo">GETFAME.WTF</Link>
+            <Link href="/dashboard" className="sidebar-logo">INFECTED.WTF</Link>
           </div>
 
           {isModerator && (
@@ -368,8 +368,8 @@ function ManageAccountsModal({ currentUsername, currentAvatar, onClose }: { curr
         <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "#fff" }}>Manage Accounts</div>
         <div style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.1rem" }}>Switch between multiple accounts</div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: ".75rem", padding: ".65rem .75rem", background: "rgba(0,212,255,.06)", border: "1px solid rgba(0,212,255,.15)", borderRadius: 10, marginBottom: ".5rem" }}>
-          <div style={{ width: 38, height: 38, borderRadius: "50%", flexShrink: 0, overflow: "hidden", background: "rgba(0,212,255,.15)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: ".75rem", padding: ".65rem .75rem", background: "rgba(57,255,20,.06)", border: "1px solid rgba(57,255,20,.15)", borderRadius: 10, marginBottom: ".5rem" }}>
+          <div style={{ width: 38, height: 38, borderRadius: "50%", flexShrink: 0, overflow: "hidden", background: "rgba(57,255,20,.15)" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {currentAvatar && <img src={`/${currentAvatar}`} alt="" style={{ width: 38, height: 38, objectFit: "cover" }} />}
           </div>

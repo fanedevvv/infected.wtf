@@ -39,7 +39,7 @@ export default async function SupportPage() {
             <DiscordIcon size={38} fill="#fff" />
           </div>
           <div className="discord-cta-body">
-            <div className="discord-cta-title">Join the GETFAME.WTF Discord</div>
+            <div className="discord-cta-title">Join the INFECTED.WTF Discord</div>
             <div className="discord-cta-desc">Get help with your account, report bugs, suggest features, or just hang out with the community. Our developers are active and respond quickly.</div>
             <a href="https://discord.gg/BAEpkJ62VM" target="_blank" rel="noopener noreferrer" className="discord-btn">
               <DiscordIcon size={16} fill="currentColor" />

@@ -8,12 +8,12 @@ export default async function VerifyEmailResultPage({ searchParams }: { searchPa
     <div className="verify-wrap">
       <canvas id="particle-canvas" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }} />
       <div className="verify-card">
-        <a href="/" className="site-logo">GETFAME.WTF</a>
+        <a href="/" className="site-logo">INFECTED.WTF</a>
 
         {status === "success" && (
           <>
             <div className="verify-icon success">
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="7 12 10.5 15.5 17 9" /></svg>
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#39ff14" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="7 12 10.5 15.5 17 9" /></svg>
             </div>
             <h1 className="verify-title success-text">Email Verified!</h1>
             <p className="verify-desc">

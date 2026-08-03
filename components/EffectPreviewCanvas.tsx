@@ -36,7 +36,7 @@ function buildRenderers(): Record<string, Renderer> {
       for (let i = 0; i < 4; i++) {
         const r = ((t + i * 25) % 100) * 0.65;
         const op = Math.max(0, 1 - r / 65) * 0.7;
-        ctx.save(); ctx.globalAlpha = op; ctx.strokeStyle = "#00d4ff"; ctx.lineWidth = 1.5;
+        ctx.save(); ctx.globalAlpha = op; ctx.strokeStyle = "#39ff14"; ctx.lineWidth = 1.5;
         ctx.beginPath(); ctx.arc(W / 2, H / 2, r, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
       }
     },
