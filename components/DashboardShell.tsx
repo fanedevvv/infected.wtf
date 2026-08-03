@@ -97,7 +97,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   return (
     <>
-      <nav className="navbar">
+      <nav className="navbar navbar-dashboard">
         <div className="navbar-left">
           <button className="sidebar-toggle" onClick={() => setSidebarOpen((s) => !s)} aria-label="Toggle sidebar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" width="20" height="20">

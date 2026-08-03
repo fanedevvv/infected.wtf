@@ -25,7 +25,7 @@
 }
 
 *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
-html { scroll-behavior:smooth; }
+html { scroll-behavior:smooth; overflow-x:hidden; }
 body { font-family:'Outfit',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
 
 ::-webkit-scrollbar { width:6px; }
@@ -142,8 +142,8 @@ textarea.form-control { resize:vertical; min-height:100px; }
 .sidebar-toggle:hover, .sidebar-toggle:active { background:rgba(255,255,255,.14); }
 .sidebar-toggle svg { display:block !important; pointer-events:none; color:rgba(255,255,255,.85); }
 @media (max-width:991px) {
-    body.dashboard-page .sidebar-toggle { display:none !important; }
-    body.dashboard-page .navbar-brand-mobile { display:block !important; }
+    .sidebar-toggle { display:none !important; }
+    .navbar-brand-mobile { display:block !important; }
 }
 
 .navbar-user-wrap { position:relative; }
@@ -307,10 +307,10 @@ textarea.form-control { resize:vertical; min-height:100px; }
     .site-footer-links { gap: 1rem; }
 }
 /* ── Dashboard navbar offset (sidebar width) ── */
-body.dashboard-page .navbar { left:250px; transition:left .25s cubic-bezier(.4,0,.2,1); }
-body.dashboard-page.sidebar-collapsed .navbar { left:0; }
+.navbar-dashboard { left:250px; transition:left .25s cubic-bezier(.4,0,.2,1); }
+body.sidebar-collapsed .navbar-dashboard { left:0; }
 @media (max-width:991px) {
-    body.dashboard-page .navbar { left:0 !important; }
+    .navbar-dashboard { left:0 !important; }
 }
 
 /* ── Public navbar mobile: scrollable links ── */
