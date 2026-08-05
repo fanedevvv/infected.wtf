@@ -148,7 +148,7 @@ async function creditReferralIfPending(userId: number) {
         title: "New referral! 🎉",
         body: `Someone just signed up using your referral link. You earned ${tokens} tokens!`,
         icon: "users",
-        link: "/dashboard/referral",
+        link: "/dashboard?page=referral",
       },
     }),
   ]);

@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   await prisma.user.update({ where: { id: user.id }, data: { leaderboardRegionCode: code, leaderboardRegionName: name } });
 
   const localCount = await prisma.viewsLog.count({ where: { profileUserId: user.id, countryCode: code } });
-  await prisma.profile.update({ where: { userId: user.id }, data: { localViews: localCount } });
+  await prisma.profile.updateMany({ where: { userId: user.id , isPrimary: true }, data: { localViews: localCount } });
 
   return NextResponse.json({ success: true, localViews: localCount });
 }

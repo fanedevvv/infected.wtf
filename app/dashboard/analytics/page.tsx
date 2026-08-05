@@ -17,7 +17,7 @@ export default async function AnalyticsPage() {
           </div>
           <div className="pg-title">Analytics is Premium only</div>
           <p className="pg-desc">Upgrade to Premium to unlock detailed profile analytics — views by country, browser, device, and more.</p>
-          <a href="/dashboard/shop#premium" className="pg-btn">Upgrade to Premium</a>
+          <a href="/dashboard?page=shop#premium" className="pg-btn">Upgrade to Premium</a>
         </div>
       </div>
     );

@@ -18,17 +18,17 @@ export async function POST(req: NextRequest) {
     const hidden = !!body.hidden;
     if (!badgeId) return NextResponse.json({ success: false, error: "Missing badge_id." });
 
-    const profile = await prisma.profile.findUnique({ where: { userId }, select: { badgeHidden: true } });
+    const profile = await prisma.profile.findFirst({ where: { userId, isPrimary: true }, select: { badgeHidden: true } });
     const set = new Set((profile?.badgeHidden as string[] | null) ?? []);
     if (hidden) set.add(badgeId);
     else set.delete(badgeId);
-    await prisma.profile.update({ where: { userId }, data: { badgeHidden: Array.from(set) } });
+    await prisma.profile.updateMany({ where: { userId, isPrimary: true }, data: { badgeHidden: Array.from(set) } });
     return NextResponse.json({ success: true });
   }
 
   if (action === "save_order") {
     const order = Array.isArray(body.order) ? body.order.map(String) : [];
-    await prisma.profile.update({ where: { userId }, data: { badgeOrder: order } });
+    await prisma.profile.updateMany({ where: { userId, isPrimary: true }, data: { badgeOrder: order } });
     return NextResponse.json({ success: true });
   }
 

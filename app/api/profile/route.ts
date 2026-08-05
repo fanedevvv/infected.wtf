@@ -31,10 +31,12 @@ export async function PATCH(req: NextRequest) {
   if (typeof body.profileBlur === "number") data.profileBlur = Math.max(0, Math.min(20, body.profileBlur));
   if (typeof body.cursorTrail === "boolean") data.cursorTrail = body.cursorTrail;
   if (typeof body.particleEffect === "boolean") data.particleEffect = body.particleEffect;
-  if (typeof body.typingEffect === "boolean") data.typingEffect = body.typingEffect;
+  if (typeof body.nameEffect === "string") data.nameEffect = body.nameEffect.slice(0, 20);
+  if (typeof body.bioEffect === "string") data.bioEffect = body.bioEffect.slice(0, 20);
   if (typeof body.avatarShape === "string" && ALLOWED_SHAPES.includes(body.avatarShape))
     data.avatarShape = body.avatarShape;
 
-  const profile = await prisma.profile.update({ where: { userId: user.id }, data });
+  await prisma.profile.updateMany({ where: { userId: user.id, isPrimary: true }, data });
+  const profile = await prisma.profile.findFirst({ where: { userId: user.id, isPrimary: true } });
   return NextResponse.json({ success: true, profile });
 }

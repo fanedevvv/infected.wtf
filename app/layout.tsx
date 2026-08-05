@@ -8,6 +8,10 @@ const outfit = Outfit({ variable: "--font-outfit", subsets: ["latin"], weight: [
 export const metadata: Metadata = {
   title: "INFECTED.WTF",
   description: "Your bio, your links, your fame.",
+  icons: {
+    icon: [{ url: "/assets/img/logo-square-512.png", type: "image/png" }],
+    apple: "/assets/img/logo-square-512.png",
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

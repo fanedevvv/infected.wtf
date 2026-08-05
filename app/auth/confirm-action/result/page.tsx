@@ -68,10 +68,10 @@ export default async function ConfirmActionResultPage({
               </p>
               <div className="redirect-bar">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-                Redirecting in <RedirectCountdown seconds={3} to="/dashboard/settings" />s
+                Redirecting in <RedirectCountdown seconds={3} to="/dashboard?page=settings" />s
               </div>
               <div className="btn-row">
-                <a href="/dashboard/settings" className="btn btn-primary btn-full">Go to Settings →</a>
+                <a href="/dashboard?page=settings" className="btn btn-primary btn-full">Go to Settings →</a>
               </div>
             </>
           )
@@ -95,7 +95,7 @@ export default async function ConfirmActionResultPage({
             <h1 className="confirm-title">Invalid or Expired Link</h1>
             <p className="confirm-desc">This confirmation link is <strong>invalid or has expired</strong>. Please try the action again from your settings.</p>
             <div className="btn-row">
-              <a href="/dashboard/settings" className="btn btn-primary btn-full">Back to Settings</a>
+              <a href="/dashboard?page=settings" className="btn btn-primary btn-full">Back to Settings</a>
               <a href="/" className="btn btn-secondary btn-full">Home</a>
             </div>
           </>

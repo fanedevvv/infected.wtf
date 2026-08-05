@@ -119,7 +119,7 @@ export async function sendNewLoginEmail(
   username: string,
   info: { time: string; browser: string; device: string; ip: string; country: string }
 ) {
-  const settingsUrl = `${process.env.SITE_URL}/dashboard/settings`;
+  const settingsUrl = `${process.env.SITE_URL}/dashboard?page=settings`;
   const html = baseTemplate({
     accent: "#f59e0b",
     accent2: "#ef4444",

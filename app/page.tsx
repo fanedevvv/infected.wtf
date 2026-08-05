@@ -63,7 +63,11 @@ export default async function Home() {
       <ParticleBackground />
 
       <FloatingNavbar>
-        <Link href="/" className="navbar-brand">INFECTED.WTF</Link>
+        <Link href="/" className="navbar-brand">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/img/logo-icon.png" alt="" className="brand-logo-icon" />
+          <span>INFECTED.WTF</span>
+        </Link>
         <HomeNavLinks user={user} />
       </FloatingNavbar>
 
@@ -319,7 +323,7 @@ export default async function Home() {
               <div className="pricing-perk">Priority support</div>
               <div className="pricing-perk">Remove watermark from profile</div>
             </div>
-            <Link href="/dashboard/shop" className="pricing-cta prem-btn">Learn more</Link>
+            <Link href="/dashboard?page=shop" className="pricing-cta prem-btn">Learn more</Link>
           </div>
 
           <div className="pricing-card verified-card">
@@ -344,7 +348,7 @@ export default async function Home() {
               <div className="pricing-perk">Permanent — one-time purchase</div>
               <div className="pricing-perk">Builds trust with your audience</div>
             </div>
-            <Link href="/dashboard/shop" className="pricing-cta verif-btn">Learn more</Link>
+            <Link href="/dashboard?page=shop" className="pricing-cta verif-btn">Learn more</Link>
           </div>
         </div>
 

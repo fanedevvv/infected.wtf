@@ -29,27 +29,27 @@ export async function POST(req: NextRequest) {
 
   switch (action) {
     case "grant_badge": {
-      const profile = await prisma.profile.findUnique({ where: { userId }, select: { badges: true } });
+      const profile = await prisma.profile.findFirst({ where: { userId, isPrimary: true }, select: { badges: true } });
       const existing = (profile?.badges as string[] | null) ?? [];
       const alreadyHas = existing.includes(badgeId);
       const owned = new Set(existing);
       owned.add(badgeId);
-      await prisma.profile.update({ where: { userId }, data: { badges: Array.from(owned) } });
+      await prisma.profile.updateMany({ where: { userId, isPrimary: true }, data: { badges: Array.from(owned) } });
       if (!alreadyHas) {
         await prisma.notification.create({
-          data: { userId, type: "badge", title: "🚀 Server Booster badge awarded!", body: "Thanks for boosting our Discord server! The Server Booster badge is now visible on your profile.", icon: "star", link: "/dashboard/badges" },
+          data: { userId, type: "badge", title: "🚀 Server Booster badge awarded!", body: "Thanks for boosting our Discord server! The Server Booster badge is now visible on your profile.", icon: "star", link: "/dashboard?page=badges" },
         });
       }
       return ok(`Badge '${badgeId}' granted to user #${userId} (discord=${discordId}).`);
     }
 
     case "revoke_badge": {
-      const profile = await prisma.profile.findUnique({ where: { userId }, select: { badges: true } });
+      const profile = await prisma.profile.findFirst({ where: { userId, isPrimary: true }, select: { badges: true } });
       const owned = new Set((profile?.badges as string[] | null) ?? []);
       owned.delete(badgeId);
-      await prisma.profile.update({ where: { userId }, data: { badges: Array.from(owned) } });
+      await prisma.profile.updateMany({ where: { userId, isPrimary: true }, data: { badges: Array.from(owned) } });
       await prisma.notification.create({
-        data: { userId, type: "badge", title: "Server Booster badge elimined", body: "Your boost on our Discord server has expired. The badge has been automatically removed from your profile.", icon: "bell", link: "/dashboard/badges" },
+        data: { userId, type: "badge", title: "Server Booster badge elimined", body: "Your boost on our Discord server has expired. The badge has been automatically removed from your profile.", icon: "bell", link: "/dashboard?page=badges" },
       });
       return ok(`Badge '${badgeId}' revoked from user #${userId} (discord=${discordId}).`);
     }

@@ -6,9 +6,8 @@ export default function SiteFooter() {
       <div className="site-footer-inner">
         <div className="site-footer-left">
           <div className="site-footer-logo">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-            </svg>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/assets/img/logo-icon.png" alt="" className="brand-logo-icon" style={{ height: 16 }} />
           </div>
           <span className="site-footer-copy">&copy; {new Date().getFullYear()} INFECTED.WTF</span>
         </div>

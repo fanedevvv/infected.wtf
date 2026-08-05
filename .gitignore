@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# user-uploaded runtime content (avatars, banners, music, cursors)
+/public/uploads/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

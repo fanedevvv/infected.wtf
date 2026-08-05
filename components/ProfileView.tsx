@@ -2,11 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import Avatar from "./Avatar";
+import EffectText from "./EffectText";
+import MusicPlayer from "./MusicPlayer";
 import ParticleBackground from "./ParticleBackground";
 import CursorTrail from "./CursorTrail";
 import DiscordPresenceCard from "./DiscordPresenceCard";
 import DiscordServerCard from "./DiscordServerCard";
+import GameIntegrationCards, { GameIntegration } from "./GameIntegrationCards";
 import PurchasedEffectsEngine from "./PurchasedEffectsEngine";
+import { DecorationFrame } from "./DecorationSVGs";
 
 const PLATFORM_ICON: Record<string, React.ReactNode> = {
   discord: (
@@ -96,17 +100,27 @@ interface ProfileViewProps {
   displayName: string;
   bio: string | null;
   location: string | null;
+  job: string | null;
+  age: number | null;
+  banner: string | null;
   avatar: string | null;
   avatarShape: string;
   avatarRing: "none" | "normal" | "premium";
+  activeDecoration?: string | null;
   accentColor: string;
+  backgroundColor: string;
+  nameColor: string;
+  bioColor: string;
+  overlayColor: string;
   backgroundType: string;
   backgroundValue: string;
   isPremium: boolean;
   particleEffect: boolean;
   cursorTrail: boolean;
-  typingEffect: boolean;
-  musicPath: string | null;
+  nameEffect: string;
+  bioEffect: string;
+  musicTracks: string[];
+  playlistStyle: string;
   views: number;
   createdAt: string;
   isOwner: boolean;
@@ -115,6 +129,8 @@ interface ProfileViewProps {
   cursorPath: string | null;
   discordInt: { discordUserId: string; discordUsername: string; discordGlobalName: string | null; discordAvatar: string | null } | null;
   discordServerInt: { invite: string; serverName: string; serverIcon: string | null; serverId: string; online: number; total: number } | null;
+  gameIntegrations: GameIntegration[];
+  layoutTemplate: string;
   purchasedEffects: string[];
   activeCursorEffect: string;
   activeAvatarEffect: string;
@@ -126,11 +142,7 @@ interface ProfileViewProps {
 
 export default function ProfileView(p: ProfileViewProps) {
   const [entered, setEntered] = useState(false);
-  const [typedText, setTypedText] = useState("");
   const cardRef = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [volume, setVolume] = useState(0.35);
-  const [muted, setMuted] = useState(false);
   const [liked, setLiked] = useState(p.likedByViewer);
   const [likeCount, setLikeCount] = useState(p.likeCount);
   const [likeBusy, setLikeBusy] = useState(false);
@@ -165,28 +177,6 @@ export default function ProfileView(p: ProfileViewProps) {
     }
     setLikeBusy(false);
   }
-
-  useEffect(() => {
-    if (!p.typingEffect || !entered) return;
-    const text = p.displayName;
-    let i = 0, deleting = false, pause = 0;
-    let timer: ReturnType<typeof setTimeout>;
-    function tick() {
-      if (pause > 0) { pause--; timer = setTimeout(tick, 80); return; }
-      if (!deleting) {
-        i++;
-        setTypedText(text.slice(0, i));
-        if (i >= text.length) { pause = 22; deleting = true; }
-      } else {
-        i--;
-        setTypedText(text.slice(0, i));
-        if (i <= 0) { pause = 10; deleting = false; }
-      }
-      timer = setTimeout(tick, deleting ? 55 : 100 + Math.random() * 40);
-    }
-    timer = setTimeout(tick, 900);
-    return () => clearTimeout(timer);
-  }, [entered, p.typingEffect, p.displayName]);
 
   useEffect(() => {
     if (!entered || !cardRef.current) return;
@@ -226,27 +216,6 @@ export default function ProfileView(p: ProfileViewProps) {
 
   function enter() {
     setEntered(true);
-    if (p.musicPath && audioRef.current) {
-      audioRef.current.volume = volume;
-      audioRef.current.play().catch(() => {});
-    }
-  }
-
-  function onVolumeChange(v: number) {
-    setVolume(v);
-    setMuted(v === 0);
-    if (audioRef.current) audioRef.current.volume = v;
-  }
-
-  function toggleMute() {
-    if (!audioRef.current) return;
-    if (muted) {
-      audioRef.current.volume = volume || 0.35;
-      setMuted(false);
-    } else {
-      audioRef.current.volume = 0;
-      setMuted(true);
-    }
   }
 
   const hasChampion = p.badges.some((b) => b.id === "champion");
@@ -257,10 +226,19 @@ export default function ProfileView(p: ProfileViewProps) {
       ? { background: p.backgroundValue }
       : p.backgroundType === "image"
         ? { backgroundImage: `url(/${p.backgroundValue})`, backgroundSize: "cover", backgroundPosition: "center" }
-        : { background: "#050507" };
+        : { background: p.backgroundColor };
+
+  const effectiveLayout = p.layoutTemplate === "wide" && !p.isPremium ? "classic" : p.layoutTemplate;
+
+  const paletteVars = {
+    ["--accent" as string]: p.accentColor,
+    ["--profile-name-color" as string]: p.nameColor,
+    ["--profile-bio-color" as string]: p.bioColor,
+    ["--profile-overlay" as string]: p.overlayColor,
+  };
 
   return (
-    <div className="profile-body" style={{ ["--accent" as string]: p.accentColor, ["--accent2" as string]: undefined }}>
+    <div className="profile-body" style={paletteVars}>
       {!entered && (
         <div id="splash-screen" onClick={enter}>
           <div id="splash-text">
@@ -295,29 +273,8 @@ export default function ProfileView(p: ProfileViewProps) {
             customCursorUrl={p.cursorPath ? `/${p.cursorPath}` : null}
           />
         )}
-        {p.musicPath && <audio id="bg-audio" ref={audioRef} src={`/${p.musicPath}`} loop preload="auto" />}
-
-        {p.musicPath && (
-          <div className="vol-widget" id="vol-widget">
-            <button className="vol-btn" id="vol-btn" title="Mute / Unmute" onClick={toggleMute}>
-              {muted ? (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" /></svg>
-              ) : (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" /></svg>
-              )}
-            </button>
-            <div className="vol-slider-wrap">
-              <input
-                type="range"
-                className="vol-slider"
-                min={0}
-                max={1}
-                step={0.05}
-                value={muted ? 0 : volume}
-                onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
-              />
-            </div>
-          </div>
+        {p.musicTracks.length > 0 && (
+          <MusicPlayer tracks={p.musicTracks} style={p.playlistStyle} active={entered} />
         )}
 
         {p.isOwner && (
@@ -326,9 +283,13 @@ export default function ProfileView(p: ProfileViewProps) {
           </div>
         )}
 
-        <div className="profile-wrapper">
-          <div className="profile-card" ref={cardRef}>
-            <div className={`avatar-wrapper fade-in avatar-shape-${p.avatarShape}`}>
+        <div className={`profile-wrapper profile-wrapper--${effectiveLayout}`}>
+          <div className={`profile-card profile-card--${effectiveLayout}`} ref={cardRef}>
+            {p.banner && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={`/${p.banner}`} alt="" className="profile-banner-img fade-in" />
+            )}
+            <div className={`avatar-wrapper fade-in avatar-shape-${p.avatarShape} ${p.banner ? "avatar-wrapper--with-banner" : ""}`}>
               {!hasActiveAvatarEffect && p.isPremium && p.avatarRing === "premium" ? (
                 <>
                   <div className="avatar-ring-pulse" />
@@ -342,13 +303,16 @@ export default function ProfileView(p: ProfileViewProps) {
                 </div>
               ) : null}
               <div className="avatar-ring-inner" />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={p.avatar ? `/${p.avatar}` : "/assets/img/default-avatar.png"}
-                alt={p.displayName}
-                className="avatar-img"
-                onError={(e) => { (e.target as HTMLImageElement).src = "/assets/img/default-avatar.png"; }}
-              />
+              <div className="avatar-decoration-anchor">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={p.avatar ? `/${p.avatar}` : "/assets/img/default-avatar.png"}
+                  alt={p.displayName}
+                  className="avatar-img"
+                  onError={(e) => { (e.target as HTMLImageElement).src = "/assets/img/default-avatar.png"; }}
+                />
+                <DecorationFrame id={p.activeDecoration} />
+              </div>
               {hasActiveAvatarEffect && (
                 <div className="pav-effect-wrap" data-effect={p.activeAvatarEffect}>
                   <canvas className="pav-canvas" id="pav-canvas" />
@@ -357,7 +321,7 @@ export default function ProfileView(p: ProfileViewProps) {
             </div>
 
             <div className={`profile-username fade-in-d1 ${hasChampion ? "champion-name" : ""}`} id="profile-display-name">
-              {p.typingEffect && entered ? typedText : p.displayName}
+              <EffectText text={p.displayName} effect={p.nameEffect} active={entered} />
             </div>
 
             {p.badges.length > 0 && (
@@ -385,16 +349,39 @@ export default function ProfileView(p: ProfileViewProps) {
               </div>
             )}
 
-            {p.bio && <p className="profile-bio fade-in-d1">&quot;{p.bio}&quot;</p>}
+            {p.bio && (
+              <p className="profile-bio fade-in-d1">
+                &quot;<EffectText text={p.bio} effect={p.bioEffect} active={entered} />&quot;
+              </p>
+            )}
 
-            {p.location && (
-              <div className="profile-location fade-in-d2 location-tooltip-wrap">
-                <span className="location-pill-tooltip">Location</span>
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="#ffffff" style={{ opacity: 0.6 }}>
-                  <path d="M12 2C8.686 2 6 4.686 6 8c0 4.5 6 12 6 12s6-7.5 6-12c0-3.314-2.686-6-6-6z" />
-                  <circle cx="12" cy="8" r="2.2" fill="rgba(5,5,7,0.55)" />
-                </svg>
-                {p.location}
+            {(p.location || p.job || p.age !== null) && (
+              <div className="profile-meta-row fade-in-d2">
+                {p.location && (
+                  <div className="profile-location">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="#ffffff" style={{ opacity: 0.6 }}>
+                      <path d="M12 2C8.686 2 6 4.686 6 8c0 4.5 6 12 6 12s6-7.5 6-12c0-3.314-2.686-6-6-6z" />
+                      <circle cx="12" cy="8" r="2.2" fill="rgba(5,5,7,0.55)" />
+                    </svg>
+                    {p.location}
+                  </div>
+                )}
+                {p.job && (
+                  <div className="profile-location">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#ffffff" strokeWidth="2" style={{ opacity: 0.6 }}>
+                      <rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                    </svg>
+                    {p.job}
+                  </div>
+                )}
+                {p.age !== null && (
+                  <div className="profile-location">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#ffffff" strokeWidth="2" style={{ opacity: 0.6 }}>
+                      <path d="M20 21a8 8 0 1 0-16 0" /><circle cx="12" cy="7" r="4" />
+                    </svg>
+                    {p.age}
+                  </div>
+                )}
               </div>
             )}
 
@@ -416,7 +403,7 @@ export default function ProfileView(p: ProfileViewProps) {
               </div>
             )}
 
-            {(p.discordInt || p.discordServerInt) && (
+            {(p.discordInt || p.discordServerInt || p.gameIntegrations.length > 0) && (
               <div className="integrations-grid fade-in-d3">
                 {p.discordInt && (
                   <DiscordPresenceCard
@@ -436,6 +423,7 @@ export default function ProfileView(p: ProfileViewProps) {
                     total={p.discordServerInt.total}
                   />
                 )}
+                <GameIntegrationCards integrations={p.gameIntegrations} />
               </div>
             )}
 

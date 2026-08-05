@@ -204,17 +204,17 @@ export async function POST(req: NextRequest) {
     const applied: string[] = [];
 
     if (bundleBadges.length > 0) {
-      const profile = await prisma.profile.findUnique({ where: { userId: applyUserId }, select: { badges: true } });
+      const profile = await prisma.profile.findFirst({ where: { userId: applyUserId , isPrimary: true }, select: { badges: true } });
       const owned = new Set((profile?.badges as string[] | null) ?? []);
       for (const b of bundleBadges) { owned.add(b); applied.push(`badge:${b}`); }
-      await prisma.profile.update({ where: { userId: applyUserId }, data: { badges: Array.from(owned) } });
+      await prisma.profile.updateMany({ where: { userId: applyUserId , isPrimary: true }, data: { badges: Array.from(owned) } });
     }
 
     if (bundleEffects.length > 0) {
-      const profile = await prisma.profile.findUnique({ where: { userId: applyUserId }, select: { purchasedEffects: true } });
+      const profile = await prisma.profile.findFirst({ where: { userId: applyUserId , isPrimary: true }, select: { purchasedEffects: true } });
       const owned = new Set((profile?.purchasedEffects as string[] | null) ?? []);
       for (const e of bundleEffects) { owned.add(e); applied.push(`effect:${e}`); }
-      await prisma.profile.update({ where: { userId: applyUserId }, data: { purchasedEffects: Array.from(owned) } });
+      await prisma.profile.updateMany({ where: { userId: applyUserId , isPrimary: true }, data: { purchasedEffects: Array.from(owned) } });
     }
 
     if (bundlePremium > 0) {
@@ -233,7 +233,7 @@ export async function POST(req: NextRequest) {
         title: `🎁 You received a bundle: ${bundle.name}`,
         body: `An owner applied the '${bundle.name}' bundle to your account. Check your profile for new rewards!`,
         icon: "gift",
-        link: "/dashboard/badges",
+        link: "/dashboard?page=badges",
       },
     });
 
@@ -307,14 +307,14 @@ export async function POST(req: NextRequest) {
       const badgeId = String(input.badge_id || "").trim();
       if (!MANAGEABLE_BADGES.includes(badgeId)) return err("Invalid badge ID");
       const grant = action === "badge_grant";
-      const profile = await prisma.profile.findUnique({ where: { userId: targetId }, select: { badges: true } });
+      const profile = await prisma.profile.findFirst({ where: { userId: targetId , isPrimary: true }, select: { badges: true } });
       const owned = new Set((profile?.badges as string[] | null) ?? []);
       if (grant) owned.add(badgeId); else owned.delete(badgeId);
-      await prisma.profile.update({ where: { userId: targetId }, data: { badges: Array.from(owned) } });
+      await prisma.profile.updateMany({ where: { userId: targetId , isPrimary: true }, data: { badges: Array.from(owned) } });
       if (badgeId === "verified") await syncDiscordVerifiedRole(targetId, grant);
       if (grant) {
         await prisma.notification.create({
-          data: { userId: targetId, type: "badge", title: "You received a new badge! 🏅", body: `The '${badgeId}' badge was granted to your profile by an admin.`, icon: "badge", link: "/dashboard/badges" },
+          data: { userId: targetId, type: "badge", title: "You received a new badge! 🏅", body: `The '${badgeId}' badge was granted to your profile by an admin.`, icon: "badge", link: "/dashboard?page=badges" },
         });
       }
       return ok(`Badge '${badgeId}' ${grant ? "granted to" : "revoked from"} @${target.username}.`);

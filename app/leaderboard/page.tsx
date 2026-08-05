@@ -50,86 +50,83 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
   if (loggedIn) {
     const me = await prisma.user.findUnique({
       where: { id: myUserId },
-      select: { username: true, leaderboardRegionCode: true, leaderboardRegionName: true, profile: { select: { id: true } } },
+      select: { username: true, leaderboardRegionCode: true, leaderboardRegionName: true, profiles: { where: { isPrimary: true }, take: 1, select: { id: true } } },
     });
     if (me) {
       currentUser = { username: me.username };
       myRegionCode = me.leaderboardRegionCode || "";
       myRegionName = me.leaderboardRegionName || "";
-      myProfileExists = !!me.profile;
+      myProfileExists = me.profiles.length > 0;
     }
   }
 
   const { code: detectedCountryCode, name: detectedCountry } = await detectCountry(h);
   const badgeRegionName = myRegionName && myRegionCode !== "XX" ? myRegionName : detectedCountry;
 
-  const topUsersRaw = await prisma.user.findMany({
-    where: { banned: false, emailVerified: true },
-    orderBy: { profile: { views: "desc" } },
+  const topProfilesRaw = await prisma.profile.findMany({
+    where: { isPrimary: true, user: { banned: false, emailVerified: true } },
+    orderBy: { views: "desc" },
     take: 100,
     select: {
-      id: true,
-      username: true,
-      isPremium: true,
-      premiumExpiresAt: true,
-      profile: { select: { displayName: true, avatar: true, views: true } },
+      userId: true,
+      slug: true,
+      displayName: true,
+      avatar: true,
+      views: true,
+      user: { select: { isPremium: true, premiumExpiresAt: true } },
     },
   });
-  const topUsers = topUsersRaw
-    .filter((u) => u.profile)
-    .map((u) => ({
-      id: u.id,
-      username: u.username,
-      displayName: u.profile!.displayName || "",
-      avatar: u.profile!.avatar || "",
-      views: u.profile!.views,
-      premium: isPremiumNow(u.isPremium, u.premiumExpiresAt),
-    }));
+  const topUsers = topProfilesRaw.map((p) => ({
+    id: p.userId,
+    username: p.slug,
+    displayName: p.displayName || "",
+    avatar: p.avatar || "",
+    views: p.views,
+    premium: isPremiumNow(p.user.isPremium, p.user.premiumExpiresAt),
+  }));
 
-  let localUsersRaw;
+  let localProfilesRaw;
   if (detectedCountryCode && detectedCountryCode !== "XX") {
-    localUsersRaw = await prisma.user.findMany({
-      where: { banned: false, emailVerified: true, leaderboardRegionCode: detectedCountryCode },
-      orderBy: { profile: { localViews: "desc" } },
+    localProfilesRaw = await prisma.profile.findMany({
+      where: { isPrimary: true, user: { banned: false, emailVerified: true, leaderboardRegionCode: detectedCountryCode } },
+      orderBy: { localViews: "desc" },
       take: 100,
       select: {
-        id: true,
-        username: true,
-        isPremium: true,
-        premiumExpiresAt: true,
-        leaderboardRegionName: true,
-        profile: { select: { displayName: true, avatar: true, localViews: true } },
+        userId: true,
+        slug: true,
+        displayName: true,
+        avatar: true,
+        localViews: true,
+        user: { select: { isPremium: true, premiumExpiresAt: true, leaderboardRegionName: true } },
       },
     });
   } else {
-    localUsersRaw = await prisma.user.findMany({
-      where: { banned: false, emailVerified: true, leaderboardRegionCode: { not: null, notIn: ["", "XX"] } },
-      orderBy: { profile: { localViews: "desc" } },
+    localProfilesRaw = await prisma.profile.findMany({
+      where: { isPrimary: true, user: { banned: false, emailVerified: true, leaderboardRegionCode: { not: null, notIn: ["", "XX"] } } },
+      orderBy: { localViews: "desc" },
       take: 100,
       select: {
-        id: true,
-        username: true,
-        isPremium: true,
-        premiumExpiresAt: true,
-        leaderboardRegionName: true,
-        profile: { select: { displayName: true, avatar: true, localViews: true } },
+        userId: true,
+        slug: true,
+        displayName: true,
+        avatar: true,
+        localViews: true,
+        user: { select: { isPremium: true, premiumExpiresAt: true, leaderboardRegionName: true } },
       },
     });
   }
-  const localUsers = localUsersRaw
-    .filter((u) => u.profile)
-    .map((u) => ({
-      id: u.id,
-      username: u.username,
-      displayName: u.profile!.displayName || "",
-      avatar: u.profile!.avatar || "",
-      localViews: u.profile!.localViews,
-      regionName: u.leaderboardRegionName || "",
-      premium: isPremiumNow(u.isPremium, u.premiumExpiresAt),
-    }));
+  const localUsers = localProfilesRaw.map((p) => ({
+    id: p.userId,
+    username: p.slug,
+    displayName: p.displayName || "",
+    avatar: p.avatar || "",
+    localViews: p.localViews,
+    regionName: p.user.leaderboardRegionName || "",
+    premium: isPremiumNow(p.user.isPremium, p.user.premiumExpiresAt),
+  }));
 
   const likesUsersRaw = await prisma.user.findMany({
-    where: { banned: false, emailVerified: true, profile: { isNot: null } },
+    where: { banned: false, emailVerified: true },
     orderBy: { likesReceived: { _count: "desc" } },
     take: 100,
     select: {
@@ -137,7 +134,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
       username: true,
       isPremium: true,
       premiumExpiresAt: true,
-      profile: { select: { displayName: true, avatar: true } },
+      profiles: { where: { isPrimary: true }, take: 1, select: { displayName: true, avatar: true } },
       _count: { select: { likesReceived: true } },
     },
   });
@@ -146,8 +143,8 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
     .map((u) => ({
       id: u.id,
       username: u.username,
-      displayName: u.profile!.displayName || "",
-      avatar: u.profile!.avatar || "",
+      displayName: u.profiles[0]?.displayName || "",
+      avatar: u.profiles[0]?.avatar || "",
       likeCount: u._count.likesReceived,
       premium: isPremiumNow(u.isPremium, u.premiumExpiresAt),
     }));
@@ -160,10 +157,10 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
       myRankGlobal = idx + 1;
       myViewsGlobal = topUsers[idx].views;
     } else {
-      const myProfile = await prisma.profile.findUnique({ where: { userId: myUserId }, select: { views: true } });
+      const myProfile = await prisma.profile.findFirst({ where: { userId: myUserId, isPrimary: true }, select: { views: true } });
       myViewsGlobal = myProfile?.views ?? 0;
-      const higherCount = await prisma.user.count({
-        where: { banned: false, emailVerified: true, profile: { views: { gt: myViewsGlobal } } },
+      const higherCount = await prisma.profile.count({
+        where: { isPrimary: true, user: { banned: false, emailVerified: true }, views: { gt: myViewsGlobal } },
       });
       myRankGlobal = higherCount + 1;
     }
@@ -197,14 +194,13 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
       myRankLocal = idx + 1;
       myViewsLocal = localUsers[idx].localViews;
     } else {
-      const myProfile = await prisma.profile.findUnique({ where: { userId: myUserId }, select: { localViews: true } });
+      const myProfile = await prisma.profile.findFirst({ where: { userId: myUserId , isPrimary: true }, select: { localViews: true } });
       myViewsLocal = myProfile?.localViews ?? 0;
-      const higherCount = await prisma.user.count({
+      const higherCount = await prisma.profile.count({
         where: {
-          banned: false,
-          emailVerified: true,
-          leaderboardRegionCode: { not: null, notIn: ["", "XX"] },
-          profile: { localViews: { gt: myViewsLocal } },
+          isPrimary: true,
+          user: { banned: false, emailVerified: true, leaderboardRegionCode: { not: null, notIn: ["", "XX"] } },
+          localViews: { gt: myViewsLocal },
         },
       });
       myRankLocal = higherCount + 1;
@@ -214,13 +210,13 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
   let searchResult: { username: string; displayName: string; avatar: string; views: number } | null = null;
   let searchRank = 0;
   if (searchQuery) {
-    const u = await prisma.user.findFirst({
-      where: { username: searchQuery, banned: false, emailVerified: true },
-      select: { username: true, profile: { select: { displayName: true, avatar: true, views: true } } },
+    const p = await prisma.profile.findFirst({
+      where: { slug: searchQuery, isPrimary: true, user: { banned: false, emailVerified: true } },
+      select: { slug: true, displayName: true, avatar: true, views: true },
     });
-    if (u && u.profile) {
-      searchResult = { username: u.username, displayName: u.profile.displayName || "", avatar: u.profile.avatar || "", views: u.profile.views };
-      searchRank = (await prisma.user.count({ where: { banned: false, emailVerified: true, profile: { views: { gt: u.profile.views } } } })) + 1;
+    if (p) {
+      searchResult = { username: p.slug, displayName: p.displayName || "", avatar: p.avatar || "", views: p.views };
+      searchRank = (await prisma.profile.count({ where: { isPrimary: true, user: { banned: false, emailVerified: true }, views: { gt: p.views } } })) + 1;
     }
   }
 

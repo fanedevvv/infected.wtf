@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
       referredBy: pendingRef,
       emailVerified: false,
       regIpHash,
-      profile: { create: { displayName: username } },
+      profiles: { create: { slug: username, isPrimary: true, displayName: username } },
     },
   });
 

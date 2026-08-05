@@ -4,17 +4,21 @@ import { useEffect, useRef, useState } from "react";
 import { SHOP_EFFECTS } from "@/lib/shop";
 import { showToast } from "@/lib/toast";
 import EffectPreviewCanvas from "@/components/EffectPreviewCanvas";
+import EffectText, { TEXT_EFFECTS } from "@/components/EffectText";
 
 type Props = {
   isPremium: boolean;
   particleEffect: boolean;
   cursorTrail: boolean;
-  typingEffect: boolean;
+  nameEffect: string;
+  bioEffect: string;
   avatarRing: string;
   avatarShape: string;
   displayName: string;
+  bio: string;
   purchasedEffects: string[];
   activeEffects: Record<string, string>;
+  section?: "full" | "bg" | "cursor" | "text" | "avatar";
 };
 
 const SHAPES: { key: string; label: string; cls: string }[] = [
@@ -121,39 +125,6 @@ function CursorTrailPreview() {
   return <div className="effect-preview" ref={wrapRef} />;
 }
 
-function TypewriterPreview({ text }: { text: string }) {
-  const elRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = elRef.current;
-    if (!el) return;
-    let i = 0, del = false, p = 0;
-    let timeout: ReturnType<typeof setTimeout>;
-    function tick() {
-      if (p > 0) {
-        p--;
-        timeout = setTimeout(tick, 80);
-        return;
-      }
-      if (!del) {
-        i++;
-        el!.innerHTML = text.slice(0, i) + '<span class="cursor-blink"></span>';
-        if (i >= text.length) { p = 22; del = true; }
-      } else {
-        i--;
-        el!.innerHTML = text.slice(0, i) + '<span class="cursor-blink"></span>';
-        if (i <= 0) { p = 10; del = false; }
-      }
-      timeout = setTimeout(tick, del ? 60 : 110);
-    }
-    tick();
-    return () => clearTimeout(timeout);
-  }, [text]);
-  return (
-    <div className="effect-preview">
-      <div className="preview-typewriter" ref={elRef} />
-    </div>
-  );
-}
 
 function ToggleSwitch({ active, onClick }: { active: boolean; onClick: () => void }) {
   return (
@@ -166,20 +137,22 @@ function ToggleSwitch({ active, onClick }: { active: boolean; onClick: () => voi
 export default function EffectsClient(props: Props) {
   const [particle, setParticle] = useState(props.particleEffect);
   const [cursorTrail, setCursorTrail] = useState(props.cursorTrail);
-  const [typing, setTyping] = useState(props.typingEffect);
+  const [nameEffect, setNameEffect] = useState(props.nameEffect);
+  const [bioEffect, setBioEffect] = useState(props.bioEffect);
   const [ring, setRing] = useState(props.avatarRing);
   const [shape, setShape] = useState(props.avatarShape);
   const [active, setActive] = useState<Record<string, string>>(props.activeEffects);
 
   const owned = new Set(props.purchasedEffects);
 
-  async function saveFree(next: { particle?: boolean; cursorTrail?: boolean; typing?: boolean; ring?: string }) {
+  async function saveFree(next: { particle?: boolean; cursorTrail?: boolean; ring?: string; nameEffect?: string; bioEffect?: string }) {
     const fd = new FormData();
     fd.append("action", "effects-form");
     if (next.particle ?? particle) fd.append("particle_effect", "1");
     if (next.cursorTrail ?? cursorTrail) fd.append("cursor_trail", "1");
-    if (next.typing ?? typing) fd.append("typing_effect", "1");
     fd.append("avatar_ring", next.ring ?? ring);
+    fd.append("name_effect", next.nameEffect ?? nameEffect);
+    fd.append("bio_effect", next.bioEffect ?? bioEffect);
     try {
       const res = await fetch("/api/update_profile", { method: "POST", body: fd });
       const j = await res.json();
@@ -213,10 +186,13 @@ export default function EffectsClient(props: Props) {
     }
     saveFree({ cursorTrail: on });
   }
-  function toggleTyp() {
-    const on = !typing;
-    setTyping(on);
-    saveFree({ typing: on });
+  function selectNameEffect(id: string) {
+    setNameEffect(id);
+    saveFree({ nameEffect: id });
+  }
+  function selectBioEffect(id: string) {
+    setBioEffect(id);
+    saveFree({ bioEffect: id });
   }
   function toggleRing(type: "normal" | "premium") {
     const newRing = ring === type ? "none" : type;
@@ -280,9 +256,8 @@ export default function EffectsClient(props: Props) {
           return (
             <div key={id} className={`effect-card ${isActive ? "active" : ""} ${!isOwned ? "effect-locked" : ""}`}>
               <div className="effect-preview pef-preview">
-                {isOwned ? (
-                  <EffectPreviewCanvas effectId={id} />
-                ) : (
+                <EffectPreviewCanvas effectId={id} />
+                {!isOwned && (
                   <div className="lock-overlay">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="26" height="26"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>
                     <span>Not Owned</span>
@@ -300,7 +275,7 @@ export default function EffectsClient(props: Props) {
                   <ToggleSwitch active={isActive} onClick={() => togglePurchased(id, type)} />
                 </div>
               ) : (
-                <a href="/dashboard/shop#effects" className="pef-buy-link">
+                <a href="/dashboard?page=shop#effects" className="pef-buy-link">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="13" height="13"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
                   Buy in Shop
                 </a>
@@ -312,10 +287,14 @@ export default function EffectsClient(props: Props) {
     );
   }
 
+  const section = props.section ?? "full";
+  const show = (s: string) => section === "full" || section === s;
+
   return (
     <>
-      <div className="section-header"><h2>Visual Effects</h2><p>Enable or disable special effects</p></div>
+      {section === "full" && <div className="section-header"><h2>Visual Effects</h2><p>Enable or disable special effects</p></div>}
 
+      {show("bg") && (
       <div className="fx-section">
         <div className="fx-section-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12"><circle cx="12" cy="12" r="3" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
@@ -334,7 +313,9 @@ export default function EffectsClient(props: Props) {
           <PurchasedEffectGrid ids={BG_IDS} type="bg" />
         </div>
       </div>
+      )}
 
+      {show("cursor") && (
       <div className="fx-section">
         <div className="fx-section-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12"><path d="M4 4l7.07 17 2.51-7.39L21 11.07z" /></svg>
@@ -353,28 +334,48 @@ export default function EffectsClient(props: Props) {
           <PurchasedEffectGrid ids={CURSOR_IDS} type="cursor" />
         </div>
       </div>
+      )}
 
+      {show("text") && (
+      <>
       <div className="fx-section">
         <div className="fx-section-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12"><polyline points="4 17 10 11 4 5" /><line x1="12" y1="19" x2="20" y2="19" /></svg>
-          Name Effects
+          Name Effect
         </div>
-        <div className="effects-grid">
-          <div className={`effect-card ${typing ? "active" : ""}`}>
-            <TypewriterPreview text={props.displayName} />
-            <div className="effect-card-name">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="11" height="11" style={{ color: "var(--accent)" }}><polyline points="4 17 10 11 4 5" /><line x1="12" y1="19" x2="20" y2="19" /></svg>
-              Typewriter Effect
-            </div>
-            <div className="effect-card-desc">Animates your display name letter by letter on your profile</div>
-            <div className="effect-toggle-wrap">
-              <span className="effect-toggle-text">{typing ? "Enabled" : "Disabled"}</span>
-              <ToggleSwitch active={typing} onClick={toggleTyp} />
-            </div>
-          </div>
+        <div className="text-fx-grid">
+          {TEXT_EFFECTS.map((fx) => (
+            <button key={fx.id} type="button" className={`text-fx-card ${nameEffect === fx.id ? "active" : ""}`} onClick={() => selectNameEffect(fx.id)}>
+              <div className="text-fx-preview">
+                <EffectText text={props.displayName || "Preview"} effect={fx.id} active />
+              </div>
+              <span className="text-fx-label">{fx.label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
+      <div className="fx-section">
+        <div className="fx-section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12"><path d="M4 7V4h16v3M9 20h6M12 4v16" /></svg>
+          Bio Effect
+        </div>
+        <div className="text-fx-grid">
+          {TEXT_EFFECTS.map((fx) => (
+            <button key={fx.id} type="button" className={`text-fx-card ${bioEffect === fx.id ? "active" : ""}`} onClick={() => selectBioEffect(fx.id)}>
+              <div className="text-fx-preview">
+                <EffectText text={props.bio || "Your bio text"} effect={fx.id} active />
+              </div>
+              <span className="text-fx-label">{fx.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+      </>
+      )}
+
+      {show("avatar") && (
+      <>
       <div className="fx-section">
         <div className="fx-section-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="5" /></svg>
@@ -445,6 +446,8 @@ export default function EffectsClient(props: Props) {
           ))}
         </div>
       </div>
+      </>
+      )}
     </>
   );
 }

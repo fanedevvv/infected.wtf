@@ -41,10 +41,10 @@ export async function DELETE() {
     }
   }
 
-  const profile = await prisma.profile.findUnique({ where: { userId: user.id } });
+  const profile = await prisma.profile.findFirst({ where: { userId: user.id , isPrimary: true } });
   const badges = new Set((profile?.badges as string[] | null) ?? []);
   badges.delete("discord");
-  await prisma.profile.update({ where: { userId: user.id }, data: { badges: Array.from(badges) } });
+  await prisma.profile.updateMany({ where: { userId: user.id , isPrimary: true }, data: { badges: Array.from(badges) } });
 
   return NextResponse.json({ success: true });
 }

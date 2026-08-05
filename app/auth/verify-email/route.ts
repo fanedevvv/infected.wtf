@@ -43,16 +43,16 @@ export async function GET(req: NextRequest) {
             ]);
 
             const refCount = await prisma.referral.count({ where: { referrerId: referrer.id } });
-            const referrerProfile = await prisma.profile.findUnique({ where: { userId: referrer.id } });
+            const referrerProfile = await prisma.profile.findFirst({ where: { userId: referrer.id , isPrimary: true } });
             let badges = (referrerProfile?.badges as string[] | null) ?? [];
             if (refCount >= 20) {
               badges = badges.filter((b) => b !== "promoter");
               if (!badges.includes("promoter_elite")) badges.push("promoter_elite");
-              await prisma.profile.update({ where: { userId: referrer.id }, data: { badges } });
+              await prisma.profile.updateMany({ where: { userId: referrer.id , isPrimary: true }, data: { badges } });
             } else if (refCount >= 10) {
               if (!badges.includes("promoter") && !badges.includes("promoter_elite")) {
                 badges.push("promoter");
-                await prisma.profile.update({ where: { userId: referrer.id }, data: { badges } });
+                await prisma.profile.updateMany({ where: { userId: referrer.id , isPrimary: true }, data: { badges } });
               }
             }
 
@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
                 title: "New referral! 🎉",
                 body: `Someone just signed up using your referral link. You earned ${refTokens} tokens!`,
                 icon: "users",
-                link: "/dashboard/referral",
+                link: "/dashboard?page=referral",
               },
             });
           }

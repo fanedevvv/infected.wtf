@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
+import { getActiveProfileId } from "@/lib/active-profile";
 import { SHOP_BADGES, SHOP_EFFECTS } from "@/lib/shop";
 import ShopClient from "./ShopClient";
 
@@ -8,7 +9,8 @@ export default async function ShopPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const profile = await prisma.profile.findUnique({ where: { userId: user.id } });
+  const activeProfileId = await getActiveProfileId(user.id);
+  const profile = await prisma.profile.findUnique({ where: { id: activeProfileId } });
   if (!profile) redirect("/dashboard");
 
   const isPremium = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date());

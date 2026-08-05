@@ -26,8 +26,8 @@ function parseOS(ua: string): string {
   return "Unknown";
 }
 
-/** Records a unique daily profile view and awards view tokens; mirrors incrementViews() in helpers.php. */
-export async function recordProfileView(profileUserId: number, ip: string, ua: string, countryCode: string) {
+/** Records a unique daily profile view for a specific page and awards view tokens to its owner; mirrors incrementViews() in helpers.php. */
+export async function recordProfileView(profileId: number, profileUserId: number, ip: string, ua: string, countryCode: string) {
   const today = new Date();
   today.setUTCHours(0, 0, 0, 0);
   const ipHash = sha256(ip + today.toISOString().slice(0, 10));
@@ -50,27 +50,27 @@ export async function recordProfileView(profileUserId: number, ip: string, ua: s
   }
 
   const profile = await prisma.profile.update({
-    where: { userId: profileUserId },
+    where: { id: profileId },
     data: { views: { increment: 1 } },
   });
 
   const user = await prisma.user.findUnique({ where: { id: profileUserId } });
   if (user?.leaderboardRegionCode && countryCode && user.leaderboardRegionCode.toUpperCase() === countryCode.toUpperCase()) {
-    await prisma.profile.update({ where: { userId: profileUserId }, data: { localViews: { increment: 1 } } });
+    await prisma.profile.update({ where: { id: profileId }, data: { localViews: { increment: 1 } } });
   }
 
-  if (profile.views >= 1000) await grantBadge(profileUserId, "hall_of_fame", true);
-  if (profile.views >= 10000) await grantBadge(profileUserId, "champion", true);
+  if (profile.views >= 1000) await grantBadge(profileId, "hall_of_fame", true);
+  if (profile.views >= 10000) await grantBadge(profileId, "champion", true);
 
   const isPremium = user?.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date());
   const tokens = isPremium ? 5 : 3;
   await prisma.user.update({ where: { id: profileUserId }, data: { tokens: { increment: tokens } } });
 }
 
-async function grantBadge(userId: number, badgeId: string, grant: boolean) {
-  const profile = await prisma.profile.findUnique({ where: { userId } });
+async function grantBadge(profileId: number, badgeId: string, grant: boolean) {
+  const profile = await prisma.profile.findUnique({ where: { id: profileId } });
   const current = new Set((profile?.badges as string[] | null) ?? []);
   if (grant) current.add(badgeId);
   else current.delete(badgeId);
-  await prisma.profile.update({ where: { userId }, data: { badges: Array.from(current) } });
+  await prisma.profile.update({ where: { id: profileId }, data: { badges: Array.from(current) } });
 }

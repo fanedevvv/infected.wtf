@@ -340,6 +340,9 @@ function buildRenderers(): Record<string, Renderer> {
       }
       return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
         ctx.clearRect(0, 0, W, H);
+        const wash = ctx.createLinearGradient(0, 0, 0, H);
+        wash.addColorStop(0, "rgba(132,204,22,0.10)"); wash.addColorStop(1, "rgba(101,163,13,0.03)");
+        ctx.fillStyle = wash; ctx.fillRect(0, 0, W, H);
         branch(ctx, W, H);
         for (let i = 0; i < N; i++) {
           const s = seeds[i];
@@ -369,7 +372,7 @@ function buildRenderers(): Record<string, Renderer> {
       return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
         ctx.clearRect(0, 0, W, H);
         const g = ctx.createLinearGradient(0, 0, 0, H);
-        g.addColorStop(0, "rgba(3,105,161,0.18)"); g.addColorStop(1, "rgba(7,89,133,0.05)");
+        g.addColorStop(0, "rgba(14,165,233,0.30)"); g.addColorStop(1, "rgba(7,89,133,0.10)");
         ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
         if (!bb) init(W);
         for (let i = 0; i < bb.length; i++) {
@@ -408,13 +411,15 @@ function buildRenderers(): Record<string, Renderer> {
     })(),
     bg_gas: (ctx, W, H, t) => {
       ctx.clearRect(0, 0, W, H);
-      for (let i = 0; i < 6; i++) {
-        const x = W / 2 + Math.cos(t * 0.012 + i * 60 * Math.PI / 180) * W * 0.28;
-        const y = H / 2 + Math.sin(t * 0.015 + i * 60 * Math.PI / 180) * H * 0.3;
-        const r = 22 + Math.sin(t * 0.02 + i) * 8;
-        ctx.save(); ctx.globalAlpha = 0.08;
+      ctx.fillStyle = "rgba(76,29,149,0.12)"; ctx.fillRect(0, 0, W, H);
+      const colors = ["#a78bfa", "#c084fc", "#8b5cf6"];
+      for (let i = 0; i < 7; i++) {
+        const x = W / 2 + Math.cos(t * 0.014 + i * 51 * Math.PI / 180) * W * 0.34;
+        const y = H / 2 + Math.sin(t * 0.017 + i * 51 * Math.PI / 180) * H * 0.36;
+        const r = 26 + Math.sin(t * 0.02 + i) * 10;
+        ctx.save(); ctx.globalAlpha = 0.32;
         const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-        g.addColorStop(0, "#a78bfa"); g.addColorStop(1, "transparent");
+        g.addColorStop(0, colors[i % colors.length]); g.addColorStop(1, "transparent");
         ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
       }
     },
@@ -438,6 +443,7 @@ function buildRenderers(): Record<string, Renderer> {
       }
       return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
         ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = "rgba(15,10,35,0.55)"; ctx.fillRect(0, 0, W, H);
         if (t - lastBurst > 70 || bursts.length === 0) {
           if (bursts.length < 4) { spawnBurst(W, H); lastBurst = t; }
         }
@@ -520,69 +526,281 @@ function buildRenderers(): Record<string, Renderer> {
     })(),
     bg_shadowworld: (ctx, W, H, t) => {
       ctx.clearRect(0, 0, W, H);
-      for (let i = 0; i < 7; i++) {
-        const x = W * 0.05 + i * (W * 0.15) + Math.sin(t * 0.008 + i) * 14;
-        const y = H / 2 + Math.cos(t * 0.01 + i) * H * 0.28;
-        const r = 10 + Math.sin(t * 0.018 + i) * 6;
-        ctx.save(); ctx.globalAlpha = 0.92;
-        const g = ctx.createRadialGradient(x, y, 0, x, y, r * 1.4);
-        g.addColorStop(0, "rgba(109,40,217,0.32)"); g.addColorStop(0.5, "rgba(76,29,149,0.16)"); g.addColorStop(1, "transparent");
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r * 1.4, 0, Math.PI * 2); ctx.fill(); ctx.restore();
-      }
-      for (let i = 0; i < 5; i++) {
-        const x = W * 0.1 + i * (W * 0.2) + Math.cos(t * 0.011 + i * 1.3) * 9;
-        const y = H * 0.2 + ((t * 0.15 + i * 14) % 100) / 100 * H * 0.6;
-        const r = 4 + Math.sin(t * 0.025 + i) * 2.5;
-        const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-        g.addColorStop(0, "rgba(139,92,246,0.38)"); g.addColorStop(1, "transparent");
-        ctx.save(); ctx.globalAlpha = 0.85; ctx.fillStyle = g;
+      const wash = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.65);
+      wash.addColorStop(0, "rgba(88,28,135,0.32)"); wash.addColorStop(1, "rgba(10,5,20,0.5)");
+      ctx.fillStyle = wash; ctx.fillRect(0, 0, W, H);
+      for (let i = 0; i < 6; i++) {
+        const x = W * 0.1 + i * (W * 0.16) + Math.sin(t * 0.02 + i) * 10;
+        const y = H / 2 + Math.cos(t * 0.024 + i * 1.3) * H * 0.3;
+        const r = 8 + Math.sin(t * 0.03 + i) * 4;
+        ctx.save(); ctx.globalAlpha = 0.75; ctx.fillStyle = "#a855f7"; ctx.shadowColor = "#c084fc"; ctx.shadowBlur = 12;
         ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
       }
-      function drawBgEye(ex: number, ey: number, ew: number, blinkT: number, hue: number) {
-        const eh = ew * 0.38;
-        const blink = Math.max(0, Math.sin(blinkT));
-        if (blink < 0.02) return;
-        ctx.save(); ctx.translate(ex, ey); ctx.scale(1, blink);
-        const grd = ctx.createRadialGradient(0, 0, ew * 0.1, 0, 0, ew * 1.4);
-        grd.addColorStop(0, `hsla(${hue},80%,45%,0.18)`); grd.addColorStop(1, "transparent");
-        ctx.fillStyle = grd; ctx.beginPath(); ctx.ellipse(0, 0, ew * 1.4, eh * 1.4, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.save(); ctx.shadowColor = `hsl(${hue},70%,40%)`; ctx.shadowBlur = 8;
-        ctx.fillStyle = `hsl(${hue},60%,22%)`;
-        ctx.beginPath(); ctx.moveTo(-ew, 0); ctx.bezierCurveTo(-ew, -eh * 1.6, ew, -eh * 1.6, ew, 0);
-        ctx.bezierCurveTo(ew, eh * 1.6, -ew, eh * 1.6, -ew, 0); ctx.fill(); ctx.restore();
-        ctx.save(); ctx.globalAlpha = 0.27; ctx.fillStyle = `hsl(${hue},70%,55%)`;
-        ctx.beginPath(); ctx.moveTo(-ew * 0.45, 0); ctx.bezierCurveTo(-ew * 0.45, -eh, ew * 0.45, -eh, ew * 0.45, 0);
-        ctx.bezierCurveTo(ew * 0.45, eh, -ew * 0.45, eh, -ew * 0.45, 0); ctx.fill(); ctx.restore();
-        ctx.save(); ctx.fillStyle = "#05000f";
-        ctx.beginPath(); ctx.moveTo(0, -eh * 0.88); ctx.bezierCurveTo(ew * 0.12, -eh * 0.3, ew * 0.12, eh * 0.3, 0, eh * 0.88);
-        ctx.bezierCurveTo(-ew * 0.12, eh * 0.3, -ew * 0.12, -eh * 0.3, 0, -eh * 0.88); ctx.fill(); ctx.restore();
-        ctx.save(); ctx.strokeStyle = `hsla(${hue},70%,55%,0.6)`; ctx.lineWidth = 0.8;
-        ctx.shadowColor = `hsl(${hue},70%,50%)`; ctx.shadowBlur = 6;
-        ctx.beginPath(); ctx.moveTo(-ew, 0); ctx.bezierCurveTo(-ew, -eh * 1.6, ew, -eh * 1.6, ew, 0);
-        ctx.bezierCurveTo(ew, eh * 1.6, -ew, eh * 1.6, -ew, 0); ctx.stroke(); ctx.restore();
-        ctx.restore();
-      }
-      const eyes = [
-        { fx: 0.06, fy: 0.22, fs: 0.06, ph: 0, hue: 270 },
-        { fx: 0.09, fy: 0.65, fs: 0.05, ph: 55, hue: 278 },
-        { fx: 0.94, fy: 0.30, fs: 0.055, ph: 30, hue: 265 },
-        { fx: 0.91, fy: 0.72, fs: 0.048, ph: 85, hue: 272 },
-      ];
-      eyes.forEach(({ fx, fy, fs, ph, hue }) => {
-        const blinkT = Math.sin((t + ph) * 0.022) * Math.PI;
-        ctx.save(); ctx.globalAlpha = 0.75 + Math.sin(t * 0.015 + ph) * 0.15;
-        drawBgEye(fx * W, fy * H, fs * W, blinkT, hue);
-        ctx.restore();
-      });
-      if (Math.sin(t * 0.05) > 0.8) {
-        ctx.save(); ctx.globalAlpha = 0.10; ctx.strokeStyle = "#4c1d95"; ctx.lineWidth = 1;
-        for (let j = 0; j < 3; j++) {
-          const ly = Math.random() * H;
-          ctx.beginPath(); ctx.moveTo(0, ly); ctx.lineTo(W, ly); ctx.stroke();
-        }
+      const blink = Math.max(0, Math.sin(t * 0.04));
+      if (blink > 0.15) {
+        ctx.save(); ctx.globalAlpha = blink; ctx.fillStyle = "#f472b6"; ctx.shadowColor = "#ec4899"; ctx.shadowBlur = 10;
+        ctx.beginPath(); ctx.ellipse(W * 0.5, H * 0.4, W * 0.05, W * 0.02, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(W * 0.5, H * 0.4, 1.5, 0, Math.PI * 2); ctx.fillStyle = "#1a0a2e"; ctx.fill();
         ctx.restore();
       }
     },
+    bg_rain: (ctx, W, H, t) => {
+      ctx.clearRect(0, 0, W, H);
+      const wash = ctx.createLinearGradient(0, 0, 0, H);
+      wash.addColorStop(0, "rgba(30,58,138,0.28)"); wash.addColorStop(1, "rgba(15,23,42,0.4)");
+      ctx.fillStyle = wash; ctx.fillRect(0, 0, W, H);
+      for (let i = 0; i < 40; i++) {
+        const speed = 4 + (i % 5) * 1.3;
+        const y = ((t * speed + i * 37) % (H + 20)) - 10;
+        const x = (i * 53 + Math.sin(i) * 30 + W) % W;
+        ctx.save(); ctx.strokeStyle = "#93c5fd"; ctx.globalAlpha = 0.55; ctx.lineWidth = 1.3;
+        ctx.shadowColor = "#60a5fa"; ctx.shadowBlur = 3;
+        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 3, y + 12); ctx.stroke(); ctx.restore();
+      }
+    },
+    bg_sakura: (() => {
+      const N = 14;
+      const seeds = Array.from({ length: N }, () => ({
+        xBase: Math.random(), phase: Math.random() * 100, speed: 0.2 + Math.random() * 0.3,
+        swayAmp: 12 + Math.random() * 16, swayFreq: 0.02 + Math.random() * 0.02, so: Math.random() * Math.PI * 2,
+        sz: 3 + Math.random() * 2.5, rot: Math.random() * (Math.PI < 1 ? 1 : 1),
+      }));
+      function petal(ctx: CanvasRenderingContext2D, sz: number) {
+        ctx.beginPath();
+        ctx.moveTo(0, -sz);
+        ctx.quadraticCurveTo(sz * 0.8, -sz * 0.3, 0, sz);
+        ctx.quadraticCurveTo(-sz * 0.8, -sz * 0.3, 0, -sz);
+        ctx.fill();
+      }
+      return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
+        ctx.clearRect(0, 0, W, H);
+        const wash = ctx.createLinearGradient(0, 0, 0, H);
+        wash.addColorStop(0, "rgba(249,168,212,0.16)"); wash.addColorStop(1, "rgba(219,39,119,0.06)");
+        ctx.fillStyle = wash; ctx.fillRect(0, 0, W, H);
+        for (let i = 0; i < N; i++) {
+          const s = seeds[i];
+          const prog = ((t * s.speed + s.phase) % 100) / 100;
+          const y = prog * (H + 20) - 10;
+          const x = (s.xBase * W + Math.sin(t * s.swayFreq + s.so) * s.swayAmp + W) % W;
+          ctx.save(); ctx.globalAlpha = 0.85; ctx.fillStyle = i % 2 ? "#f9a8d4" : "#fbcfe8";
+          ctx.translate(x, y); ctx.rotate(t * 0.03 + s.so);
+          petal(ctx, s.sz); ctx.restore();
+        }
+      };
+    })(),
+    bg_digitalgrid: (ctx, W, H, t) => {
+      ctx.clearRect(0, 0, W, H);
+      const wash = ctx.createLinearGradient(0, 0, 0, H);
+      wash.addColorStop(0, "rgba(6,182,212,0.05)"); wash.addColorStop(1, "rgba(0,212,255,0.22)");
+      ctx.fillStyle = wash; ctx.fillRect(0, 0, W, H);
+      const horizon = H * 0.42;
+      ctx.save(); ctx.strokeStyle = "#00d4ff"; ctx.shadowColor = "#00d4ff"; ctx.shadowBlur = 5;
+      for (let i = -6; i <= 6; i++) {
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath(); ctx.moveTo(W / 2 + i * 14, horizon); ctx.lineTo(W / 2 + i * W * 0.5, H); ctx.stroke();
+      }
+      const n = 6;
+      for (let i = 0; i < n; i++) {
+        const prog = ((t * 0.02 + i / n) % 1);
+        const y = horizon + prog * prog * (H - horizon);
+        ctx.globalAlpha = 0.55 * (1 - prog * 0.4);
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+      }
+      ctx.globalAlpha = 0.8; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(0, horizon); ctx.lineTo(W, horizon); ctx.stroke();
+      ctx.restore();
+    },
+    bg_aurora: (() => {
+      return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = "rgba(6,10,20,0.5)"; ctx.fillRect(0, 0, W, H);
+        const bands = [
+          { c: "rgba(52,211,153,0.5)", yb: 0.35, amp: 16, sp: 0.018 },
+          { c: "rgba(129,140,248,0.4)", yb: 0.48, amp: 20, sp: 0.014 },
+          { c: "rgba(236,72,153,0.32)", yb: 0.58, amp: 14, sp: 0.02 },
+        ];
+        for (const b of bands) {
+          ctx.save();
+          ctx.beginPath(); ctx.moveTo(0, H);
+          for (let x = 0; x <= W; x += W / 30) {
+            const y = H * b.yb + Math.sin(x * 0.025 + t * b.sp) * b.amp + Math.sin(x * 0.008 - t * b.sp * 1.5) * b.amp * 0.6;
+            ctx.lineTo(x, y);
+          }
+          ctx.lineTo(W, H); ctx.closePath();
+          const g = ctx.createLinearGradient(0, H * b.yb - b.amp, 0, H);
+          g.addColorStop(0, b.c); g.addColorStop(1, "transparent");
+          ctx.fillStyle = g; ctx.globalAlpha = 0.9; ctx.fill(); ctx.restore();
+        }
+      };
+    })(),
+    bg_tvglitch: (ctx, W, H, t) => {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = "rgba(20,4,8,0.6)"; ctx.fillRect(0, 0, W, H);
+      for (let i = 0; i < H; i += 2) {
+        ctx.fillStyle = i % 4 === 0 ? "rgba(255,26,60,0.05)" : "rgba(255,255,255,0.02)";
+        ctx.fillRect(0, i, W, 1);
+      }
+      if (Math.sin(t * 0.15) > 0.5) {
+        for (let b = 0; b < 3; b++) {
+          const y = Math.random() * H;
+          const h = 3 + Math.random() * 8;
+          const shift = (Math.random() - 0.5) * 16;
+          ctx.save(); ctx.globalAlpha = 0.5;
+          ctx.fillStyle = "#ff1a3c"; ctx.fillRect(shift, y, W, h);
+          ctx.globalCompositeOperation = "lighten";
+          ctx.fillStyle = "#00e5ff"; ctx.fillRect(-shift, y, W, h);
+          ctx.restore();
+        }
+      }
+      ctx.save(); ctx.globalAlpha = 0.7; ctx.strokeStyle = "#ff1a3c"; ctx.lineWidth = 1.5; ctx.shadowColor = "#ff1a3c"; ctx.shadowBlur = 6;
+      ctx.strokeRect(2, 2, W - 4, H - 4); ctx.restore();
+    },
+    bg_matrix: (() => {
+      let cols: any = null;
+      let initedFor = 0;
+      const chars = "01アイウエオカキクケコ";
+      return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
+        if (initedFor !== W) {
+          const n = Math.floor(W / 12);
+          cols = Array.from({ length: n }, () => ({ y: Math.random() * -50, sp: 1.5 + Math.random() * 2, len: 4 + Math.floor(Math.random() * 5) }));
+          initedFor = W;
+        }
+        ctx.fillStyle = "rgba(2,10,2,0.35)"; ctx.fillRect(0, 0, W, H);
+        ctx.font = "11px monospace"; ctx.textAlign = "center";
+        cols.forEach((c: any, i: number) => {
+          c.y += c.sp;
+          if (c.y - c.len * 14 > H) { c.y = -20; c.sp = 1.5 + Math.random() * 2; }
+          const x = i * 12 + 6;
+          for (let j = 0; j < c.len; j++) {
+            const y = c.y - j * 14;
+            if (y < 0 || y > H) continue;
+            const ch = chars[Math.floor((t * 0.3 + i * 7 + j) % chars.length)];
+            ctx.globalAlpha = j === 0 ? 1 : Math.max(0, 0.75 - j * 0.14);
+            ctx.fillStyle = j === 0 ? "#d1ffd1" : "#39ff14";
+            if (j === 0) { ctx.shadowColor = "#39ff14"; ctx.shadowBlur = 8; } else { ctx.shadowBlur = 0; }
+            ctx.fillText(ch, x, y);
+          }
+        });
+        ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+      };
+    })(),
+    bg_lightning: (() => {
+      let bolts: any[] = [];
+      let lastFlash = -100;
+      function makeBolt(W: number, H: number) {
+        const pts = [{ x: W * (0.2 + Math.random() * 0.6), y: 0 }];
+        let x = pts[0].x, y = 0;
+        while (y < H * 0.85) {
+          x += (Math.random() - 0.5) * W * 0.16;
+          y += H * (0.12 + Math.random() * 0.1);
+          pts.push({ x, y });
+        }
+        return pts;
+      }
+      return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = "rgba(15,20,35,0.55)"; ctx.fillRect(0, 0, W, H);
+        if (t - lastFlash > 55) { lastFlash = t; bolts = [makeBolt(W, H)]; if (Math.random() > 0.5) bolts.push(makeBolt(W, H)); }
+        const age = t - lastFlash;
+        const flash = Math.max(0, 1 - age / 14);
+        if (flash > 0) {
+          ctx.save(); ctx.globalAlpha = flash * 0.18; ctx.fillStyle = "#fef9c3"; ctx.fillRect(0, 0, W, H); ctx.restore();
+          for (const pts of bolts) {
+            ctx.save(); ctx.strokeStyle = "#fef9c3"; ctx.shadowColor = "#facc15"; ctx.shadowBlur = 12;
+            ctx.lineWidth = 2; ctx.globalAlpha = flash;
+            ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
+            for (const p of pts.slice(1)) ctx.lineTo(p.x, p.y);
+            ctx.stroke(); ctx.restore();
+          }
+        }
+      };
+    })(),
+    bg_galaxy: (() => {
+      let stars: any = null;
+      let initedFor = 0;
+      return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
+        if (initedFor !== W * 10000 + H) {
+          stars = Array.from({ length: 50 }, () => ({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.6 + 0.4, tw: Math.random() * Math.PI * 2 }));
+          initedFor = W * 10000 + H;
+        }
+        ctx.clearRect(0, 0, W, H);
+        const cx = W * 0.6, cy = H * 0.4;
+        const neb = ctx.createRadialGradient(cx, cy, 0, cx, cy, W * 0.55);
+        neb.addColorStop(0, "rgba(192,132,252,0.4)"); neb.addColorStop(0.5, "rgba(129,102,241,0.22)"); neb.addColorStop(1, "rgba(10,5,20,0.3)");
+        ctx.fillStyle = neb; ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = "#fff";
+        for (const s of stars) {
+          ctx.globalAlpha = Math.max(0, 0.5 + Math.sin(t * 0.04 + s.tw) * 0.5);
+          ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      };
+    })(),
+    bg_neoncity: (() => {
+      let bld: any = null; let initedFor = 0;
+      return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
+        if (initedFor !== W) {
+          const n = 10;
+          bld = Array.from({ length: n }, (_, i) => ({ x: (i * W) / n, w: (W / n) * 0.7, h: H * (0.3 + Math.random() * 0.55), hue: [300, 190, 320, 175][i % 4], ph: Math.random() * 10 }));
+          initedFor = W;
+        }
+        ctx.clearRect(0, 0, W, H);
+        const sky = ctx.createLinearGradient(0, 0, 0, H);
+        sky.addColorStop(0, "rgba(24,6,40,0.6)"); sky.addColorStop(1, "rgba(60,10,60,0.2)");
+        ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+        for (const b of bld) {
+          const y = H - b.h;
+          ctx.fillStyle = "rgba(6,3,12,0.9)"; ctx.fillRect(b.x, y, b.w, b.h);
+          const glow = 0.6 + Math.sin(t * 0.05 + b.ph) * 0.35;
+          ctx.save(); ctx.strokeStyle = `hsla(${b.hue},90%,60%,${glow})`; ctx.shadowColor = `hsl(${b.hue},90%,55%)`; ctx.shadowBlur = 8; ctx.lineWidth = 1.4;
+          ctx.strokeRect(b.x + 1, y + 1, b.w - 2, b.h - 2); ctx.restore();
+        }
+      };
+    })(),
+    bg_bioluminescent: (ctx, W, H, t) => {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = "rgba(4,20,25,0.4)"; ctx.fillRect(0, 0, W, H);
+      for (let layer = 0; layer < 2; layer++) {
+        const baseY = H * (0.55 + layer * 0.2);
+        ctx.save(); ctx.globalAlpha = 0.35 - layer * 0.1;
+        ctx.beginPath(); ctx.moveTo(0, H);
+        for (let x = 0; x <= W; x += W / 24) ctx.lineTo(x, baseY + Math.sin(x * 0.03 + t * 0.02 + layer) * (8 + layer * 5));
+        ctx.lineTo(W, H); ctx.closePath();
+        const g = ctx.createLinearGradient(0, baseY, 0, H);
+        g.addColorStop(0, "rgba(45,212,191,0.65)"); g.addColorStop(1, "rgba(8,145,178,0.05)");
+        ctx.fillStyle = g; ctx.fill(); ctx.restore();
+      }
+      for (let i = 0; i < 16; i++) {
+        const x = ((i * 53 + t * 0.6) % (W + 20)) - 10;
+        const y = H * 0.6 + Math.sin(t * 0.03 + i) * H * 0.25;
+        ctx.save(); ctx.globalAlpha = 0.5 + Math.sin(t * 0.08 + i) * 0.4;
+        ctx.fillStyle = "#5eead4"; ctx.shadowColor = "#2dd4bf"; ctx.shadowBlur = 6;
+        ctx.beginPath(); ctx.arc(x, y, 1.6, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+      }
+    },
+    bg_meteors: (() => {
+      let stars: any = null; let initedFor = 0; let meteors: any[] = []; let lastSpawn = 0;
+      return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
+        if (initedFor !== W * 10000 + H) { stars = Array.from({ length: 45 }, () => ({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.3 + 0.3, tw: Math.random() * Math.PI * 2 })); initedFor = W * 10000 + H; meteors = []; }
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = "rgba(6,10,25,0.4)"; ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = "#fff";
+        for (const s of stars) { ctx.globalAlpha = Math.max(0, 0.4 + Math.sin(t * 0.04 + s.tw) * 0.4); ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill(); }
+        ctx.globalAlpha = 1;
+        if (t - lastSpawn > 30 && meteors.length < 3) { lastSpawn = t; meteors.push({ x: Math.random() * W * 0.5, y: -6, vx: 3.6 + Math.random(), vy: 2.4 + Math.random(), life: 1 }); }
+        for (let i = meteors.length - 1; i >= 0; i--) {
+          const m = meteors[i]; m.x += m.vx; m.y += m.vy; m.life -= 0.02;
+          if (m.life <= 0 || m.x > W + 10 || m.y > H + 10) { meteors.splice(i, 1); continue; }
+          ctx.save();
+          const grad = ctx.createLinearGradient(m.x, m.y, m.x - m.vx * 7, m.y - m.vy * 7);
+          grad.addColorStop(0, `rgba(147,197,253,${m.life})`); grad.addColorStop(1, "transparent");
+          ctx.strokeStyle = grad; ctx.lineWidth = 2; ctx.lineCap = "round"; ctx.shadowColor = "#93c5fd"; ctx.shadowBlur = 7;
+          ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(m.x - m.vx * 7, m.y - m.vy * 7); ctx.stroke();
+          ctx.fillStyle = `rgba(255,255,255,${m.life})`; ctx.beginPath(); ctx.arc(m.x, m.y, 1.4, 0, Math.PI * 2); ctx.fill();
+          ctx.restore();
+        }
+      };
+    })(),
   };
 }
 

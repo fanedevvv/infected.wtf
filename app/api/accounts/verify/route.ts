@@ -22,6 +22,6 @@ export async function POST(req: NextRequest) {
     data: { switchToken: sha256(token), switchTokenExpires: new Date(Date.now() + 30 * 24 * 3600 * 1000) },
   });
 
-  const profile = await prisma.profile.findUnique({ where: { userId: user.id } });
+  const profile = await prisma.profile.findFirst({ where: { userId: user.id , isPrimary: true } });
   return NextResponse.json({ success: true, username: user.username, switchToken: token, avatar: profile?.avatar || null });
 }

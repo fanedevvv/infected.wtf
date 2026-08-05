@@ -35,20 +35,20 @@ export async function GET(req: NextRequest) {
   if (action === "top_views") {
     try {
       const siteUrl = (process.env.SITE_URL || "https://infected.wtf").replace(/\/$/, "");
-      const rows = await prisma.user.findMany({
-        where: { banned: false, emailVerified: true, profile: { isNot: null } },
-        orderBy: { profile: { views: "desc" } },
+      const rows = await prisma.profile.findMany({
+        where: { user: { banned: false, emailVerified: true } },
+        orderBy: { views: "desc" },
         take: 10,
-        select: { id: true, username: true, isPremium: true, profile: { select: { displayName: true, avatar: true, views: true } } },
+        select: { slug: true, displayName: true, avatar: true, views: true, user: { select: { isPremium: true } } },
       });
       const data = rows.map((row, i) => ({
         rank: i + 1,
-        username: row.username,
-        display_name: row.profile?.displayName || "",
-        views: row.profile?.views ?? 0,
-        avatar_url: row.profile?.avatar ? `${siteUrl}/uploads/avatars/${row.profile.avatar.split("/").pop()}` : null,
-        is_premium: row.isPremium,
-        profile_url: `${siteUrl}/${encodeURIComponent(row.username)}`,
+        username: row.slug,
+        display_name: row.displayName || "",
+        views: row.views ?? 0,
+        avatar_url: row.avatar ? `${siteUrl}/uploads/avatars/${row.avatar.split("/").pop()}` : null,
+        is_premium: row.user.isPremium,
+        profile_url: `${siteUrl}/${encodeURIComponent(row.slug)}`,
       }));
       return NextResponse.json({ success: true, data });
     } catch {

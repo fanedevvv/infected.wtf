@@ -61,28 +61,31 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     select: {
       id: true, username: true, isAdmin: true, isOwner: true, isMod: true, banned: true, banUntil: true,
       createdAt: true, tokens: true, isPremium: true, premiumExpiresAt: true,
-      profile: { select: { views: true, badges: true, avatar: true } },
+      profiles: { where: { isPrimary: true }, take: 1, select: { views: true, badges: true, avatar: true } },
       _count: { select: { socialLinks: true } },
     },
   });
 
-  const users = usersRaw.map((u) => ({
-    id: u.id,
-    username: u.username,
-    isAdmin: u.isAdmin,
-    isOwner: u.isOwner,
-    isMod: u.isMod,
-    banned: u.banned,
-    banUntil: u.banUntil ? u.banUntil.toISOString() : null,
-    createdAt: u.createdAt.toISOString(),
-    tokens: u.tokens,
-    isPremium: u.isPremium,
-    premiumExpiresAt: u.premiumExpiresAt ? u.premiumExpiresAt.toISOString() : null,
-    views: u.profile?.views ?? 0,
-    links: u._count.socialLinks,
-    badges: (u.profile?.badges as string[] | null) ?? [],
-    avatar: u.profile?.avatar ? `/${u.profile.avatar}` : "/assets/img/default-avatar.png",
-  }));
+  const users = usersRaw.map((u) => {
+    const profile = u.profiles[0];
+    return {
+      id: u.id,
+      username: u.username,
+      isAdmin: u.isAdmin,
+      isOwner: u.isOwner,
+      isMod: u.isMod,
+      banned: u.banned,
+      banUntil: u.banUntil ? u.banUntil.toISOString() : null,
+      createdAt: u.createdAt.toISOString(),
+      tokens: u.tokens,
+      isPremium: u.isPremium,
+      premiumExpiresAt: u.premiumExpiresAt ? u.premiumExpiresAt.toISOString() : null,
+      views: profile?.views ?? 0,
+      links: u._count.socialLinks,
+      badges: (profile?.badges as string[] | null) ?? [],
+      avatar: profile?.avatar ? `/${profile.avatar}` : "/assets/img/default-avatar.png",
+    };
+  });
 
   return (
     <AdminClient

@@ -7,11 +7,12 @@ export async function POST(req: NextRequest) {
   if (!me) return NextResponse.json({ success: false, error: "Unauthenticated." }, { status: 401 });
 
   const body = await req.json().catch(() => ({}));
-  const username = String(body.username || "").trim();
-  if (!username) return NextResponse.json({ success: false, error: "Missing username." }, { status: 400 });
+  const slug = String(body.username || "").trim();
+  if (!slug) return NextResponse.json({ success: false, error: "Missing slug." }, { status: 400 });
 
-  const target = await prisma.user.findUnique({ where: { username }, select: { id: true } });
-  if (!target) return NextResponse.json({ success: false, error: "Profile not found." }, { status: 404 });
+  const targetProfile = await prisma.profile.findUnique({ where: { slug }, select: { userId: true } });
+  if (!targetProfile) return NextResponse.json({ success: false, error: "Profile not found." }, { status: 404 });
+  const target = { id: targetProfile.userId };
   if (target.id === me.id) return NextResponse.json({ success: false, error: "You can't like your own profile." }, { status: 400 });
 
   const existing = await prisma.profileLike.findUnique({

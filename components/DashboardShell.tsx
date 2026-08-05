@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import ToastContainer from "./ToastContainer";
 
 type Me = {
@@ -13,6 +13,7 @@ type Me = {
   tokens: number;
 };
 type ProfileMini = { avatar: string | null; displayName: string | null; isPremium?: boolean };
+type PageInfo = { id: number; slug: string; displayName: string | null; avatar: string | null; isPrimary: boolean };
 
 function SidebarLink({ href, active, icon, children }: { href: string; active: boolean; icon: string; children: React.ReactNode }) {
   return (
@@ -27,6 +28,8 @@ function SidebarLink({ href, active, icon, children }: { href: string; active: b
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const activePage = searchParams.get("page") || "overview";
   const router = useRouter();
   const [me, setMe] = useState<Me | null>(null);
   const [profile, setProfile] = useState<ProfileMini | null>(null);
@@ -36,18 +39,43 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const [notifs, setNotifs] = useState<{ id: number; type: string; title: string; body: string | null; icon: string; link: string | null; isRead: boolean; createdAt: string }[]>([]);
   const [unread, setUnread] = useState(0);
   const [accountsOpen, setAccountsOpen] = useState(false);
+  const [pages, setPages] = useState<PageInfo[]>([]);
+  const [activeProfileId, setActiveProfileId] = useState<number | null>(null);
+  const [maxPages, setMaxPages] = useState(1);
+  const [pageSwitcherOpen, setPageSwitcherOpen] = useState(false);
+  const [createPageOpen, setCreatePageOpen] = useState(false);
   const userWrapRef = useRef<HTMLDivElement>(null);
   const bellWrapRef = useRef<HTMLDivElement>(null);
+  const pageSwitchRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  function loadMe() {
     fetch("/api/me").then((r) => r.json()).then((d) => {
       setMe(d.user);
       setProfile(d.profile);
+      setPages(d.pages || []);
+      setActiveProfileId(d.activeProfileId ?? null);
+      setMaxPages(d.maxPages ?? 1);
     });
+  }
+
+  useEffect(() => {
+    loadMe();
     loadNotifs();
     const interval = setInterval(loadNotifs, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  async function switchPage(id: number) {
+    setPageSwitcherOpen(false);
+    await fetch("/api/pages", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ profileId: id }),
+    });
+    loadMe();
+    router.push("/dashboard");
+    router.refresh();
+  }
 
   async function loadNotifs() {
     const res = await fetch("/api/notifications");
@@ -61,6 +89,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     function onClick(e: MouseEvent) {
       if (userWrapRef.current && !userWrapRef.current.contains(e.target as Node)) setUserMenuOpen(false);
       if (bellWrapRef.current && !bellWrapRef.current.contains(e.target as Node)) setNotifOpen(false);
+      if (pageSwitchRef.current && !pageSwitchRef.current.contains(e.target as Node)) setPageSwitcherOpen(false);
     }
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
@@ -104,7 +133,11 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
             </svg>
           </button>
-          <Link href="/dashboard" className="navbar-brand-mobile">INFECTED.WTF</Link>
+          <Link href="/dashboard" className="navbar-brand-mobile">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/assets/img/logo-icon.png" alt="" className="brand-logo-icon" />
+            <span>INFECTED.WTF</span>
+          </Link>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
           <div ref={bellWrapRef} style={{ position: "relative" }}>
@@ -148,7 +181,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             )}
           </div>
 
-          <Link href="/dashboard/shop" className="navbar-tokens" title="Go to Shop">
+          <Link href="/dashboard?page=shop" className="navbar-tokens" title="Go to Shop">
             <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15" style={{ color: "var(--accent)" }}><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z" /></svg>
             <span>{me?.tokens ?? 0}</span>
           </Link>
@@ -164,7 +197,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
                   Manage Accounts
                 </a>
-                <Link href="/dashboard/settings" className="navbar-menu-item">
+                <Link href="/dashboard?page=settings" className="navbar-menu-item">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><circle cx="12" cy="12" r="3" /></svg>
                   Settings
                 </Link>
@@ -197,8 +230,65 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       <div className="dashboard-layout">
         <aside className={`sidebar ${sidebarOpen ? "sidebar-open" : ""}`} id="sidebar">
           <div className="sidebar-logo-wrap">
-            <Link href="/dashboard" className="sidebar-logo">INFECTED.WTF</Link>
+            <Link href="/dashboard" className="sidebar-logo">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/assets/img/logo-icon.png" alt="" className="brand-logo-icon" />
+              <span>INFECTED.WTF</span>
+            </Link>
           </div>
+
+          {pages.length > 0 && (
+            <div className="page-switch-wrap" ref={pageSwitchRef}>
+              <button className="page-switch-btn" onClick={() => setPageSwitcherOpen((o) => !o)}>
+                {(() => {
+                  const active = pages.find((p) => p.id === activeProfileId) || pages[0];
+                  return (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={active.avatar ? `/${active.avatar}` : "/assets/img/default-avatar.png"}
+                        onError={(e) => { (e.target as HTMLImageElement).src = "/assets/img/default-avatar.png"; }}
+                        className="page-switch-avatar"
+                        alt=""
+                      />
+                      <div className="page-switch-info">
+                        <span className="page-switch-name">{active.displayName || active.slug}</span>
+                        <span className="page-switch-slug">infected.wtf/{active.slug}</span>
+                      </div>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" style={{ marginLeft: "auto", opacity: .6 }}>
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </>
+                  );
+                })()}
+              </button>
+              {pageSwitcherOpen && (
+                <div className="page-switch-menu">
+                  {pages.map((p) => (
+                    <button key={p.id} className={`page-switch-item ${p.id === activeProfileId ? "active" : ""}`} onClick={() => switchPage(p.id)}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={p.avatar ? `/${p.avatar}` : "/assets/img/default-avatar.png"}
+                        onError={(e) => { (e.target as HTMLImageElement).src = "/assets/img/default-avatar.png"; }}
+                        className="page-switch-avatar"
+                        alt=""
+                      />
+                      <div className="page-switch-info">
+                        <span className="page-switch-name">{p.displayName || p.slug}</span>
+                        <span className="page-switch-slug">/{p.slug}{p.isPrimary ? " · Primary" : ""}</span>
+                      </div>
+                    </button>
+                  ))}
+                  <button
+                    className="page-switch-add"
+                    onClick={() => { setPageSwitcherOpen(false); setCreatePageOpen(true); }}
+                  >
+                    + New page {pages.length >= maxPages ? "(upgrade)" : `(${pages.length}/${maxPages})`}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {isModerator && (
             <>
@@ -210,18 +300,26 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           )}
 
           <span className="sidebar-label">Main</span>
-          <SidebarLink href="/dashboard" active={pathname === "/dashboard"} icon="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z">Dashboard</SidebarLink>
+          <SidebarLink href="/dashboard" active={pathname === "/dashboard" && activePage === "overview"} icon="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z">Dashboard</SidebarLink>
           <SidebarLink href="/leaderboard" active={pathname === "/leaderboard"} icon="M18 20V10M12 20V4M6 20v-6">Leaderboard</SidebarLink>
-          <SidebarLink href="/dashboard/analytics" active={pathname === "/dashboard/analytics"} icon="M22 12h-4l-3 9L9 3l-3 9H2">Analytics</SidebarLink>
-          <SidebarLink href="/dashboard/shop" active={pathname === "/dashboard/shop"} icon="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0">Shop</SidebarLink>
+          <SidebarLink href="/dashboard?page=analytics" active={activePage === "analytics"} icon="M22 12h-4l-3 9L9 3l-3 9H2">Analytics</SidebarLink>
+          <SidebarLink href="/dashboard?page=shop" active={activePage === "shop"} icon="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0">Shop</SidebarLink>
+          <SidebarLink href="/dashboard?page=marketplace" active={activePage === "marketplace"} icon="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5">Marketplace</SidebarLink>
+
+          <span className="sidebar-label">Store</span>
+          <SidebarLink href="/dashboard?page=spin" active={activePage === "spin"} icon="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83">
+            Daily Spin <span className="sidebar-new-badge">NEW</span>
+          </SidebarLink>
+          <SidebarLink href="/dashboard?page=decorations" active={activePage === "decorations"} icon="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2L12 16.6 5.7 21l2.3-7.2-6-4.6h7.6z">Decorations</SidebarLink>
+          <SidebarLink href="/dashboard?page=premium" active={activePage === "premium"} icon="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm2.07-7.75-.9.92C13.45 11.9 13 12.5 13 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z">Premium</SidebarLink>
 
           <span className="sidebar-label">Profile</span>
-          <SidebarLink href="/dashboard/info" active={pathname === "/dashboard/info"} icon="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z">Customize</SidebarLink>
-          <SidebarLink href="/dashboard/badges" active={pathname === "/dashboard/badges"} icon="M12 15a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM8.21 13.89 7 23l5-3 5 3-1.21-9.12">Badges</SidebarLink>
-          <SidebarLink href="/dashboard/links" active={pathname === "/dashboard/links"} icon="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71">Links</SidebarLink>
-          <SidebarLink href="/dashboard/referral" active={pathname === "/dashboard/referral"} icon="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75">Referral</SidebarLink>
-          <SidebarLink href="/dashboard/effects" active={pathname === "/dashboard/effects"} icon="M12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">Effects</SidebarLink>
-          <SidebarLink href="/dashboard/integrations" active={pathname === "/dashboard/integrations"} icon="M5 2h14a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM12 18h.01M9 7h6M9 11h6">Integrations</SidebarLink>
+          <SidebarLink href="/dashboard?page=info" active={activePage === "info"} icon="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z">Customize</SidebarLink>
+          <SidebarLink href="/dashboard?page=badges" active={activePage === "badges"} icon="M12 15a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM8.21 13.89 7 23l5-3 5 3-1.21-9.12">Badges</SidebarLink>
+          <SidebarLink href="/dashboard?page=links" active={activePage === "links"} icon="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71">Links</SidebarLink>
+          <SidebarLink href="/dashboard?page=referral" active={activePage === "referral"} icon="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75">Referral</SidebarLink>
+          <SidebarLink href="/dashboard?page=effects" active={activePage === "effects"} icon="M12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">Effects</SidebarLink>
+          <SidebarLink href="/dashboard?page=integrations" active={activePage === "integrations"} icon="M5 2h14a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM12 18h.01M9 7h6M9 11h6">Integrations</SidebarLink>
         </aside>
         <div className={`sidebar-overlay ${sidebarOpen ? "active" : ""}`} onClick={() => setSidebarOpen(false)} />
 
@@ -236,35 +334,35 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               <span>{me?.isOwner ? "Owner" : "Admin"}</span>
             </Link>
           )}
-          <Link href="/dashboard" className={`mobile-nav-item ${pathname === "/dashboard" ? "active" : ""}`}>
+          <Link href="/dashboard" className={`mobile-nav-item ${pathname === "/dashboard" && activePage === "overview" ? "active" : ""}`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>
             <span>Home</span>
           </Link>
-          <Link href="/dashboard/links" className={`mobile-nav-item ${pathname === "/dashboard/links" ? "active" : ""}`}>
+          <Link href="/dashboard?page=links" className={`mobile-nav-item ${activePage === "links" ? "active" : ""}`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
             <span>Links</span>
           </Link>
-          <Link href="/dashboard/info" className={`mobile-nav-item ${pathname === "/dashboard/info" ? "active" : ""}`}>
+          <Link href="/dashboard?page=info" className={`mobile-nav-item ${activePage === "info" ? "active" : ""}`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3" /></svg>
             <span>Style</span>
           </Link>
-          <Link href="/dashboard/analytics" className={`mobile-nav-item ${pathname === "/dashboard/analytics" ? "active" : ""}`}>
+          <Link href="/dashboard?page=analytics" className={`mobile-nav-item ${activePage === "analytics" ? "active" : ""}`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
             <span>Stats</span>
           </Link>
-          <Link href="/dashboard/badges" className={`mobile-nav-item ${pathname === "/dashboard/badges" ? "active" : ""}`}>
+          <Link href="/dashboard?page=badges" className={`mobile-nav-item ${activePage === "badges" ? "active" : ""}`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="6" /><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" /></svg>
             <span>Badges</span>
           </Link>
-          <Link href="/dashboard/effects" className={`mobile-nav-item ${pathname === "/dashboard/effects" ? "active" : ""}`}>
+          <Link href="/dashboard?page=effects" className={`mobile-nav-item ${activePage === "effects" ? "active" : ""}`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
             <span>Effects</span>
           </Link>
-          <Link href="/dashboard/referral" className={`mobile-nav-item ${pathname === "/dashboard/referral" ? "active" : ""}`}>
+          <Link href="/dashboard?page=referral" className={`mobile-nav-item ${activePage === "referral" ? "active" : ""}`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg>
             <span>Referral</span>
           </Link>
-          <Link href="/dashboard/shop" className={`mobile-nav-item ${pathname === "/dashboard/shop" ? "active" : ""}`}>
+          <Link href="/dashboard?page=shop" className={`mobile-nav-item ${activePage === "shop" ? "active" : ""}`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /></svg>
             <span>Shop</span>
           </Link>
@@ -275,8 +373,69 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         <ManageAccountsModal currentUsername={me?.username || ""} currentAvatar={profile?.avatar || null} onClose={() => setAccountsOpen(false)} />
       )}
 
+      {createPageOpen && (
+        <CreatePageModal
+          onClose={() => setCreatePageOpen(false)}
+          onCreated={(id) => { setCreatePageOpen(false); switchPage(id); }}
+        />
+      )}
+
       <ToastContainer />
     </>
+  );
+}
+
+function CreatePageModal({ onClose, onCreated }: { onClose: () => void; onCreated: (profileId: number) => void }) {
+  const [slug, setSlug] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  async function create() {
+    const clean = slug.trim().toLowerCase();
+    if (!clean) { setError("Enter a slug."); return; }
+    setBusy(true);
+    setError("");
+    try {
+      const res = await fetch("/api/pages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: clean }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        onCreated(data.page.id);
+      } else {
+        setError(data.error || "Failed to create page.");
+      }
+    } catch {
+      setError("Network error.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div onClick={(e) => e.target === e.currentTarget && onClose()} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
+      <div style={{ background: "#13131a", border: "1px solid rgba(255,255,255,.1)", borderRadius: 16, padding: "1.5rem", width: "min(400px,95vw)", position: "relative" }}>
+        <button onClick={onClose} style={{ position: "absolute", top: ".9rem", right: ".9rem", background: "rgba(255,255,255,.06)", border: "none", color: "#aaa", width: 28, height: 28, borderRadius: "50%", cursor: "pointer" }}>✕</button>
+        <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "#fff" }}>Create a new page</div>
+        <div style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.1rem" }}>Each page has its own link, layout and effects.</div>
+
+        <label style={{ fontSize: ".75rem", color: "var(--text-muted)", display: "block", marginBottom: ".3rem" }}>infected.wtf/</label>
+        <input
+          className="form-control"
+          placeholder="my-new-page"
+          value={slug}
+          onChange={(e) => setSlug(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && create()}
+          autoFocus
+        />
+        {error && <div style={{ color: "#ff8080", fontSize: ".8rem", marginTop: ".5rem" }}>{error}</div>}
+        <button onClick={create} disabled={busy} className="btn btn-primary btn-full" style={{ marginTop: "1rem" }}>
+          {busy ? "Creating…" : "Create Page"}
+        </button>
+      </div>
+    </div>
   );
 }
 

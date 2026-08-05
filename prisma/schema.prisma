@@ -40,9 +40,13 @@ model User {
   leaderboardRegionName String?   @map("leaderboard_region_name") @db.VarChar(80)
   regIpHash             String?   @map("reg_ip_hash") @db.VarChar(64)
   purchasedBundles      Json?     @map("purchased_bundles")
+  purchasedThemes       Json?     @map("purchased_themes")
+  lastDailySpinAt       DateTime? @map("last_daily_spin_at")
   createdAt             DateTime  @default(now()) @map("created_at")
 
-  profile              Profile?
+  profiles             Profile[]
+  themesCreated        Theme[]
+  redeemCodeUses       RedeemCodeUse[]
   socialLinks          SocialLink[]
   integrations         Integration[]
   referralsMade        Referral[]           @relation("Referrer")
@@ -65,23 +69,34 @@ model User {
 
 model Profile {
   id                Int      @id @default(autoincrement())
-  userId            Int      @unique @map("user_id")
+  userId            Int      @map("user_id")
+  slug              String   @unique @db.VarChar(30)
+  isPrimary         Boolean  @default(true) @map("is_primary")
   displayName       String?  @map("display_name") @db.VarChar(100)
   bio               String?  @db.VarChar(300)
   location          String?  @db.VarChar(100)
+  job               String?  @db.VarChar(100)
+  birthDate         DateTime? @map("birth_date") @db.Date
   avatar            String?  @db.VarChar(300)
+  banner            String?  @db.VarChar(300)
   backgroundType    String   @default("particles") @map("background_type") @db.VarChar(20)
   backgroundValue   String   @default("#050507") @map("background_value") @db.VarChar(500)
-  accentColor       String   @default("#00d4ff") @map("accent_color") @db.VarChar(7)
-  secondaryColor    String   @default("#ff00ff") @map("secondary_color") @db.VarChar(7)
-  musicPath         String?  @map("music_path") @db.VarChar(500)
+  accentColor       String   @default("#39ff14") @map("accent_color") @db.VarChar(7)
+  backgroundColor   String   @default("#050507") @map("background_color") @db.VarChar(7)
+  nameColor         String   @default("#ffffff") @map("name_color") @db.VarChar(7)
+  bioColor          String   @default("#c9c9d1") @map("bio_color") @db.VarChar(7)
+  overlayColor      String   @default("#060610") @map("overlay_color") @db.VarChar(7)
+  musicTracks       Json?    @map("music_tracks")
+  playlistStyle     String   @default("glow") @map("playlist_style") @db.VarChar(20)
+  layoutTemplate    String   @default("classic") @map("layout_template") @db.VarChar(20)
   cursorPath        String?  @map("cursor_path") @db.VarChar(500)
   cursorTrail       Boolean  @default(false) @map("cursor_trail")
   particleEffect    Boolean  @default(false) @map("particle_effect")
   profileFont       String   @default("Syne") @map("profile_font") @db.VarChar(50)
   profileOpacity    Int      @default(100) @map("profile_opacity")
   profileBlur       Int      @default(0) @map("profile_blur")
-  typingEffect      Boolean  @default(false) @map("typing_effect")
+  nameEffect        String   @default("none") @map("name_effect") @db.VarChar(20)
+  bioEffect         String   @default("none") @map("bio_effect") @db.VarChar(20)
   views             Int      @default(0)
   localViews        Int      @default(0) @map("local_views")
   badges            Json?
@@ -91,9 +106,12 @@ model Profile {
   activeEffects     Json?    @map("active_effects")
   avatarShape       String   @default("circle") @map("avatar_shape") @db.VarChar(20)
   avatarRing        String   @default("none") @map("avatar_ring") @db.VarChar(20)
+  decorationsOwned  Json?    @map("decorations_owned")
+  activeDecoration  String?  @map("active_decoration") @db.VarChar(30)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId], map: "idx_profile_user")
   @@map("profiles")
 }
 
@@ -171,6 +189,7 @@ model Integration {
   discordServerTotal     Int?      @map("discord_server_total")
   discordServerVisible   Boolean   @default(true) @map("discord_server_visible")
   discordServerUpdated   DateTime? @map("discord_server_updated")
+  data                   Json?
   visible                Boolean   @default(true)
   createdAt              DateTime  @default(now()) @map("created_at")
   updatedAt              DateTime  @updatedAt @map("updated_at")
@@ -179,6 +198,71 @@ model Integration {
 
   @@unique([userId, type], map: "uniq_user_type")
   @@map("integrations")
+}
+
+
+model Theme {
+  id              Int      @id @default(autoincrement())
+  creatorId       Int      @map("creator_id")
+  name            String   @db.VarChar(60)
+  description     String?  @db.VarChar(300)
+  price           Int      @default(100)
+  purchaseCount   Int      @default(0) @map("purchase_count")
+  publishedAt     DateTime @default(now()) @map("published_at")
+  active          Boolean  @default(true)
+
+  accentColor     String   @map("accent_color") @db.VarChar(7)
+  backgroundColor String   @map("background_color") @db.VarChar(7)
+  nameColor       String   @map("name_color") @db.VarChar(7)
+  bioColor        String   @map("bio_color") @db.VarChar(7)
+  overlayColor    String   @map("overlay_color") @db.VarChar(7)
+  backgroundType  String   @map("background_type") @db.VarChar(20)
+  backgroundValue String   @map("background_value") @db.VarChar(500)
+  nameEffect      String   @map("name_effect") @db.VarChar(20)
+  bioEffect       String   @map("bio_effect") @db.VarChar(20)
+  profileFont     String   @map("profile_font") @db.VarChar(50)
+  avatarShape     String   @map("avatar_shape") @db.VarChar(20)
+  avatarRing      String   @map("avatar_ring") @db.VarChar(20)
+  particleEffect  Boolean  @default(false) @map("particle_effect")
+  cursorTrail     Boolean  @default(false) @map("cursor_trail")
+  layoutTemplate  String   @default("classic") @map("layout_template") @db.VarChar(20)
+  playlistStyle   String   @default("glow") @map("playlist_style") @db.VarChar(20)
+
+  creator User @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@index([creatorId], map: "idx_theme_creator")
+  @@index([active], map: "idx_theme_active")
+  @@map("themes")
+}
+
+model RedeemCode {
+  id         Int       @id @default(autoincrement())
+  code       String    @unique @db.VarChar(40)
+  tokens     Int       @default(0)
+  maxUses    Int       @default(1) @map("max_uses")
+  usesCount  Int       @default(0) @map("uses_count")
+  expiresAt  DateTime? @map("expires_at")
+  active     Boolean   @default(true)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  createdBy  Int?      @map("created_by")
+
+  uses RedeemCodeUse[]
+
+  @@index([code], map: "idx_redeem_code")
+  @@map("redeem_codes")
+}
+
+model RedeemCodeUse {
+  id        Int      @id @default(autoincrement())
+  codeId    Int      @map("code_id")
+  userId    Int      @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  code RedeemCode @relation(fields: [codeId], references: [id], onDelete: Cascade)
+  user User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([codeId, userId], map: "uniq_code_user")
+  @@map("redeem_code_uses")
 }
 
 model Referral {

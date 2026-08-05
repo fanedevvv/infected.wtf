@@ -78,6 +78,8 @@ export default function LoginForm({ verified }: { verified: boolean }) {
       <canvas id="particle-canvas" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }} />
       <div className="auth-card fade-in" style={{ position: "relative", zIndex: 1 }}>
         <div className="auth-logo">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/img/logo-icon.png" alt="" className="brand-logo-icon" />
           <h1>INFECTED.WTF</h1>
           <p>Welcome back!</p>
         </div>

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
+import { getActiveProfileId } from "@/lib/active-profile";
 import { SHOP_BADGES, SHOP_EFFECTS } from "@/lib/shop";
+import { DECORATIONS } from "@/lib/decorations";
 
 export async function GET() {
   let user;
@@ -10,7 +12,8 @@ export async function GET() {
   } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const profile = await prisma.profile.findUnique({ where: { userId: user.id } });
+  const activeProfileId = await getActiveProfileId(user.id);
+  const profile = await prisma.profile.findUnique({ where: { id: activeProfileId } });
   const owned = new Set((profile?.badges as string[] | null) ?? []);
   const purchasedEffects = new Set((profile?.purchasedEffects as string[] | null) ?? []);
   const activeEffects = (profile?.activeEffects as Record<string, string> | null) ?? {};
@@ -46,7 +49,8 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const action = String(body.action || "");
-  const profile = await prisma.profile.findUnique({ where: { userId: user.id } });
+  const activeProfileId = await getActiveProfileId(user.id);
+  const profile = await prisma.profile.findUnique({ where: { id: activeProfileId } });
   if (!profile) return NextResponse.json({ error: "Profile not found." }, { status: 404 });
 
   const senderName = profile.displayName || user.username;
@@ -63,7 +67,7 @@ export async function POST(req: NextRequest) {
     owned.add(id);
     await prisma.$transaction([
       prisma.user.update({ where: { id: user.id }, data: { tokens: { decrement: item.price }, tokensSpent: { increment: item.price } } }),
-      prisma.profile.update({ where: { userId: user.id }, data: { badges: Array.from(owned) } }),
+      prisma.profile.updateMany({ where: { id: activeProfileId }, data: { badges: Array.from(owned) } }),
     ]);
     return NextResponse.json({ success: true, message: "Badge purchased successfully!", tokens: user.tokens - item.price, badge_id: id });
   }
@@ -80,7 +84,7 @@ export async function POST(req: NextRequest) {
     owned.add(id);
     await prisma.$transaction([
       prisma.user.update({ where: { id: user.id }, data: { tokens: { decrement: item.price }, tokensSpent: { increment: item.price } } }),
-      prisma.profile.update({ where: { userId: user.id }, data: { purchasedEffects: Array.from(owned) } }),
+      prisma.profile.updateMany({ where: { id: activeProfileId }, data: { purchasedEffects: Array.from(owned) } }),
     ]);
     return NextResponse.json({ success: true, message: "Effect purchased!", tokens: user.tokens - item.price, effect_id: id });
   }
@@ -107,7 +111,7 @@ export async function POST(req: NextRequest) {
       delete active[effectSlot];
     }
 
-    await prisma.profile.update({ where: { userId: user.id }, data: { activeEffects: active, ...freeFieldReset } });
+    await prisma.profile.updateMany({ where: { id: activeProfileId }, data: { activeEffects: active, ...freeFieldReset } });
     return NextResponse.json({ success: true, activeEffects: active });
   }
 
@@ -117,13 +121,13 @@ export async function POST(req: NextRequest) {
     if (q.length < 2) return NextResponse.json({ success: true, users: [] });
     const users = await prisma.user.findMany({
       where: { username: { contains: q }, id: { not: user.id }, banned: false },
-      select: { id: true, username: true, profile: { select: { avatar: true } } },
+      select: { id: true, username: true, profiles: { where: { isPrimary: true }, take: 1, select: { avatar: true } } },
       orderBy: { username: "asc" },
       take: 8,
     });
     return NextResponse.json({
       success: true,
-      users: users.map((u) => ({ id: u.id, username: u.username, avatar: u.profile?.avatar ? `/${u.profile.avatar}` : "/assets/img/default-avatar.png" })),
+      users: users.map((u) => ({ id: u.id, username: u.username, avatar: u.profiles[0]?.avatar ? `/${u.profiles[0].avatar}` : "/assets/img/default-avatar.png" })),
     });
   }
 
@@ -135,20 +139,20 @@ export async function POST(req: NextRequest) {
     if (!item) return NextResponse.json({ error: "Invalid item." }, { status: 400 });
     if (!targetId || targetId === user.id) return NextResponse.json({ error: "Invalid recipient." }, { status: 400 });
 
-    const target = await prisma.user.findUnique({ where: { id: targetId }, include: { profile: true } });
+    const target = await prisma.user.findUnique({ where: { id: targetId }, include: { profiles: { where: { isPrimary: true }, take: 1 } } });
     if (!target) return NextResponse.json({ error: "User not found." }, { status: 400 });
     if (target.banned) return NextResponse.json({ error: "Cannot gift to a banned user." }, { status: 400 });
 
-    const targetOwned = new Set((target.profile?.badges as string[] | null) ?? []);
+    const targetOwned = new Set((target.profiles[0]?.badges as string[] | null) ?? []);
     if (targetOwned.has(id)) return NextResponse.json({ error: `@${target.username} already owns the ${item.name} badge.` }, { status: 400 });
     if (user.tokens < item.price) return NextResponse.json({ error: "Not enough tokens." }, { status: 400 });
 
     targetOwned.add(id);
     await prisma.$transaction([
       prisma.user.update({ where: { id: user.id }, data: { tokens: { decrement: item.price }, tokensSpent: { increment: item.price } } }),
-      prisma.profile.update({ where: { userId: targetId }, data: { badges: Array.from(targetOwned) } }),
+      prisma.profile.updateMany({ where: { userId: targetId , isPrimary: true }, data: { badges: Array.from(targetOwned) } }),
       prisma.notification.create({
-        data: { userId: targetId, type: "gift", title: "You received a gift! 🎁", body: `@${senderName} gifted you the ${item.name} badge.`, icon: "gift", link: "/dashboard/badges" },
+        data: { userId: targetId, type: "gift", title: "You received a gift! 🎁", body: `@${senderName} gifted you the ${item.name} badge.`, icon: "gift", link: "/dashboard?page=badges" },
       }),
     ]);
     return NextResponse.json({ success: true, message: `Badge gifted to @${target.username} successfully!`, tokens: user.tokens - item.price });
@@ -162,20 +166,20 @@ export async function POST(req: NextRequest) {
     if (!item) return NextResponse.json({ error: "Invalid effect." }, { status: 400 });
     if (!targetId || targetId === user.id) return NextResponse.json({ error: "Invalid recipient." }, { status: 400 });
 
-    const target = await prisma.user.findUnique({ where: { id: targetId }, include: { profile: true } });
+    const target = await prisma.user.findUnique({ where: { id: targetId }, include: { profiles: { where: { isPrimary: true }, take: 1 } } });
     if (!target) return NextResponse.json({ error: "User not found." }, { status: 400 });
     if (target.banned) return NextResponse.json({ error: "Cannot gift to a banned user." }, { status: 400 });
 
-    const targetOwned = new Set((target.profile?.purchasedEffects as string[] | null) ?? []);
+    const targetOwned = new Set((target.profiles[0]?.purchasedEffects as string[] | null) ?? []);
     if (targetOwned.has(id)) return NextResponse.json({ error: `@${target.username} already owns the ${item.name} effect.` }, { status: 400 });
     if (user.tokens < item.price) return NextResponse.json({ error: "Not enough tokens." }, { status: 400 });
 
     targetOwned.add(id);
     await prisma.$transaction([
       prisma.user.update({ where: { id: user.id }, data: { tokens: { decrement: item.price }, tokensSpent: { increment: item.price } } }),
-      prisma.profile.update({ where: { userId: targetId }, data: { purchasedEffects: Array.from(targetOwned) } }),
+      prisma.profile.updateMany({ where: { userId: targetId , isPrimary: true }, data: { purchasedEffects: Array.from(targetOwned) } }),
       prisma.notification.create({
-        data: { userId: targetId, type: "gift", title: "You received a gift! 🎁", body: `@${senderName} gifted you the ${item.name} effect.`, icon: "gift", link: "/dashboard/effects" },
+        data: { userId: targetId, type: "gift", title: "You received a gift! 🎁", body: `@${senderName} gifted you the ${item.name} effect.`, icon: "gift", link: "/dashboard?page=effects" },
       }),
     ]);
     return NextResponse.json({ success: true, message: `Effect gifted to @${target.username} successfully!`, tokens: user.tokens - item.price });
@@ -217,7 +221,7 @@ export async function POST(req: NextRequest) {
       prisma.user.update({ where: { id: user.id }, data: { tokens: { decrement: cost } } }),
       prisma.user.update({ where: { id: targetId }, data: { isPremium: true, premiumExpiresAt: newExpiry } }),
       prisma.notification.create({
-        data: { userId: targetId, type: "gift", title: "You received Premium! ⭐", body: `@${senderName} gifted you ${days} day(s) of Premium.`, icon: "gift", link: "/dashboard/settings" },
+        data: { userId: targetId, type: "gift", title: "You received Premium! ⭐", body: `@${senderName} gifted you ${days} day(s) of Premium.`, icon: "gift", link: "/dashboard?page=settings" },
       }),
     ]);
     return NextResponse.json({ success: true, message: `Premium gifted to @${target.username} for ${days} day(s)!`, tokens: user.tokens - cost, days });
@@ -251,7 +255,7 @@ export async function POST(req: NextRequest) {
 
     await prisma.$transaction([
       prisma.user.update({ where: { id: user.id }, data: userUpdate }),
-      prisma.profile.update({ where: { userId: user.id }, data: { badges: Array.from(ownedBadges), purchasedEffects: Array.from(ownedEffects) } }),
+      prisma.profile.updateMany({ where: { id: activeProfileId }, data: { badges: Array.from(ownedBadges), purchasedEffects: Array.from(ownedEffects) } }),
     ]);
     return NextResponse.json({ success: true, message: `${bundle.name} unlocked!`, tokens: user.tokens - price });
   }
@@ -267,7 +271,7 @@ export async function POST(req: NextRequest) {
     if (!bundle) return NextResponse.json({ error: "Bundle not found." }, { status: 400 });
     if (bundle.priceType !== "tokens") return NextResponse.json({ error: "This bundle requires a payment — please contact support." }, { status: 400 });
 
-    const target = await prisma.user.findUnique({ where: { id: targetId }, include: { profile: true } });
+    const target = await prisma.user.findUnique({ where: { id: targetId }, include: { profiles: { where: { isPrimary: true }, take: 1 } } });
     if (!target) return NextResponse.json({ error: "User not found." }, { status: 400 });
     if (target.banned) return NextResponse.json({ error: "Cannot gift to a banned user." }, { status: 400 });
 
@@ -279,8 +283,8 @@ export async function POST(req: NextRequest) {
 
     const badgeIds = (bundle.badges as string[] | null) ?? [];
     const effectIds = (bundle.effects as string[] | null) ?? [];
-    const ownedBadges = new Set([...(((target.profile?.badges as string[] | null) ?? [])), ...badgeIds]);
-    const ownedEffects = new Set([...(((target.profile?.purchasedEffects as string[] | null) ?? [])), ...effectIds]);
+    const ownedBadges = new Set([...(((target.profiles[0]?.badges as string[] | null) ?? [])), ...badgeIds]);
+    const ownedEffects = new Set([...(((target.profiles[0]?.purchasedEffects as string[] | null) ?? [])), ...effectIds]);
 
     const targetUpdate: Record<string, unknown> = { purchasedBundles: [...targetOwned, bundleId] };
     if (bundle.premiumDays > 0) {
@@ -292,12 +296,61 @@ export async function POST(req: NextRequest) {
     await prisma.$transaction([
       prisma.user.update({ where: { id: user.id }, data: { tokens: { decrement: price }, tokensSpent: { increment: price } } }),
       prisma.user.update({ where: { id: targetId }, data: targetUpdate }),
-      prisma.profile.update({ where: { userId: targetId }, data: { badges: Array.from(ownedBadges), purchasedEffects: Array.from(ownedEffects) } }),
+      prisma.profile.updateMany({ where: { userId: targetId , isPrimary: true }, data: { badges: Array.from(ownedBadges), purchasedEffects: Array.from(ownedEffects) } }),
       prisma.notification.create({
-        data: { userId: targetId, type: "gift", title: "You received a gift! 🎁", body: `@${senderName} gifted you the ${bundle.name} bundle.`, icon: "gift", link: "/dashboard/shop" },
+        data: { userId: targetId, type: "gift", title: "You received a gift! 🎁", body: `@${senderName} gifted you the ${bundle.name} bundle.`, icon: "gift", link: "/dashboard?page=shop" },
       }),
     ]);
     return NextResponse.json({ success: true, message: `${bundle.name} gifted to @${target.username}!`, tokens: user.tokens - price });
+  }
+
+  // ── Buy decoration ───────────────────────────────────────
+  if (action === "buy_decoration") {
+    const id = String(body.decorationId || "");
+    const item = DECORATIONS[id];
+    if (!item) return NextResponse.json({ error: "Invalid decoration." }, { status: 400 });
+    const owned = new Set((profile.decorationsOwned as string[] | null) ?? []);
+    if (owned.has(id)) return NextResponse.json({ error: "Already owned." }, { status: 400 });
+    if (user.tokens < item.price) return NextResponse.json({ error: "Not enough tokens." }, { status: 400 });
+
+    owned.add(id);
+    await prisma.$transaction([
+      prisma.user.update({ where: { id: user.id }, data: { tokens: { decrement: item.price }, tokensSpent: { increment: item.price } } }),
+      prisma.profile.updateMany({ where: { id: activeProfileId }, data: { decorationsOwned: Array.from(owned) } }),
+    ]);
+    return NextResponse.json({ success: true, message: "Decoration purchased!", tokens: user.tokens - item.price, decoration_id: id });
+  }
+
+  // ── Equip / unequip a decoration ─────────────────────────
+  if (action === "equip_decoration") {
+    const id = String(body.decorationId || "");
+    const owned = new Set((profile.decorationsOwned as string[] | null) ?? []);
+    if (id && !owned.has(id)) return NextResponse.json({ error: "You don't own this decoration." }, { status: 400 });
+
+    await prisma.profile.updateMany({ where: { id: activeProfileId }, data: { activeDecoration: id || null } });
+    return NextResponse.json({ success: true, activeDecoration: id || null });
+  }
+
+  // ── Transfer tokens to another user ──────────────────────
+  if (action === "transfer_tokens") {
+    const targetId = Number(body.targetId || 0);
+    const amount = Math.max(0, Math.floor(Number(body.amount || 0)));
+    if (!targetId || targetId === user.id) return NextResponse.json({ error: "Invalid recipient." }, { status: 400 });
+    if (!amount || amount < 10) return NextResponse.json({ error: "Minimum transfer is 10 tokens." }, { status: 400 });
+    if (user.tokens < amount) return NextResponse.json({ error: "Not enough tokens." }, { status: 400 });
+
+    const target = await prisma.user.findUnique({ where: { id: targetId } });
+    if (!target) return NextResponse.json({ error: "User not found." }, { status: 400 });
+    if (target.banned) return NextResponse.json({ error: "Cannot send tokens to a banned user." }, { status: 400 });
+
+    await prisma.$transaction([
+      prisma.user.update({ where: { id: user.id }, data: { tokens: { decrement: amount } } }),
+      prisma.user.update({ where: { id: targetId }, data: { tokens: { increment: amount } } }),
+      prisma.notification.create({
+        data: { userId: targetId, type: "gift", title: "You received tokens! 💸", body: `@${senderName} sent you ${amount} tokens.`, icon: "gift", link: "/dashboard?page=premium" },
+      }),
+    ]);
+    return NextResponse.json({ success: true, message: `Sent ${amount} tokens to @${target.username}!`, tokens: user.tokens - amount });
   }
 
   return NextResponse.json({ error: "Unknown action." }, { status: 400 });

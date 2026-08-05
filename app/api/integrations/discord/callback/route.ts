@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   const savedState = req.cookies.get("discord_oauth_state")?.value;
 
   if (!code || !state || state !== savedState) {
-    return NextResponse.redirect(`${siteUrl}/dashboard/integrations?error=invalid_state`);
+    return NextResponse.redirect(`${siteUrl}/dashboard?page=integrations&error=invalid_state`);
   }
 
   try {
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
       where: { type: "discord", discordUserId: discordUser.id, NOT: { userId: user.id } },
     });
     if (existingOnOther) {
-      return NextResponse.redirect(`${siteUrl}/dashboard/integrations?error=already_linked`);
+      return NextResponse.redirect(`${siteUrl}/dashboard?page=integrations&error=already_linked`);
     }
 
     await prisma.integration.upsert({
@@ -45,18 +45,18 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const profile = await prisma.profile.findUnique({ where: { userId: user.id } });
+    const profile = await prisma.profile.findFirst({ where: { userId: user.id , isPrimary: true } });
     const badges = new Set((profile?.badges as string[] | null) ?? []);
     if (!badges.has("discord")) {
       badges.add("discord");
-      await prisma.profile.update({ where: { userId: user.id }, data: { badges: Array.from(badges) } });
+      await prisma.profile.updateMany({ where: { userId: user.id , isPrimary: true }, data: { badges: Array.from(badges) } });
     }
 
-    const res = NextResponse.redirect(`${siteUrl}/dashboard/integrations?connected=1`);
+    const res = NextResponse.redirect(`${siteUrl}/dashboard?page=integrations&connected=1`);
     res.cookies.delete("discord_oauth_state");
     return res;
   } catch (e) {
     console.error("[discord oauth]", e);
-    return NextResponse.redirect(`${siteUrl}/dashboard/integrations?error=oauth_failed`);
+    return NextResponse.redirect(`${siteUrl}/dashboard?page=integrations&error=oauth_failed`);
   }
 }

@@ -8,7 +8,7 @@ import SafeImg from "@/components/SafeImg";
 
 const PER_PAGE = 10;
 
-export default async function ReferralPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+export default async function ReferralPage({ searchParams }: { searchParams: Promise<{ rp?: string }> }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
@@ -29,7 +29,7 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
 
   const params = await searchParams;
   const totalPages = Math.max(1, Math.ceil(totalRefs / PER_PAGE));
-  const page = Math.min(Math.max(1, parseInt(params.page || "1", 10) || 1), totalPages);
+  const page = Math.min(Math.max(1, parseInt(params.rp || "1", 10) || 1), totalPages);
   const offset = (page - 1) * PER_PAGE;
 
   const referralsRaw = await prisma.referral.findMany({
@@ -37,7 +37,7 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
     orderBy: { createdAt: "desc" },
     skip: offset,
     take: PER_PAGE,
-    include: { referred: { select: { username: true, profile: { select: { avatar: true } } } } },
+    include: { referred: { select: { username: true, profiles: { where: { isPrimary: true }, take: 1, select: { avatar: true } } } } },
   });
 
   const isPremium = user.isPremium;
@@ -47,7 +47,7 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
   const x2Active = !!settings?.x2TokensEnabled;
   if (x2Active) tokensPerRef *= 2;
 
-  const profile = await prisma.profile.findUnique({ where: { userId: user.id } });
+  const profile = await prisma.profile.findFirst({ where: { userId: user.id , isPrimary: true } });
   let earnedBadges = (profile?.badges as string[] | null) ?? [];
   let hasPromoter = earnedBadges.includes("promoter");
   let hasPromoterElite = earnedBadges.includes("promoter_elite");
@@ -55,12 +55,12 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
   if (totalRefs >= 20 && !hasPromoterElite) {
     earnedBadges = earnedBadges.filter((b) => b !== "promoter");
     if (!earnedBadges.includes("promoter_elite")) earnedBadges.push("promoter_elite");
-    await prisma.profile.update({ where: { userId: user.id }, data: { badges: earnedBadges } });
+    await prisma.profile.updateMany({ where: { userId: user.id , isPrimary: true }, data: { badges: earnedBadges } });
     hasPromoterElite = true;
     hasPromoter = false;
   } else if (totalRefs >= 10 && !hasPromoter && !hasPromoterElite) {
     earnedBadges.push("promoter");
-    await prisma.profile.update({ where: { userId: user.id }, data: { badges: earnedBadges } });
+    await prisma.profile.updateMany({ where: { userId: user.id , isPrimary: true }, data: { badges: earnedBadges } });
     hasPromoter = true;
   }
 
@@ -175,7 +175,7 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
             <div className="ref-upsell-title">Get Premium for double referral rewards</div>
             <div className="ref-upsell-sub">Premium members earn <strong style={{ color: "rgba(255,215,0,.7)" }}>+20 tokens</strong> per referral instead of 10.</div>
           </div>
-          <a href="/dashboard/shop" className="ref-upsell-link">Get Premium</a>
+          <a href="/dashboard?page=shop" className="ref-upsell-link">Get Premium</a>
         </div>
       )}
 
@@ -222,7 +222,7 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
         ) : (
           referralsRaw.map((r) => (
             <div className="ref-user-row" key={r.id}>
-              <SafeImg src={r.referred.profile?.avatar ? `/${r.referred.profile.avatar}` : null} className="ref-user-avatar" />
+              <SafeImg src={r.referred.profiles[0]?.avatar ? `/${r.referred.profiles[0].avatar}` : null} className="ref-user-avatar" />
               <div className="ref-user-info">
                 <div className="ref-user-name">@{r.referred.username}</div>
                 <div className="ref-user-date">{r.createdAt.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" })}</div>
@@ -237,11 +237,11 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
 
         {totalPages > 1 && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: ".45rem", marginTop: "1.4rem", flexWrap: "wrap" }}>
-            <a href={`/dashboard/referral?page=${Math.max(1, page - 1)}`} style={cssTextToObj(page <= 1 ? btnDisabl : btnNormal)}>← Prev</a>
+            <a href={`/dashboard?page=referral&rp=${Math.max(1, page - 1)}`} style={cssTextToObj(page <= 1 ? btnDisabl : btnNormal)}>← Prev</a>
             {pageNumbers.map((i) => (
-              <a key={i} href={`/dashboard/referral?page=${i}`} style={cssTextToObj(i === page ? btnActive : btnNormal)}>{i}</a>
+              <a key={i} href={`/dashboard?page=referral&rp=${i}`} style={cssTextToObj(i === page ? btnActive : btnNormal)}>{i}</a>
             ))}
-            <a href={`/dashboard/referral?page=${Math.min(totalPages, page + 1)}`} style={cssTextToObj(page >= totalPages ? btnDisabl : btnNormal)}>Next →</a>
+            <a href={`/dashboard?page=referral&rp=${Math.min(totalPages, page + 1)}`} style={cssTextToObj(page >= totalPages ? btnDisabl : btnNormal)}>Next →</a>
           </div>
         )}
       </div>

@@ -369,6 +369,415 @@ function buildBgRenderers(): Record<string, Renderer> {
       vg.addColorStop(0, "transparent"); vg.addColorStop(1, "rgba(0,0,0,0.62)");
       ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
     },
+
+
+    bg_rain: (() => {
+      let drops: { x: number; y: number; len: number; speed: number; drift: number }[] = [];
+      let initedFor = 0;
+      function init(W: number, H: number) {
+        drops = Array.from({ length: 110 }, () => ({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          len: 14 + Math.random() * 18,
+          speed: 7 + Math.random() * 6,
+          drift: 1.2 + Math.random() * 0.8,
+        }));
+        initedFor = W * 10000 + H;
+      }
+      return (ctx: CanvasRenderingContext2D, W: number, H: number) => {
+        if (initedFor !== W * 10000 + H) init(W, H);
+        ctx.clearRect(0, 0, W, H);
+        ctx.save();
+        ctx.strokeStyle = "rgba(147,197,253,0.55)";
+        ctx.lineWidth = 1.4;
+        ctx.lineCap = "round";
+        for (const d of drops) {
+          ctx.beginPath();
+          ctx.moveTo(d.x, d.y);
+          ctx.lineTo(d.x - d.drift * 3, d.y + d.len);
+          ctx.stroke();
+          d.y += d.speed;
+          d.x -= d.drift;
+          if (d.y > H) { d.y = -d.len; d.x = Math.random() * W; }
+          if (d.x < -20) d.x = W + 20;
+        }
+        ctx.restore();
+      };
+    })(),
+
+    bg_sakura: (() => {
+      let petals: { x: number; y: number; r: number; speed: number; sway: number; phase: number; rot: number }[] = [];
+      let initedFor = 0;
+      function init(W: number, H: number) {
+        petals = Array.from({ length: 26 }, () => ({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          r: 4 + Math.random() * 5,
+          speed: 0.5 + Math.random() * 0.8,
+          sway: 0.6 + Math.random() * 1.2,
+          phase: Math.random() * Math.PI * 2,
+          rot: Math.random() * Math.PI * 2,
+        }));
+        initedFor = W * 10000 + H;
+      }
+      return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
+        if (initedFor !== W * 10000 + H) init(W, H);
+        ctx.clearRect(0, 0, W, H);
+        for (const p of petals) {
+          const x = p.x + Math.sin(t * 0.02 + p.phase) * p.sway * 12;
+          ctx.save();
+          ctx.translate(x, p.y);
+          ctx.rotate(p.rot + t * 0.01);
+          ctx.fillStyle = "rgba(249,168,212,0.75)";
+          ctx.beginPath();
+          ctx.ellipse(0, 0, p.r, p.r * 0.6, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+          p.y += p.speed;
+          if (p.y > H + 10) { p.y = -10; p.x = Math.random() * W; }
+        }
+      };
+    })(),
+
+    bg_digitalgrid: (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
+      ctx.clearRect(0, 0, W, H);
+      const horizon = H * 0.55;
+      const vg = ctx.createLinearGradient(0, 0, 0, horizon);
+      vg.addColorStop(0, "rgba(0,212,255,0.04)"); vg.addColorStop(1, "rgba(0,212,255,0.12)");
+      ctx.fillStyle = vg; ctx.fillRect(0, 0, W, horizon);
+      ctx.save();
+      ctx.strokeStyle = "rgba(0,212,255,0.35)";
+      ctx.lineWidth = 1;
+      ctx.shadowColor = "#00d4ff"; ctx.shadowBlur = 6;
+      const vpX = W / 2;
+      for (let i = -10; i <= 10; i++) {
+        ctx.beginPath();
+        ctx.moveTo(vpX + i * (W * 0.06), horizon);
+        ctx.lineTo(vpX + i * (W * 0.6), H);
+        ctx.stroke();
+      }
+      const rowCount = 14;
+      for (let i = 0; i < rowCount; i++) {
+        const prog = ((i / rowCount) + (t * 0.006) % 1) % 1;
+        const y = horizon + prog * prog * (H - horizon);
+        ctx.globalAlpha = 1 - prog;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(W, y);
+        ctx.stroke();
+      }
+      ctx.restore();
+    },
+
+    bg_aurora: (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
+      ctx.clearRect(0, 0, W, H);
+      const bands = [
+        { color: "52,211,153", base: 0.18, amp: 0.12, speed: 0.006, off: 0 },
+        { color: "56,189,248", base: 0.28, amp: 0.1, speed: 0.008, off: 2 },
+        { color: "168,85,247", base: 0.12, amp: 0.14, speed: 0.005, off: 4 },
+      ];
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      for (const b of bands) {
+        ctx.beginPath();
+        ctx.moveTo(0, H);
+        for (let x = 0; x <= W; x += W / 40) {
+          const y = H * b.base + Math.sin(x * 0.006 + t * b.speed + b.off) * H * b.amp;
+          ctx.lineTo(x, y);
+        }
+        ctx.lineTo(W, H);
+        ctx.closePath();
+        const grd = ctx.createLinearGradient(0, 0, 0, H * 0.6);
+        grd.addColorStop(0, `rgba(${b.color},0.35)`);
+        grd.addColorStop(1, "transparent");
+        ctx.fillStyle = grd;
+        ctx.fill();
+      }
+      ctx.restore();
+    },
+
+    bg_tvglitch: (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = "rgba(5,5,10,0.4)";
+      ctx.fillRect(0, 0, W, H);
+      ctx.save();
+      ctx.globalAlpha = 0.85;
+      for (let y = 0; y < H; y += 3) {
+        ctx.fillStyle = (y / 3) % 2 === 0 ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.03)";
+        ctx.fillRect(0, y, W, 1);
+      }
+      if (Math.random() < 0.18) {
+        const bandY = Math.random() * H;
+        const bandH = 6 + Math.random() * 26;
+        const shift = (Math.random() - 0.5) * 40;
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = "rgba(255,26,60,0.4)";
+        ctx.fillRect(shift, bandY, W, bandH);
+        ctx.fillStyle = "rgba(57,255,20,0.3)";
+        ctx.fillRect(-shift, bandY, W, bandH);
+      }
+      if (Math.random() < 0.05) {
+        ctx.globalAlpha = 0.25;
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, W, H);
+      }
+      ctx.globalAlpha = 0.06;
+      ctx.fillStyle = "#ffffff";
+      for (let i = 0; i < 60; i++) {
+        ctx.fillRect(Math.random() * W, Math.random() * H, 1.5, 1.5);
+      }
+      ctx.restore();
+      void t;
+    },
+
+    bg_matrix: (() => {
+      let cols: { y: number; speed: number; len: number }[] = [];
+      let initedFor = 0;
+      const chars = "アイウエオカキクケコサシスセソ0123456789ABCDEFXYZ$#%&";
+      const fontSize = 15;
+      function init(W: number, H: number) {
+        const count = Math.ceil(W / fontSize);
+        cols = Array.from({ length: count }, () => ({
+          y: Math.random() * -H,
+          speed: 4 + Math.random() * 6,
+          len: 8 + Math.floor(Math.random() * 14),
+        }));
+        initedFor = W * 10000 + H;
+      }
+      return (ctx: CanvasRenderingContext2D, W: number, H: number) => {
+        if (initedFor !== W * 10000 + H) init(W, H);
+        ctx.fillStyle = "rgba(3,6,3,0.18)";
+        ctx.fillRect(0, 0, W, H);
+        ctx.font = `${fontSize}px monospace`;
+        ctx.textAlign = "center";
+        cols.forEach((col, i) => {
+          const x = i * fontSize + fontSize / 2;
+          for (let j = 0; j < col.len; j++) {
+            const y = col.y - j * fontSize;
+            if (y < 0 || y > H) continue;
+            const ch = chars[Math.floor(Math.random() * chars.length)];
+            ctx.fillStyle = j === 0 ? "rgba(200,255,200,0.9)" : `rgba(57,255,20,${Math.max(0, 0.7 - j * 0.05)})`;
+            ctx.fillText(ch, x, y);
+          }
+          col.y += col.speed;
+          if (col.y - col.len * fontSize > H) col.y = Math.random() * -200;
+        });
+      };
+    })(),
+
+    bg_lightning: (() => {
+      let bolt: { x: number; y: number }[] | null = null;
+      let boltLife = 0;
+      let nextStrike = 40 + Math.random() * 80;
+      function makeBolt(W: number, H: number) {
+        const pts: { x: number; y: number }[] = [];
+        let x = Math.random() * W * 0.6 + W * 0.2;
+        let y = 0;
+        pts.push({ x, y });
+        while (y < H * 0.75) {
+          x += (Math.random() - 0.5) * 60;
+          y += 20 + Math.random() * 30;
+          pts.push({ x, y });
+        }
+        return pts;
+      }
+      return (ctx: CanvasRenderingContext2D, W: number, H: number) => {
+        ctx.clearRect(0, 0, W, H);
+        const sky = ctx.createLinearGradient(0, 0, 0, H);
+        sky.addColorStop(0, "rgba(15,15,25,0.5)");
+        sky.addColorStop(1, "rgba(5,5,10,0.2)");
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, W, H);
+
+        nextStrike--;
+        if (nextStrike <= 0 && !bolt) {
+          bolt = makeBolt(W, H);
+          boltLife = 10;
+          nextStrike = 60 + Math.random() * 140;
+        }
+        if (bolt) {
+          ctx.save();
+          if (boltLife > 6) {
+            ctx.fillStyle = `rgba(255,255,255,${(boltLife - 6) * 0.05})`;
+            ctx.fillRect(0, 0, W, H);
+          }
+          ctx.strokeStyle = "rgba(250,204,21,0.9)";
+          ctx.shadowColor = "#facc15"; ctx.shadowBlur = 14;
+          ctx.lineWidth = 2;
+          ctx.globalAlpha = Math.min(1, boltLife / 6);
+          ctx.beginPath();
+          bolt.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+          ctx.stroke();
+          ctx.restore();
+          boltLife--;
+          if (boltLife <= 0) bolt = null;
+        }
+      };
+    })(),
+
+    bg_galaxy: (() => {
+      let stars: { x: number; y: number; r: number; tw: number } | any = null;
+      let initedFor = 0;
+      function init(W: number, H: number) {
+        stars = Array.from({ length: 140 }, () => ({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          r: Math.random() * 1.6 + 0.3,
+          tw: Math.random() * Math.PI * 2,
+        }));
+        initedFor = W * 10000 + H;
+      }
+      return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
+        if (initedFor !== W * 10000 + H) init(W, H);
+        ctx.clearRect(0, 0, W, H);
+        ctx.save();
+        const cx = W * 0.6, cy = H * 0.35;
+        const neb = ctx.createRadialGradient(cx, cy, 0, cx, cy, W * 0.5);
+        neb.addColorStop(0, "rgba(168,85,247,0.22)");
+        neb.addColorStop(0.5, "rgba(99,102,241,0.12)");
+        neb.addColorStop(1, "transparent");
+        ctx.fillStyle = neb;
+        ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = "#fff";
+        for (const s of stars) {
+          const alpha = 0.4 + Math.sin(t * 0.03 + s.tw) * 0.4;
+          ctx.globalAlpha = Math.max(0, alpha);
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      };
+    })(),
+
+    bg_neoncity: (() => {
+      let bld: any = null;
+      let initedFor = 0;
+      function init(W: number, H: number) {
+        const n = 16;
+        bld = Array.from({ length: n }, (_, i) => {
+          const w = W / n;
+          return {
+            x: i * w,
+            w: w * (0.6 + Math.random() * 0.35),
+            h: H * (0.18 + Math.random() * 0.55),
+            hue: [300, 190, 320, 175][i % 4],
+            flicker: Math.random() * Math.PI * 2,
+          };
+        });
+        initedFor = W * 10000 + H;
+      }
+      return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
+        if (initedFor !== W * 10000 + H) init(W, H);
+        ctx.clearRect(0, 0, W, H);
+        const sky = ctx.createLinearGradient(0, 0, 0, H);
+        sky.addColorStop(0, "rgba(10,4,20,0.5)"); sky.addColorStop(1, "rgba(40,10,50,0.15)");
+        ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+        for (const b of bld) {
+          const y = H - b.h;
+          ctx.save();
+          ctx.fillStyle = "rgba(8,4,16,0.85)";
+          ctx.fillRect(b.x, y, b.w, b.h);
+          const glow = 0.5 + Math.sin(t * 0.04 + b.flicker) * 0.35;
+          ctx.strokeStyle = `hsla(${b.hue},90%,60%,${glow})`;
+          ctx.shadowColor = `hsl(${b.hue},90%,55%)`; ctx.shadowBlur = 8; ctx.lineWidth = 1.4;
+          ctx.strokeRect(b.x + 1, y + 1, b.w - 2, b.h - 2);
+          const rows = Math.floor(b.h / 14);
+          ctx.fillStyle = `hsla(${b.hue},95%,65%,${glow * 0.8})`;
+          for (let r = 0; r < rows; r++) {
+            if ((r + Math.floor(t * 0.02)) % 3 === 0) continue;
+            ctx.fillRect(b.x + b.w * 0.2, y + 8 + r * 14, b.w * 0.6, 2.2);
+          }
+          ctx.restore();
+        }
+      };
+    })(),
+
+    bg_bioluminescent: (() => {
+      let dots: any = null;
+      let initedFor = 0;
+      function init(W: number, H: number) {
+        dots = Array.from({ length: 34 }, () => ({
+          x: Math.random(), y: 0.55 + Math.random() * 0.45,
+          sp: 0.3 + Math.random() * 0.5, ph: Math.random() * 100,
+          r: 1.2 + Math.random() * 2.2,
+        }));
+        initedFor = W * 10000 + H;
+      }
+      return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
+        if (initedFor !== W * 10000 + H) init(W, H);
+        ctx.clearRect(0, 0, W, H);
+        for (let layer = 0; layer < 3; layer++) {
+          const baseY = H * (0.62 + layer * 0.13);
+          const amp = 10 + layer * 6;
+          const speed = 0.015 + layer * 0.006;
+          ctx.save();
+          ctx.globalAlpha = 0.22 - layer * 0.04;
+          ctx.beginPath();
+          ctx.moveTo(0, H);
+          for (let x = 0; x <= W; x += W / 40) {
+            const y = baseY + Math.sin(x * 0.02 + t * speed + layer) * amp;
+            ctx.lineTo(x, y);
+          }
+          ctx.lineTo(W, H); ctx.closePath();
+          const g = ctx.createLinearGradient(0, baseY - amp, 0, H);
+          g.addColorStop(0, "rgba(45,212,191,0.55)"); g.addColorStop(1, "rgba(8,145,178,0.05)");
+          ctx.fillStyle = g; ctx.fill();
+          ctx.restore();
+        }
+        for (const d of dots) {
+          const prog = ((t * d.sp + d.ph) % 100) / 100;
+          const x = d.x * W;
+          const wave = Math.sin(x * 0.02 + t * 0.02) * 10;
+          const y = H * d.y + wave;
+          const tw = 0.4 + Math.sin(t * 0.06 + d.ph) * 0.4;
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, tw) * (1 - prog * 0.3);
+          ctx.fillStyle = "#5eead4"; ctx.shadowColor = "#2dd4bf"; ctx.shadowBlur = 6;
+          ctx.beginPath(); ctx.arc(x, y, d.r, 0, Math.PI * 2); ctx.fill();
+          ctx.restore();
+        }
+      };
+    })(),
+
+    bg_meteors: (() => {
+      let stars: any = null;
+      let meteors: any[] = [];
+      let lastSpawn = 0;
+      let initedFor = 0;
+      function init(W: number, H: number) {
+        stars = Array.from({ length: 90 }, () => ({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.3 + 0.2, tw: Math.random() * Math.PI * 2 }));
+        initedFor = W * 10000 + H;
+      }
+      return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
+        if (initedFor !== W * 10000 + H) { init(W, H); meteors = []; }
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = "#fff";
+        for (const s of stars) {
+          ctx.globalAlpha = Math.max(0, 0.35 + Math.sin(t * 0.03 + s.tw) * 0.35);
+          ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        if (t - lastSpawn > 45 && meteors.length < 3) {
+          lastSpawn = t;
+          meteors.push({ x: Math.random() * W * 0.6, y: -10, vx: 3.4 + Math.random() * 1.5, vy: 2.2 + Math.random(), life: 1 });
+        }
+        for (let i = meteors.length - 1; i >= 0; i--) {
+          const m = meteors[i];
+          m.x += m.vx; m.y += m.vy; m.life -= 0.012;
+          if (m.life <= 0 || m.x > W + 20 || m.y > H + 20) { meteors.splice(i, 1); continue; }
+          ctx.save();
+          const grad = ctx.createLinearGradient(m.x, m.y, m.x - m.vx * 9, m.y - m.vy * 9);
+          grad.addColorStop(0, `rgba(147,197,253,${m.life})`); grad.addColorStop(1, "transparent");
+          ctx.strokeStyle = grad; ctx.lineWidth = 2; ctx.lineCap = "round";
+          ctx.shadowColor = "#93c5fd"; ctx.shadowBlur = 8;
+          ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(m.x - m.vx * 9, m.y - m.vy * 9); ctx.stroke();
+          ctx.fillStyle = `rgba(255,255,255,${m.life})`;
+          ctx.beginPath(); ctx.arc(m.x, m.y, 1.6, 0, Math.PI * 2); ctx.fill();
+          ctx.restore();
+        }
+      };
+    })(),
   };
 }
 
@@ -861,6 +1270,63 @@ function buildAvatarRenderers(SHAPE: string, PAV_TOP_OFFSET: number, PAV_EDGE: n
       drawEye(p2.x, p2.y, p2.a, blink2, 0.85);
       ctx.shadowBlur = 0; ctx.shadowColor = "transparent";
     },
+
+    avatar_sparkle: (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
+      ctx.clearRect(0, 0, W, H);
+      const cx = W / 2, cy = getAvatarCY(H), R = getEffectR(W, H);
+      const count = 14;
+      const pts = getBorderPoints(cx, cy, R * 1.08, count);
+      for (let i = 0; i < count; i++) {
+        const idxF = ((-t * 0.0022 * count + i) % count + count) % count;
+        const idxA = Math.floor(idxF);
+        const idxB = (idxA + 1) % count;
+        const frac = idxF - idxA;
+        const pA = pts[idxA], pB = pts[idxB];
+        const px = pA.x + (pB.x - pA.x) * frac;
+        const py = pA.y + (pB.y - pA.y) * frac;
+        const twinkle = 0.4 + 0.6 * Math.abs(Math.sin(t * 0.05 + i * 1.7));
+        const sz = (2.4 + (i % 3)) * twinkle;
+        ctx.save();
+        ctx.globalAlpha = twinkle;
+        ctx.translate(px, py);
+        ctx.rotate(t * 0.02 + i);
+        ctx.fillStyle = i % 2 ? "#fde047" : "#fff7cc";
+        ctx.shadowColor = "#fde047"; ctx.shadowBlur = 6;
+        ctx.beginPath();
+        ctx.moveTo(0, -sz); ctx.lineTo(sz * 0.28, -sz * 0.28); ctx.lineTo(sz, 0);
+        ctx.lineTo(sz * 0.28, sz * 0.28); ctx.lineTo(0, sz); ctx.lineTo(-sz * 0.28, sz * 0.28);
+        ctx.lineTo(-sz, 0); ctx.lineTo(-sz * 0.28, -sz * 0.28); ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+    },
+
+    avatar_petals: (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
+      ctx.clearRect(0, 0, W, H);
+      const cx = W / 2, cy = getAvatarCY(H), R = getEffectR(W, H);
+      const count = 10;
+      for (let i = 0; i < count; i++) {
+        const orbit = R * (1.15 + 0.12 * Math.sin(i * 2.1));
+        const speed = 0.0016 + (i % 3) * 0.0004;
+        const dir = i % 2 ? 1 : -1;
+        const ang = dir * t * speed + (i / count) * Math.PI * 2;
+        const bob = Math.sin(t * 0.03 + i) * 4;
+        const px = cx + Math.cos(ang) * orbit;
+        const py = cy + Math.sin(ang) * orbit * 0.94 + bob;
+        const sz = 4.5 + (i % 3);
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(ang * 2 + t * 0.01);
+        ctx.globalAlpha = 0.85;
+        ctx.fillStyle = i % 3 === 0 ? "#f9a8d4" : i % 3 === 1 ? "#fbcfe8" : "#f472b6";
+        ctx.beginPath();
+        ctx.moveTo(0, -sz);
+        ctx.bezierCurveTo(sz * 0.8, -sz * 0.2, sz * 0.6, sz * 0.7, 0, sz * 0.5);
+        ctx.bezierCurveTo(-sz * 0.6, sz * 0.7, -sz * 0.8, -sz * 0.2, 0, -sz);
+        ctx.fill();
+        ctx.restore();
+      }
+    },
   };
 }
 
@@ -925,6 +1391,12 @@ function runCursorEffect(CE: string): (() => void) | null {
     cursor_leaves: { count: 2, life: 80, spd: 0.9, sz: () => 5 + Math.random() * 4, color: () => `hsl(${100 + Math.random() * 60},${60 + Math.random() * 20}%,${40 + Math.random() * 20}%,`, grow: false, leaf: true },
     cursor_water: { count: 2, life: 50, spd: 1.5, sz: () => 3 + Math.random() * 4, color: () => "rgba(14,165,233,", grow: false },
     cursor_shadow: { count: 1, life: 90, spd: 0.5, sz: () => 4 + Math.random() * 4, color: () => "rgba(168,237,255,", grow: false, soul: true },
+    cursor_sparkle: { count: 2, life: 45, spd: 0.8, sz: () => 3 + Math.random() * 3, color: () => `hsla(${45 + Math.random() * 20},95%,65%,`, grow: false, sparkle: true },
+    cursor_snow: { count: 1, life: 90, spd: 0.4, sz: () => 2.5 + Math.random() * 3, color: () => "rgba(224,242,254,", grow: false, snow: true },
+    cursor_sakura: { count: 1, life: 75, spd: 0.5, sz: () => 4 + Math.random() * 3, color: () => "rgba(249,168,212,", grow: false, leaf: true },
+    cursor_hearts: { count: 1, life: 65, spd: 0.6, sz: () => 5 + Math.random() * 3, color: () => "rgba(251,113,133,", grow: false, heart: true },
+    cursor_butterflies: { count: 1, life: 80, spd: 0.7, sz: () => 6 + Math.random() * 3, color: () => `hsla(${265 + Math.random() * 40},80%,68%,`, grow: false, butterfly: true },
+    cursor_matrix: { count: 1, life: 55, spd: 1, sz: () => 13, color: () => "rgba(57,255,20,", grow: false, matrixchar: true },
   };
 
   const cfg = configs[CE];
@@ -933,18 +1405,26 @@ function runCursorEffect(CE: string): (() => void) | null {
   let onSpawn: ((e: MouseEvent) => void) | null = null;
 
   if (cfg) {
+    const MATRIX_CHARS = "アイウエオカキクケコ0123456789$#%&XYZ";
     function spawnParticle() {
       for (let k = 0; k < cfg.count; k++) {
         const angle = Math.random() * Math.PI * 2;
         const spd = cfg.spd * (0.5 + Math.random() * 0.5);
         particles.push({
           x: mx, y: my,
-          vx: cfg.meteor ? -spd * 2.5 : Math.cos(angle) * spd * 0.5,
-          vy: cfg.meteor ? -spd : Math.sin(angle) * spd - (CE === "cursor_fire" ? 1.5 : 0) - (cfg.grow ? 0.2 : 0),
+          vx: cfg.meteor ? -spd * 2.5 : cfg.matrixchar ? 0 : cfg.butterfly ? (Math.random() - 0.5) * 0.3 : Math.cos(angle) * spd * 0.5,
+          vy: cfg.meteor ? -spd
+            : cfg.snow ? 0.5 + Math.random() * 0.3
+            : cfg.heart ? -0.6 - Math.random() * 0.3
+            : cfg.matrixchar ? 1 + Math.random() * 0.6
+            : cfg.butterfly ? -0.3 - Math.random() * 0.2
+            : Math.sin(angle) * spd - (CE === "cursor_fire" ? 1.5 : 0) - (cfg.grow ? 0.2 : 0),
           life: cfg.life, maxLife: cfg.life,
           sz: cfg.sz(), color: cfg.color(),
           rot: Math.random() * Math.PI * 2,
           rspd: (Math.random() - 0.5) * 0.1,
+          swayPhase: Math.random() * Math.PI * 2,
+          char: cfg.matrixchar ? MATRIX_CHARS[Math.floor(Math.random() * MATRIX_CHARS.length)] : "",
         });
       }
     }
@@ -956,6 +1436,8 @@ function runCursorEffect(CE: string): (() => void) | null {
       pc.clearRect(0, 0, pCanvas.width, pCanvas.height);
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
+        if (cfg.snow) p.vy += 0.008;
+        if (cfg.butterfly) p.x += Math.sin(p.life * 0.35 + p.swayPhase) * 1.3;
         p.x += p.vx; p.y += p.vy; p.life--;
         if (p.life <= 0) { particles.splice(i, 1); continue; }
         const ratio = p.life / p.maxLife;
@@ -997,6 +1479,50 @@ function runCursorEffect(CE: string): (() => void) | null {
           pc.beginPath(); pc.moveTo(p.x, p.y); pc.lineTo(p.x - (p.vx / meteorSpd) * trailLen, p.y - (p.vy / meteorSpd) * trailLen); pc.stroke();
           pc.fillStyle = "#fff"; pc.globalAlpha = ratio;
           pc.beginPath(); pc.arc(p.x, p.y, 2.5, 0, Math.PI * 2); pc.fill();
+        } else if (cfg.sparkle) {
+          const tw = 0.4 + 0.6 * Math.abs(Math.sin(p.life * 0.5 + p.swayPhase));
+          pc.globalAlpha = alpha * tw; pc.strokeStyle = p.color + "1)"; pc.lineWidth = 1.4;
+          pc.shadowColor = "#fde047"; pc.shadowBlur = 8;
+          const r = sz * (0.6 + tw * 0.6);
+          pc.beginPath();
+          pc.moveTo(p.x - r, p.y); pc.lineTo(p.x + r, p.y);
+          pc.moveTo(p.x, p.y - r); pc.lineTo(p.x, p.y + r);
+          pc.stroke();
+        } else if (cfg.snow) {
+          pc.globalAlpha = alpha; pc.fillStyle = p.color + alpha + ")";
+          pc.shadowColor = "#e0f2fe"; pc.shadowBlur = 6;
+          pc.beginPath(); pc.arc(p.x, p.y, Math.max(0.5, sz), 0, Math.PI * 2); pc.fill();
+        } else if (cfg.heart) {
+          pc.globalAlpha = alpha; pc.fillStyle = p.color + "1)";
+          const hs = sz * 0.11;
+          pc.save(); pc.translate(p.x, p.y); pc.scale(hs, hs);
+          pc.beginPath();
+          pc.moveTo(0, 3);
+          pc.bezierCurveTo(0, 1, -3, -2, -6, -2);
+          pc.bezierCurveTo(-10, -2, -10, 3, -6, 6);
+          pc.bezierCurveTo(-3, 9, 0, 11, 0, 13);
+          pc.bezierCurveTo(0, 11, 3, 9, 6, 6);
+          pc.bezierCurveTo(10, 3, 10, -2, 6, -2);
+          pc.bezierCurveTo(3, -2, 0, 1, 0, 3);
+          pc.fill();
+          pc.restore();
+        } else if (cfg.butterfly) {
+          const flap = Math.sin(p.life * 0.5 + p.swayPhase);
+          pc.globalAlpha = alpha; pc.fillStyle = p.color + "1)";
+          pc.save(); pc.translate(p.x, p.y);
+          pc.save(); pc.scale(0.35 + Math.abs(flap) * 0.65, 1);
+          pc.beginPath(); pc.ellipse(-sz * 0.5, 0, sz * 0.6, sz * 0.4, 0, 0, Math.PI * 2); pc.fill();
+          pc.beginPath(); pc.ellipse(sz * 0.5, 0, sz * 0.6, sz * 0.4, 0, 0, Math.PI * 2); pc.fill();
+          pc.restore();
+          pc.fillStyle = "rgba(40,20,50," + alpha + ")";
+          pc.beginPath(); pc.ellipse(0, 0, sz * 0.12, sz * 0.5, 0, 0, Math.PI * 2); pc.fill();
+          pc.restore();
+        } else if (cfg.matrixchar) {
+          pc.globalAlpha = alpha; pc.fillStyle = p.color + alpha + ")";
+          pc.font = `${p.sz}px monospace`;
+          pc.textAlign = "center"; pc.textBaseline = "middle";
+          pc.shadowColor = "#39ff14"; pc.shadowBlur = 6;
+          pc.fillText(p.char, p.x, p.y);
         } else {
           pc.globalAlpha = alpha; pc.fillStyle = p.color + alpha + ")";
           pc.beginPath(); pc.arc(p.x, p.y, Math.max(0.5, sz), 0, Math.PI * 2); pc.fill();

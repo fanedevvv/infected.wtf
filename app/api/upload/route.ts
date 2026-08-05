@@ -4,6 +4,7 @@ import path from "path";
 import { existsSync } from "fs";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
+import { getActiveProfileId } from "@/lib/active-profile";
 
 function ok(data: Record<string, unknown>) {
   return NextResponse.json({ success: true, ...data });
@@ -38,6 +39,7 @@ export async function POST(req: NextRequest) {
     return err("Unauthenticated.");
   }
   const userId = user.id;
+  const activeProfileId = await getActiveProfileId(userId);
 
   const form = await req.formData();
   const type = String(form.get("type") || "");
@@ -50,13 +52,31 @@ export async function POST(req: NextRequest) {
     const ext = exts[file.type];
     if (!ext) return err("Unsupported type. We accept JPG, PNG, GIF, WebP.");
 
-    const old = await prisma.profile.findUnique({ where: { userId }, select: { avatar: true } });
+    const old = await prisma.profile.findFirst({ where: { id: activeProfileId }, select: { avatar: true } });
     await deleteOld(old?.avatar);
 
     const fname = `av_${userId}_${Date.now()}.${ext}`;
     await saveFile("avatars", fname, Buffer.from(await file.arrayBuffer()));
     const relPath = `uploads/avatars/${fname}`;
-    await prisma.profile.update({ where: { userId }, data: { avatar: relPath } });
+    await prisma.profile.updateMany({ where: { id: activeProfileId }, data: { avatar: relPath } });
+    return ok({ path: relPath, url: `/${relPath}` });
+  }
+
+  if (type === "banner") {
+    const file = form.get("banner");
+    if (!(file instanceof File)) return err("Banner upload error.");
+    if (file.size > 8 * 1024 * 1024) return err("Max 8MB.");
+    const exts: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/gif": "gif", "image/webp": "webp" };
+    const ext = exts[file.type];
+    if (!ext) return err("Unsupported type. We accept JPG, PNG, GIF, WebP.");
+
+    const old = await prisma.profile.findFirst({ where: { id: activeProfileId }, select: { banner: true } });
+    await deleteOld(old?.banner);
+
+    const fname = `banner_${userId}_${Date.now()}.${ext}`;
+    await saveFile("banners", fname, Buffer.from(await file.arrayBuffer()));
+    const relPath = `uploads/banners/${fname}`;
+    await prisma.profile.updateMany({ where: { id: activeProfileId }, data: { banner: relPath } });
     return ok({ path: relPath, url: `/${relPath}` });
   }
 
@@ -68,7 +88,7 @@ export async function POST(req: NextRequest) {
     const ext = exts[file.type];
     if (!ext) return err("Unsupported type.");
 
-    const old = await prisma.profile.findUnique({ where: { userId }, select: { backgroundType: true, backgroundValue: true } });
+    const old = await prisma.profile.findFirst({ where: { id: activeProfileId }, select: { backgroundType: true, backgroundValue: true } });
     if (old && ["image", "video"].includes(old.backgroundType) && old.backgroundValue?.startsWith("uploads/backgrounds/")) {
       await deleteOld(old.backgroundValue);
     }
@@ -77,7 +97,7 @@ export async function POST(req: NextRequest) {
     await saveFile("backgrounds", fname, Buffer.from(await file.arrayBuffer()));
     const relPath = `uploads/backgrounds/${fname}`;
     const bgType = file.type === "video/mp4" ? "video" : "image";
-    await prisma.profile.update({ where: { userId }, data: { backgroundType: bgType, backgroundValue: relPath } });
+    await prisma.profile.updateMany({ where: { id: activeProfileId }, data: { backgroundType: bgType, backgroundValue: relPath } });
     return ok({ path: relPath, url: `/${relPath}` });
   }
 
@@ -92,14 +112,19 @@ export async function POST(req: NextRequest) {
     if (!allowedMime.includes(file.type) && !allowedExt.includes(ext)) return err(`Unsupported type. We accept MP3, OGG, WAV.`);
     if (!allowedExt.includes(ext)) ext = "mp3";
 
-    const old = await prisma.profile.findUnique({ where: { userId }, select: { musicPath: true } });
-    await deleteOld(old?.musicPath);
+    const slot = Math.max(1, Math.min(3, parseInt(String(form.get("slot") || "1"), 10) || 1));
+    const old = await prisma.profile.findFirst({ where: { id: activeProfileId }, select: { musicTracks: true } });
+    const tracks: (string | null)[] = [null, null, null];
+    const existing = (old?.musicTracks as (string | null)[] | null) ?? [];
+    for (let i = 0; i < 3; i++) tracks[i] = existing[i] ?? null;
+    await deleteOld(tracks[slot - 1]);
 
-    const fname = `music_${userId}_${Date.now()}.${ext}`;
+    const fname = `music_${userId}_${slot}_${Date.now()}.${ext}`;
     await saveFile("music", fname, Buffer.from(await file.arrayBuffer()));
     const relPath = `uploads/music/${fname}`;
-    await prisma.profile.update({ where: { userId }, data: { musicPath: relPath } });
-    return ok({ path: relPath, url: `/${relPath}` });
+    tracks[slot - 1] = relPath;
+    await prisma.profile.updateMany({ where: { id: activeProfileId }, data: { musicTracks: tracks } });
+    return ok({ path: relPath, url: `/${relPath}`, tracks });
   }
 
   if (type === "cursor") {
@@ -112,13 +137,13 @@ export async function POST(req: NextRequest) {
     const ext = mimeMap[file.type] || extMap[origExt];
     if (!ext) return err("Unsupported type. We accept PNG, JPG, WebP, GIF, CUR.");
 
-    const old = await prisma.profile.findUnique({ where: { userId }, select: { cursorPath: true } });
+    const old = await prisma.profile.findFirst({ where: { id: activeProfileId }, select: { cursorPath: true } });
     await deleteOld(old?.cursorPath);
 
     const fname = `cursor_${userId}_${Date.now()}.${ext}`;
     await saveFile("cursors", fname, Buffer.from(await file.arrayBuffer()));
     const relPath = `uploads/cursors/${fname}`;
-    await prisma.profile.update({ where: { userId }, data: { cursorPath: relPath } });
+    await prisma.profile.updateMany({ where: { id: activeProfileId }, data: { cursorPath: relPath } });
     return ok({ path: relPath, url: `/${relPath}` });
   }
 

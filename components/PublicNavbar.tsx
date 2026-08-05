@@ -18,13 +18,19 @@ export default function PublicNavbar({ user, active }: { user?: { username: stri
 
   return (
     <nav className="navbar" ref={navRef}>
-      <Link href="/" className="navbar-brand" onClick={close}>INFECTED.WTF</Link>
+      <Link href="/" className="navbar-brand" onClick={close}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/assets/img/logo-icon.png" alt="" className="brand-logo-icon" />
+        <span>INFECTED.WTF</span>
+      </Link>
 
       <div className="navbar-links">
-        <a href="https://discord.gg/BAEpkJ62VM" target="_blank" rel="noreferrer">Discord</a>
         <Link href="/leaderboard" style={active === "leaderboard" ? { color: "#fff", fontWeight: 600 } : undefined}>
           Leaderboard
         </Link>
+        <Link href="/dashboard?page=shop">Shop</Link>
+        <Link href="/partners">Partners</Link>
+        <a href="https://discord.gg/BAEpkJ62VM" target="_blank" rel="noreferrer">Discord</a>
         <Link href="/#pricing">Pricing</Link>
         {user ? (
           <Link href="/dashboard" className="btn btn-primary btn-sm">Dashboard</Link>
@@ -49,10 +55,12 @@ export default function PublicNavbar({ user, active }: { user?: { username: stri
       </button>
 
       <div className={`navbar-mobile-menu ${open ? "open" : ""}`}>
-        <a href="https://discord.gg/BAEpkJ62VM" target="_blank" rel="noreferrer" onClick={close}>Discord</a>
         <Link href="/leaderboard" onClick={close} style={active === "leaderboard" ? { color: "#fff", fontWeight: 600 } : undefined}>
           Leaderboard
         </Link>
+        <Link href="/dashboard?page=shop" onClick={close}>Shop</Link>
+        <Link href="/partners" onClick={close}>Partners</Link>
+        <a href="https://discord.gg/BAEpkJ62VM" target="_blank" rel="noreferrer" onClick={close}>Discord</a>
         <Link href="/#pricing" onClick={close}>Pricing</Link>
         {user ? (
           <Link href="/dashboard" className="btn btn-primary btn-sm" onClick={close}>Dashboard</Link>
