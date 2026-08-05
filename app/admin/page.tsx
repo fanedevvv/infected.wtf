@@ -61,7 +61,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     select: {
       id: true, username: true, isAdmin: true, isOwner: true, isMod: true, banned: true, banUntil: true,
       createdAt: true, tokens: true, isPremium: true, premiumExpiresAt: true,
-      profiles: { where: { isPrimary: true }, take: 1, select: { views: true, badges: true, avatar: true } },
+      profiles: { where: { isPrimary: true }, take: 1, select: { views: true, badges: true, avatar: true, purchasedEffects: true, decorationsOwned: true } },
       _count: { select: { socialLinks: true } },
     },
   });
@@ -83,6 +83,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       views: profile?.views ?? 0,
       links: u._count.socialLinks,
       badges: (profile?.badges as string[] | null) ?? [],
+      effects: (profile?.purchasedEffects as string[] | null) ?? [],
+      decorations: (profile?.decorationsOwned as string[] | null) ?? [],
       avatar: profile?.avatar ? `/${profile.avatar}` : "/assets/img/default-avatar.png",
     };
   });

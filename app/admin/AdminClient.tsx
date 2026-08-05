@@ -6,6 +6,7 @@ import Link from "next/link";
 import { showToast } from "@/lib/toast";
 import { BADGE_SVG, ALL_BADGES } from "@/lib/badge-defs";
 import { SHOP_EFFECTS } from "@/lib/shop";
+import { DECORATIONS } from "@/lib/decorations";
 import SafeImg from "@/components/SafeImg";
 import OwnerTab from "./OwnerTab";
 
@@ -13,7 +14,7 @@ type AdminUser = {
   id: number; username: string; isAdmin: boolean; isOwner: boolean; isMod: boolean;
   banned: boolean; banUntil: string | null; createdAt: string; tokens: number;
   isPremium: boolean; premiumExpiresAt: string | null; views: number; links: number;
-  badges: string[]; avatar: string;
+  badges: string[]; effects: string[]; decorations: string[]; avatar: string;
 };
 
 type Bundle = { id: number; name: string; price: number; priceType: "euro" | "tokens"; badges: string[]; effects: string[]; premiumDays: number };
@@ -35,7 +36,7 @@ interface Props {
   search: string;
 }
 
-const MANAGEABLE_BADGES = ["verified", "champion", "known", "rich", "trapstar", "the_killer", "crew", "billionaire", "content_creator", "designer"];
+const MANAGEABLE_BADGES = ["verified", "champion", "fresh", "lover", "known", "rich", "trapstar", "the_killer", "crew", "billionaire", "content_creator", "designer"];
 
 function roleKey(u: { isOwner: boolean; isAdmin: boolean; isMod: boolean }): "owner" | "admin" | "mod" | "user" {
   if (u.isOwner) return "owner";
@@ -165,6 +166,26 @@ export default function AdminClient(props: Props) {
         const set = new Set(prev.badges);
         if (grant) set.add(badgeId); else set.delete(badgeId);
         return { ...prev, badges: Array.from(set) };
+      });
+    });
+  }
+  function epEffect(effectId: string, grant: boolean) {
+    epCall(grant ? "effect_grant" : "effect_revoke", { effect_id: effectId }).then(() => {
+      setEpUser((prev) => {
+        if (!prev) return prev;
+        const set = new Set(prev.effects);
+        if (grant) set.add(effectId); else set.delete(effectId);
+        return { ...prev, effects: Array.from(set) };
+      });
+    });
+  }
+  function epDecoration(decorationId: string, grant: boolean) {
+    epCall(grant ? "decoration_grant" : "decoration_revoke", { decoration_id: decorationId }).then(() => {
+      setEpUser((prev) => {
+        if (!prev) return prev;
+        const set = new Set(prev.decorations);
+        if (grant) set.add(decorationId); else set.delete(decorationId);
+        return { ...prev, decorations: Array.from(set) };
       });
     });
   }
@@ -525,6 +546,78 @@ export default function AdminClient(props: Props) {
                               </div>
                             )}
                             {has && <div className="ep-badge-acts"><button className="ep-b-revoke" onClick={() => epBadge(bid, false)}>Revoke</button></div>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="ep-section">
+                    <div className="ep-section-head">
+                      <div className="ep-section-ico" style={{ background: "rgba(96,165,250,.1)", color: "#60a5fa" }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                      </div>
+                      <div>
+                        <div className="ep-section-title">Effects Manager</div>
+                        <div className="ep-section-sub">Grant or revoke cursor/avatar/background effects</div>
+                      </div>
+                      <span className="ep-owner-tag">Owner</span>
+                    </div>
+                    <div className="ep-badges-grid">
+                      {Object.entries(SHOP_EFFECTS).map(([eid, def]) => {
+                        const has = epUser.effects.includes(eid);
+                        return (
+                          <div className="ep-badge-row" key={eid}>
+                            <div className="ep-badge-ico" style={{ background: def.color + "22", color: def.color, border: `1px solid ${def.color}44`, width: 26, height: 26, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: ".6rem", fontWeight: 800 }}>
+                              {def.type.slice(0, 2).toUpperCase()}
+                            </div>
+                            <span className="ep-badge-nm" style={{ color: def.color }}>{def.name}</span>
+                            {!has ? (
+                              <div className="ep-badge-acts"><button className="ep-b-grant" onClick={() => epEffect(eid, true)}>Grant</button></div>
+                            ) : (
+                              <div className="ep-badge-owned" style={{ display: "flex" }}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14" style={{ color: "#5fefa5" }}><path d="M20 6L9 17l-5-5" /></svg>
+                                <span>Owned</span>
+                              </div>
+                            )}
+                            {has && <div className="ep-badge-acts"><button className="ep-b-revoke" onClick={() => epEffect(eid, false)}>Revoke</button></div>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="ep-section">
+                    <div className="ep-section-head">
+                      <div className="ep-section-ico" style={{ background: "rgba(192,132,252,.1)", color: "#c084fc" }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="5" /><path d="M20 21a8 8 0 1 0-16 0" /></svg>
+                      </div>
+                      <div>
+                        <div className="ep-section-title">Decorations Manager</div>
+                        <div className="ep-section-sub">Grant or revoke avatar decorations</div>
+                      </div>
+                      <span className="ep-owner-tag">Owner</span>
+                    </div>
+                    <div className="ep-badges-grid">
+                      {Object.entries(DECORATIONS).map(([did, def]) => {
+                        const has = epUser.decorations.includes(did);
+                        const rarityColor: Record<string, string> = { common: "#9ca3af", rare: "#60a5fa", epic: "#c084fc", legendary: "#fbbf24" };
+                        const c = rarityColor[def.rarity] || "#9ca3af";
+                        return (
+                          <div className="ep-badge-row" key={did}>
+                            <div className="ep-badge-ico" style={{ background: c + "22", color: c, border: `1px solid ${c}44`, width: 26, height: 26, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: ".55rem", fontWeight: 800 }}>
+                              {def.rarity.slice(0, 2).toUpperCase()}
+                            </div>
+                            <span className="ep-badge-nm" style={{ color: c }}>{def.name}</span>
+                            {!has ? (
+                              <div className="ep-badge-acts"><button className="ep-b-grant" onClick={() => epDecoration(did, true)}>Grant</button></div>
+                            ) : (
+                              <div className="ep-badge-owned" style={{ display: "flex" }}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14" style={{ color: "#5fefa5" }}><path d="M20 6L9 17l-5-5" /></svg>
+                                <span>Owned</span>
+                              </div>
+                            )}
+                            {has && <div className="ep-badge-acts"><button className="ep-b-revoke" onClick={() => epDecoration(did, false)}>Revoke</button></div>}
                           </div>
                         );
                       })}

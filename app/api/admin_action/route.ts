@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-helpers";
+import { SHOP_EFFECTS } from "@/lib/shop";
+import { DECORATIONS } from "@/lib/decorations";
 
 function ok(message = "Done", extra: Record<string, unknown> = {}) {
   return NextResponse.json({ success: true, message, ...extra });
@@ -9,7 +11,7 @@ function err(error: string, status = 400) {
   return NextResponse.json({ success: false, error }, { status });
 }
 
-const MANAGEABLE_BADGES = ["verified", "champion", "known", "rich", "trapstar", "the_killer", "crew", "billionaire", "content_creator", "designer"];
+const MANAGEABLE_BADGES = ["verified", "champion", "fresh", "lover", "known", "rich", "trapstar", "the_killer", "crew", "billionaire", "content_creator", "designer"];
 
 async function notifyDiscordAdminLog(
   event: "ban" | "unban" | "delete",
@@ -318,6 +320,42 @@ export async function POST(req: NextRequest) {
         });
       }
       return ok(`Badge '${badgeId}' ${grant ? "granted to" : "revoked from"} @${target.username}.`);
+    }
+
+    case "effect_grant":
+    case "effect_revoke": {
+      if (!actorIsOwner) return err("Only owners can manage effects", 403);
+      const effectId = String(input.effect_id || "").trim();
+      if (!SHOP_EFFECTS[effectId]) return err("Invalid effect ID");
+      const grant = action === "effect_grant";
+      const profile = await prisma.profile.findFirst({ where: { userId: targetId, isPrimary: true }, select: { purchasedEffects: true } });
+      const owned = new Set((profile?.purchasedEffects as string[] | null) ?? []);
+      if (grant) owned.add(effectId); else owned.delete(effectId);
+      await prisma.profile.updateMany({ where: { userId: targetId, isPrimary: true }, data: { purchasedEffects: Array.from(owned) } });
+      if (grant) {
+        await prisma.notification.create({
+          data: { userId: targetId, type: "gift", title: "You received a new effect! ✨", body: `The '${SHOP_EFFECTS[effectId].name}' effect was granted to your profile by an admin.`, icon: "gift", link: "/dashboard?page=effects" },
+        });
+      }
+      return ok(`Effect '${SHOP_EFFECTS[effectId].name}' ${grant ? "granted to" : "revoked from"} @${target.username}.`);
+    }
+
+    case "decoration_grant":
+    case "decoration_revoke": {
+      if (!actorIsOwner) return err("Only owners can manage decorations", 403);
+      const decorationId = String(input.decoration_id || "").trim();
+      if (!DECORATIONS[decorationId]) return err("Invalid decoration ID");
+      const grant = action === "decoration_grant";
+      const profile = await prisma.profile.findFirst({ where: { userId: targetId, isPrimary: true }, select: { decorationsOwned: true } });
+      const owned = new Set((profile?.decorationsOwned as string[] | null) ?? []);
+      if (grant) owned.add(decorationId); else owned.delete(decorationId);
+      await prisma.profile.updateMany({ where: { userId: targetId, isPrimary: true }, data: { decorationsOwned: Array.from(owned) } });
+      if (grant) {
+        await prisma.notification.create({
+          data: { userId: targetId, type: "gift", title: "You received a new decoration! 🎉", body: `The '${DECORATIONS[decorationId].name}' decoration was granted to your profile by an admin.`, icon: "gift", link: "/dashboard?page=decorations" },
+        });
+      }
+      return ok(`Decoration '${DECORATIONS[decorationId].name}' ${grant ? "granted to" : "revoked from"} @${target.username}.`);
     }
 
     case "set_tokens": {

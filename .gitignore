@@ -38,6 +38,7 @@ yarn-error.log*
 
 # user-uploaded runtime content (avatars, banners, music, cursors)
 /public/uploads/
+/public/assets/img/items/
 
 # typescript
 *.tsbuildinfo
