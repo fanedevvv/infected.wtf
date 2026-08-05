@@ -6,6 +6,30 @@ $profile = getProfile($pdo, $userId);
 $bgType  = $profile['background_type'] ?: 'particles';
 $bgVal   = $profile['background_value'] ?: '#050507';
 
+$itemsDirFs = dirname(__DIR__, 3) . '/assets/img/items';
+$itemsDirWeb = '/assets/img/items';
+$decorationItems = [];
+
+if (is_dir($itemsDirFs) && is_readable($itemsDirFs)) {
+    $allFiles = scandir($itemsDirFs);
+    foreach ($allFiles as $fileName) {
+        if (!is_string($fileName)) continue;
+        if (!preg_match('/^custom_(\d+)\.(png|webp|jpg|jpeg|gif)$/i', $fileName, $m)) continue;
+        $absPath = $itemsDirFs . '/' . $fileName;
+        if (!is_file($absPath)) continue;
+
+        $decorationItems[] = [
+            'file' => $fileName,
+            'index' => (int)$m[1],
+            'url' => $itemsDirWeb . '/' . rawurlencode($fileName),
+        ];
+    }
+
+    usort($decorationItems, static function(array $a, array $b): int {
+        return $a['index'] <=> $b['index'];
+    });
+}
+
 $currentPage = 'profile-info';
 $pageTitle   = 'Customize';
 
@@ -203,6 +227,37 @@ ob_start();
                     <p style="font-size:.72rem;color:var(--text-muted);margin-top:.4rem">Adds a backdrop blur effect to your profile card (0px = no blur, 100px = maximum blur)</p>
                 </div>
             </div>
+        </div>
+
+        <div style="border-top:1px solid var(--border);padding-top:1.25rem;margin-top:1.1rem">
+            <div style="display:flex;align-items:center;gap:.85rem;margin-bottom:1.1rem">
+                <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,rgba(0,212,255,.2),rgba(255,0,255,.15));border:1.5px solid rgba(0,212,255,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 16px rgba(0,212,255,.15)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" width="20" height="20"><path d="M12 2l2.4 7.2H22l-6 4.6L18.3 21 12 16.6 5.7 21 8 13.8 2 9.2h7.6z"/></svg>
+                </div>
+                <div>
+                    <div style="font-size:.95rem;font-weight:700;color:var(--text)">Decorations Library</div>
+                    <div style="font-size:.75rem;color:var(--text-muted)">Loaded automatically from /assets/img/items (custom_*.png)</div>
+                </div>
+            </div>
+
+            <?php if (empty($decorationItems)): ?>
+            <div style="padding:.9rem 1rem;border-radius:12px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.03);font-size:.8rem;color:rgba(255,255,255,.45)">
+                No decorations found in /assets/img/items.
+            </div>
+            <?php else: ?>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.8rem">
+                <?php foreach ($decorationItems as $item): ?>
+                <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:.6rem;display:flex;flex-direction:column;gap:.5rem">
+                    <div style="aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:#09090f;border:1px solid rgba(255,255,255,.06)">
+                        <img src="<?= sanitize($item['url']) ?>" alt="<?= sanitize($item['file']) ?>" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:contain;display:block">
+                    </div>
+                    <div style="font-size:.68rem;color:rgba(255,255,255,.55);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                        <?= sanitize($item['file']) ?>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
         </div>
     </form>
 </div>

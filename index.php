@@ -110,6 +110,7 @@ $routes = [
     'dashboard/customize' => 'dashboard/profile-info',
     'dashboard/links'     => 'dashboard/links',
     'dashboard/effects'   => 'dashboard/effects',
+    'dashboard/decorations' => 'dashboard/decorations',
     'dashboard/integrations' => 'dashboard/integrations',
     'dashboard/badges'    => 'dashboard/badges',
     'dashboard/shop'      => 'dashboard/shop',
@@ -124,13 +125,24 @@ $routes = [
 checkWhitelist($pdo, $uri);
 
 // ── Resolve route ────────────────────────────────────
-if (isset($routes[$uri])) {
+$legacyDashboardMap = [
+    'decorations' => 'dashboard/decorations',
+];
+
+if ($uri === 'dashboard' && isset($_GET['page'])) {
+    $legacyPage = strtolower(trim((string)$_GET['page']));
+    if (isset($legacyDashboardMap[$legacyPage])) {
+        $page = $legacyDashboardMap[$legacyPage];
+    }
+}
+
+if (!isset($page) && isset($routes[$uri])) {
     $page = $routes[$uri];
-} elseif (preg_match('/^[a-zA-Z0-9_\.\-]{3,30}$/', $uri)) {
+} elseif (!isset($page) && preg_match('/^[a-zA-Z0-9_\.\-]{3,30}$/', $uri)) {
     // Username profile
     $page = 'profile';
     $_GET['u'] = $uri;
-} else {
+} elseif (!isset($page)) {
     $page = '404';
 }
 
@@ -165,7 +177,7 @@ $hiddenPages = [
     'dashboard/analytics', 'dashboard/shop',
     'dashboard/profile-info', 'dashboard/badges',
     'dashboard/links', 'dashboard/referral',
-    'dashboard/effects', 'dashboard/integrations',
+    'dashboard/effects', 'dashboard/decorations', 'dashboard/integrations',
     'dashboard/settings',
 ];
 if (in_array($page, $hiddenPages, true)) {
