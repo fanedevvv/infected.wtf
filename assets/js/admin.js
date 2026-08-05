@@ -640,3 +640,154 @@ async function bundleApplyConfirm() {
 document.getElementById('bundle-apply-modal')?.addEventListener('click', function(e) {
     if (e.target === this) bundleApplyClose();
 });
+
+// ── Redeem Codes ─────────────────────────────────────────────────────────
+async function redeemCodeCreate() {
+    const code     = (document.getElementById('rc-code')     ?.value || '').trim();
+    const tokens   = parseInt(document.getElementById('rc-tokens')  ?.value || 0);
+    const maxUses  = parseInt(document.getElementById('rc-max-uses')?.value || 1);
+    const expires  = document.getElementById('rc-expires')?.value || '';
+    const statusEl = document.getElementById('rc-create-status');
+    const btn      = document.getElementById('rc-create-btn');
+
+    if (!tokens || tokens <= 0) { statusEl.textContent = '✗ Token reward must be greater than 0.'; statusEl.style.color = '#ff8080'; return; }
+
+    btn.disabled = true; btn.style.opacity = '.6';
+    statusEl.textContent = 'Creating...'; statusEl.style.color = 'rgba(255,255,255,.45)';
+
+    try {
+        const res  = await fetch('/api/admin_action.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'create_redeem_code', code, tokens, max_uses: maxUses, expires_at: expires })
+        });
+        const data = await res.json();
+        if (data.success) {
+            statusEl.textContent = '✓ Code created!'; statusEl.style.color = '#4ade80';
+            showToast('Redeem code "' + data.code + '" created!', 'success');
+            document.getElementById('rc-code').value = '';
+            document.getElementById('rc-tokens').value = '';
+            document.getElementById('rc-max-uses').value = '1';
+            document.getElementById('rc-expires').value = '';
+            redeemCodeInjectRow(data.code_id, data.code, tokens, maxUses, expires);
+            setTimeout(() => { statusEl.textContent = ''; }, 4000);
+        } else {
+            statusEl.textContent = '✗ ' + (data.error || 'Failed'); statusEl.style.color = '#ff8080';
+        }
+    } catch(e) {
+        statusEl.textContent = '✗ Network error'; statusEl.style.color = '#ff8080';
+    }
+    btn.disabled = false; btn.style.opacity = '1';
+}
+
+function redeemCodeInjectRow(id, code, tokens, maxUses, expires) {
+    const wrap = document.getElementById('redeem-codes-items-wrap');
+    const empty = document.getElementById('redeem-codes-empty-msg');
+    if (empty) empty.remove();
+
+    let wrapEl = wrap;
+    if (!wrapEl) {
+        const list = document.getElementById('redeem-codes-list');
+        if (!list) return;
+        const countDiv = document.createElement('div');
+        countDiv.style.cssText = 'font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.75rem';
+        countDiv.textContent = '1 code(s) created';
+        list.appendChild(countDiv);
+        wrapEl = document.createElement('div');
+        wrapEl.id = 'redeem-codes-items-wrap';
+        wrapEl.style.cssText = 'display:flex;flex-direction:column;gap:.65rem';
+        list.appendChild(wrapEl);
+    }
+
+    const expiresPill = expires ? `<span style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.1rem .45rem;color:rgba(255,255,255,.6)">Expires ${new Date(expires).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})}</span>` : '';
+
+    const row = document.createElement('div');
+    row.className = 'redeem-code-row';
+    row.dataset.codeId = id;
+    row.style.cssText = 'display:flex;align-items:center;gap:1rem;padding:.85rem 1rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;flex-wrap:wrap;animation:fadeIn .3s ease';
+    row.innerHTML = `
+        <div style="flex:1;min-width:180px">
+            <div style="font-weight:700;font-size:.9rem;color:#fff;margin-bottom:.25rem;font-family:'Space Mono',monospace;letter-spacing:.03em">${code}</div>
+            <div style="font-size:.75rem;color:rgba(255,255,255,.45);display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+                <span style="background:rgba(236,72,153,.12);border:1px solid rgba(236,72,153,.3);border-radius:6px;padding:.1rem .45rem;color:#ec4899;font-weight:700">🪙 ${tokens.toLocaleString()} tokens</span>
+                <span style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.1rem .45rem;color:rgba(255,255,255,.6)">0/${maxUses} used</span>
+                ${expiresPill}
+                <span class="rc-status-pill" style="background:#34d3991a;border:1px solid #34d39966;border-radius:6px;padding:.1rem .45rem;color:#34d399;font-weight:600">Active</span>
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem;flex-shrink:0">
+            <button onclick="redeemCodeCopy('${code}', this)" title="Copy code"
+                    style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .75rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:rgba(255,255,255,.7);font-size:.78rem;font-weight:600;cursor:pointer"
+                    onmouseover="this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.background='rgba(255,255,255,.05)'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+            <button onclick="redeemCodeToggle(${id}, this)" title="Deactivate"
+                    style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .75rem;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:8px;color:#fbbf24;font-size:.78rem;font-weight:600;cursor:pointer"
+                    onmouseover="this.style.background='rgba(251,191,36,.18)'" onmouseout="this.style.background='rgba(251,191,36,.08)'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+            </button>
+            <button onclick="redeemCodeDelete(${id}, this)" title="Delete"
+                    style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .75rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#ef4444;font-size:.78rem;font-weight:600;cursor:pointer"
+                    onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.08)'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+            </button>
+        </div>`;
+    wrapEl.prepend(row);
+}
+
+function redeemCodeCopy(code, btn) {
+    navigator.clipboard?.writeText(code).then(() => {
+        showToast('Code copied to clipboard.', 'success');
+    }).catch(() => {
+        showToast('Could not copy code.', 'error');
+    });
+}
+
+function redeemCodeToggle(codeId, btn) {
+    (async () => {
+        try {
+            const res  = await fetch('/api/admin_action.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'toggle_redeem_code', target_id: 1, code_id: codeId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                const row = btn.closest('.redeem-code-row');
+                const pill = row?.querySelector('.rc-status-pill');
+                if (pill) {
+                    if (data.active) { pill.textContent = 'Active'; pill.style.background = '#34d3991a'; pill.style.borderColor = '#34d39966'; pill.style.color = '#34d399'; }
+                    else { pill.textContent = 'Inactive'; pill.style.background = '#94a3b81a'; pill.style.borderColor = '#94a3b866'; pill.style.color = '#94a3b8'; }
+                }
+                btn.title = data.active ? 'Deactivate' : 'Activate';
+                showToast(data.message, 'success');
+            } else {
+                showToast(data.error || 'Failed to update', 'error');
+            }
+        } catch(e) {
+            showToast('Network error', 'error');
+        }
+    })();
+}
+
+function redeemCodeDelete(codeId, btn) {
+    showConfirm('Delete Redeem Code', 'This code will be permanently removed. Users who already redeemed it keep their tokens.', 'Delete', async () => {
+        try {
+            const res  = await fetch('/api/admin_action.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'delete_redeem_code', target_id: 1, code_id: codeId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                const row = btn.closest('.redeem-code-row');
+                if (row) { row.style.opacity = '0'; row.style.transition = 'opacity .3s'; setTimeout(() => row.remove(), 300); }
+                showToast('Redeem code deleted.', 'success');
+            } else {
+                showToast(data.error || 'Failed to delete', 'error');
+            }
+        } catch(e) {
+            showToast('Network error', 'error');
+        }
+    });
+}

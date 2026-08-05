@@ -199,6 +199,91 @@ if ($action === 'delete_bundle') {
     ok('Bundle deleted.');
 }
 
+// ── REDEEM CODES (no target needed, Owner only) ────────
+function ensureRedeemTables(PDO $pdo): void {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS `redeem_codes` (
+            `id`         INT AUTO_INCREMENT PRIMARY KEY,
+            `code`       VARCHAR(40) NOT NULL,
+            `tokens`     INT NOT NULL DEFAULT 0,
+            `max_uses`   INT NOT NULL DEFAULT 1,
+            `uses_count` INT NOT NULL DEFAULT 0,
+            `expires_at` DATETIME DEFAULT NULL,
+            `active`     TINYINT(1) NOT NULL DEFAULT 1,
+            `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            `created_by` INT DEFAULT NULL,
+            UNIQUE KEY `code` (`code`),
+            KEY `idx_redeem_code` (`code`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS `redeem_code_uses` (
+            `id`         INT AUTO_INCREMENT PRIMARY KEY,
+            `code_id`    INT NOT NULL,
+            `user_id`    INT NOT NULL,
+            `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY `uniq_code_user` (`code_id`,`user_id`),
+            KEY `user_id` (`user_id`),
+            FOREIGN KEY (`code_id`) REFERENCES `redeem_codes`(`id`) ON DELETE CASCADE,
+            FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+}
+
+if ($action === 'create_redeem_code') {
+    if (!$actorIsOwner) err('Only owners can create redeem codes.', 403);
+    ensureRedeemTables($pdo);
+
+    $rcTokens   = (int)($input['tokens']   ?? 0);
+    $rcMaxUses  = max(1, (int)($input['max_uses'] ?? 1));
+    $rcExpires  = trim($input['expires_at'] ?? '');
+    $rcCode     = strtoupper(trim($input['code'] ?? ''));
+
+    if ($rcTokens <= 0) err('Token reward must be greater than 0.');
+    if ($rcExpires !== '' && strtotime($rcExpires) === false) err('Invalid expiration date.');
+    $expiresVal = $rcExpires !== '' ? date('Y-m-d H:i:s', strtotime($rcExpires)) : null;
+
+    if ($rcCode !== '') {
+        if (!preg_match('/^[A-Z0-9\-_]{3,40}$/', $rcCode)) err('Code may only contain letters, numbers, dashes and underscores (3-40 chars).');
+        $exists = $pdo->prepare("SELECT 1 FROM redeem_codes WHERE code=?");
+        $exists->execute([$rcCode]);
+        if ($exists->fetchColumn()) err('This code already exists.');
+    } else {
+        // Auto-generate a unique code
+        do {
+            $rcCode = 'INF-' . strtoupper(bin2hex(random_bytes(4)));
+            $exists = $pdo->prepare("SELECT 1 FROM redeem_codes WHERE code=?");
+            $exists->execute([$rcCode]);
+        } while ($exists->fetchColumn());
+    }
+
+    $pdo->prepare("INSERT INTO redeem_codes (code, tokens, max_uses, expires_at, created_by) VALUES (?,?,?,?,?)")
+        ->execute([$rcCode, $rcTokens, $rcMaxUses, $expiresVal, $actorId]);
+
+    ok("Redeem code '{$rcCode}' created.", ['code_id' => (int)$pdo->lastInsertId(), 'code' => $rcCode]);
+}
+
+if ($action === 'toggle_redeem_code') {
+    if (!$actorIsOwner) err('Only owners can manage redeem codes.', 403);
+    $codeId = (int)($input['code_id'] ?? 0);
+    if (!$codeId) err('Invalid code ID.');
+    $row = $pdo->prepare("SELECT active FROM redeem_codes WHERE id=?");
+    $row->execute([$codeId]);
+    $cur = $row->fetch();
+    if (!$cur) err('Code not found.');
+    $newState = $cur['active'] ? 0 : 1;
+    $pdo->prepare("UPDATE redeem_codes SET active=? WHERE id=?")->execute([$newState, $codeId]);
+    ok($newState ? 'Code activated.' : 'Code deactivated.', ['active' => (bool)$newState]);
+}
+
+if ($action === 'delete_redeem_code') {
+    if (!$actorIsOwner) err('Only owners can delete redeem codes.', 403);
+    $codeId = (int)($input['code_id'] ?? 0);
+    if (!$codeId) err('Invalid code ID.');
+    $pdo->prepare("DELETE FROM redeem_codes WHERE id=?")->execute([$codeId]);
+    ok('Redeem code deleted.');
+}
+
 if (!$targetId) err('Invalid target');
 
 // Parse self_edit flag — owners may manage themselves for tokens/badges/premium

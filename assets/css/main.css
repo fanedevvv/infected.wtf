@@ -126,12 +126,8 @@ textarea.form-control { resize:vertical; min-height:100px; }
 }
 .sidebar-toggle:hover, .sidebar-toggle:active { background:rgba(255,255,255,.14); }
 .sidebar-toggle svg { display:block !important; pointer-events:none; color:rgba(255,255,255,.85); }
-/* Hide hamburger ONLY on mobile dashboard (bottom nav handles it there) */
-@media (max-width:991px) {
-    body.dashboard-page .sidebar-toggle { display:none !important; }
-}
 
-/* ── Mobile brand: only show on mobile dashboard (sidebar hidden there) ── */
+/* ── Mobile brand: shown only while the burger menu is open (sidebar drawer visible) ── */
 .navbar-brand-mobile {
     display:none !important;
     text-decoration:none; font-family:'Syne',sans-serif;
@@ -142,8 +138,23 @@ textarea.form-control { resize:vertical; min-height:100px; }
     white-space:nowrap;
 }
 @media (max-width:991px) {
-    body.dashboard-page .navbar-brand-mobile { display:block !important; }
+    body.dashboard-page.mobile-sidebar-open .navbar-brand-mobile { display:block !important; }
 }
+
+/* ── Mobile quick actions (redeem / open profile): shown while the burger menu is closed ── */
+.navbar-mobile-quickbtns { display:none; align-items:center; gap:.5rem; }
+@media (max-width:991px) {
+    body.dashboard-page .navbar-mobile-quickbtns { display:flex !important; }
+    body.dashboard-page.mobile-sidebar-open .navbar-mobile-quickbtns { display:none !important; }
+    /* Token counter is replaced by the quick actions above on mobile — still reachable via bottom nav → Shop */
+    body.dashboard-page .navbar-tokens { display:none !important; }
+}
+.navbar-quickbtn {
+    position:relative; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:10px;
+    width:36px; height:36px; display:flex; align-items:center; justify-content:center; cursor:pointer;
+    color:rgba(255,255,255,.75); transition:all .2s; flex-shrink:0; text-decoration:none;
+}
+.navbar-quickbtn:hover, .navbar-quickbtn:active { background:rgba(255,255,255,.1); color:#fff; }
 
 .navbar-links { display:flex; align-items:center; gap:1rem; }
 .navbar-links a { color:var(--text-muted); text-decoration:none; font-size:.875rem; font-weight:500; transition:color .2s; padding:.4rem .8rem; border-radius:6px; }

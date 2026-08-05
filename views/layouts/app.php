@@ -49,6 +49,14 @@ $_notifUnread = getUnreadNotifCount($pdo, (int)$_SESSION['user_id']);
             </svg>
         </button>
         <a href="/dashboard" class="navbar-brand-mobile"><?= SITE_NAME ?></a>
+        <div class="navbar-mobile-quickbtns">
+            <button class="navbar-quickbtn" onclick="openRedeemModal()" title="Redeem Code" aria-label="Redeem Code">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+            </button>
+            <a href="/<?= urlencode($profile['username']) ?>" target="_blank" class="navbar-quickbtn" title="Open Profile" aria-label="Open Profile">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </a>
+        </div>
     </div>
     <div style="display:flex;align-items:center;gap:.75rem">
         <!-- ── Notification Bell ── -->
@@ -143,9 +151,11 @@ function toggleSidebar() {
         if (isOpen) {
             sidebar.classList.remove('sidebar-open');
             overlay && overlay.classList.remove('active');
+            document.body.classList.remove('mobile-sidebar-open');
         } else {
             sidebar.classList.add('sidebar-open');
             overlay && overlay.classList.add('active');
+            document.body.classList.add('mobile-sidebar-open');
         }
     }
 }
@@ -205,6 +215,64 @@ function toggleSidebar() {
     </div>
 </nav>
 
+<!-- ── Redeem Code Modal (Navbar — mobile quick action) ── -->
+<div id="redeem-code-modal" onclick="if(event.target===this)closeRedeemModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10000;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+    <div style="background:#13131a;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:1.5rem;width:min(360px,95vw);position:relative;box-shadow:0 24px 60px rgba(0,0,0,.5)">
+        <button onclick="closeRedeemModal()" style="position:absolute;top:.9rem;right:.9rem;background:rgba(255,255,255,.06);border:none;color:#aaa;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
+        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.2rem">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2" width="20" height="20"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+            <div style="font-size:1.05rem;font-weight:700;color:#fff">Redeem Code</div>
+        </div>
+        <div style="font-size:.8rem;color:var(--text-muted,#888);margin-bottom:1.1rem">Enter a code to claim free tokens.</div>
+        <input type="text" id="redeem-code-input" placeholder="e.g. WELCOME-2025" maxlength="40"
+               style="width:100%;padding:.7rem .9rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:.9rem;outline:none;box-sizing:border-box;text-transform:uppercase;letter-spacing:.03em"
+               onkeydown="if(event.key==='Enter')submitRedeemCode()">
+        <button onclick="submitRedeemCode()" id="redeem-code-btn"
+                style="margin-top:.85rem;width:100%;padding:.65rem 1rem;background:linear-gradient(135deg,#ec4899,#a855f7);border:none;border-radius:8px;color:#fff;font-size:.85rem;font-weight:700;cursor:pointer">
+            Redeem
+        </button>
+        <div id="redeem-code-status" style="text-align:center;font-size:.8rem;min-height:1.2rem;margin-top:.6rem"></div>
+    </div>
+</div>
+<script>
+window.openRedeemModal = function() {
+    document.getElementById('redeem-code-input').value = '';
+    document.getElementById('redeem-code-status').textContent = '';
+    document.getElementById('redeem-code-modal').style.display = 'flex';
+    setTimeout(() => document.getElementById('redeem-code-input').focus(), 80);
+};
+window.closeRedeemModal = function() {
+    document.getElementById('redeem-code-modal').style.display = 'none';
+};
+window.submitRedeemCode = async function() {
+    const code     = document.getElementById('redeem-code-input').value.trim();
+    const statusEl = document.getElementById('redeem-code-status');
+    const btn      = document.getElementById('redeem-code-btn');
+    if (!code) { statusEl.textContent = '✗ Enter a code.'; statusEl.style.color = '#ff8080'; return; }
+
+    btn.disabled = true; btn.style.opacity = '.6';
+    statusEl.textContent = 'Checking...'; statusEl.style.color = 'rgba(255,255,255,.5)';
+
+    try {
+        const r = await fetch('/api/redeem.php', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ action: 'redeem', code })
+        });
+        const j = await r.json();
+        if (j.success) {
+            statusEl.textContent = '✓ ' + j.message; statusEl.style.color = '#34d399';
+            if (typeof showToast === 'function') showToast(j.message, 'success');
+            setTimeout(() => { window.location.reload(); }, 1100);
+        } else {
+            statusEl.textContent = '✗ ' + (j.error || 'Invalid code'); statusEl.style.color = '#ff8080';
+            btn.disabled = false; btn.style.opacity = '1';
+        }
+    } catch(e) {
+        statusEl.textContent = '✗ Network error'; statusEl.style.color = '#ff8080';
+        btn.disabled = false; btn.style.opacity = '1';
+    }
+};
+</script>
 
 <!-- ── Manage Accounts Modal (Navbar) ── -->
 <div id="navbar-accounts-modal" onclick="if(event.target===this)closeNavbarAccounts()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px)">

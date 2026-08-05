@@ -85,6 +85,25 @@ $pdo->exec("
 ");
 $allBundles = $iAmOwner ? $pdo->query("SELECT * FROM bundles ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC) : [];
 
+if ($iAmOwner) {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS `redeem_codes` (
+            `id`         INT AUTO_INCREMENT PRIMARY KEY,
+            `code`       VARCHAR(40) NOT NULL,
+            `tokens`     INT NOT NULL DEFAULT 0,
+            `max_uses`   INT NOT NULL DEFAULT 1,
+            `uses_count` INT NOT NULL DEFAULT 0,
+            `expires_at` DATETIME DEFAULT NULL,
+            `active`     TINYINT(1) NOT NULL DEFAULT 1,
+            `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            `created_by` INT DEFAULT NULL,
+            UNIQUE KEY `code` (`code`),
+            KEY `idx_redeem_code` (`code`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+}
+$allRedeemCodes = $iAmOwner ? $pdo->query("SELECT * FROM redeem_codes ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC) : [];
+
 // All available effects (mirrors shop catalog)
 $allEffects = [
     'cursor_smoke'     => 'Smoke Trail',
@@ -535,6 +554,107 @@ async function sendInfectedMail() {
                 </div>
                 <div style="display:flex;align-items:center;gap:.5rem;flex-shrink:0">
                     <button onclick="bundleDelete(<?= (int)$bn['id'] ?>, this)"
+                            style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .75rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#ef4444;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s"
+                            onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.08)'">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                    </button>
+                </div>
+            </div>
+        <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<!-- ── Redeem Codes Card ──────────────────────────────────────────────────── -->
+<div class="dash-card" style="margin-bottom:1.5rem;border-color:rgba(236,72,153,.3);background:linear-gradient(160deg,rgba(236,72,153,.05) 0%,rgba(168,85,247,.02) 100%)" id="redeem-codes-card">
+    <div class="dash-card-header" style="border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:1rem;margin-bottom:1.4rem">
+        <span class="dash-card-title" style="display:flex;align-items:center;gap:.6rem">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2" width="18" height="18"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+            <span style="color:#ec4899">Redeem Codes</span>
+            <span style="font-size:.65rem;padding:.2rem .55rem;background:rgba(236,72,153,.15);border:1px solid rgba(236,72,153,.4);border-radius:99px;color:#ec4899;font-weight:700;letter-spacing:.05em">OWNER</span>
+        </span>
+        <span style="font-size:.78rem;color:rgba(255,255,255,.35)">Create codes users can redeem for free tokens</span>
+    </div>
+
+    <!-- CREATE REDEEM CODE FORM -->
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:1.2rem;margin-bottom:1.4rem">
+        <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.45);margin-bottom:1rem">Create New Code</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.85rem;margin-bottom:1rem">
+            <div style="grid-column:1/-1">
+                <label style="font-size:.72rem;color:rgba(255,255,255,.45);font-weight:600;display:block;margin-bottom:.35rem">CUSTOM CODE (optional — auto-generated if empty)</label>
+                <input type="text" id="rc-code" placeholder="e.g. WELCOME-2025" maxlength="40" style="width:100%;padding:.6rem .85rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:.85rem;outline:none;box-sizing:border-box;text-transform:uppercase;transition:border-color .2s"
+                       onfocus="this.style.borderColor='rgba(236,72,153,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+            </div>
+            <div>
+                <label style="font-size:.72rem;color:rgba(255,255,255,.45);font-weight:600;display:block;margin-bottom:.35rem">TOKEN REWARD</label>
+                <input type="number" id="rc-tokens" placeholder="50" min="1" style="width:100%;padding:.6rem .85rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:.85rem;outline:none;box-sizing:border-box;transition:border-color .2s"
+                       onfocus="this.style.borderColor='rgba(236,72,153,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+            </div>
+            <div>
+                <label style="font-size:.72rem;color:rgba(255,255,255,.45);font-weight:600;display:block;margin-bottom:.35rem">MAX USES</label>
+                <input type="number" id="rc-max-uses" placeholder="1" min="1" value="1" style="width:100%;padding:.6rem .85rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:.85rem;outline:none;box-sizing:border-box;transition:border-color .2s"
+                       onfocus="this.style.borderColor='rgba(236,72,153,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+            </div>
+            <div style="grid-column:1/-1">
+                <label style="font-size:.72rem;color:rgba(255,255,255,.45);font-weight:600;display:block;margin-bottom:.35rem">EXPIRES AT (optional)</label>
+                <input type="date" id="rc-expires" style="width:100%;padding:.6rem .85rem;background:rgba(20,20,30,1);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:.85rem;outline:none;box-sizing:border-box;transition:border-color .2s"
+                       onfocus="this.style.borderColor='rgba(236,72,153,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem">
+            <button onclick="redeemCodeCreate()" id="rc-create-btn"
+                    style="display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.2rem;background:linear-gradient(135deg,#ec4899,#a855f7);border:none;border-radius:8px;color:#fff;font-size:.85rem;font-weight:700;cursor:pointer;transition:opacity .2s">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Generate Code
+            </button>
+            <span id="rc-create-status" style="font-size:.8rem;min-height:1.2rem"></span>
+        </div>
+    </div>
+
+    <div id="redeem-codes-list">
+        <?php if (empty($allRedeemCodes)): ?>
+        <div style="text-align:center;padding:1.5rem;color:rgba(255,255,255,.3);font-size:.82rem" id="redeem-codes-empty-msg">
+            No redeem codes created yet. Create one above.
+        </div>
+        <?php else: ?>
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:.75rem">
+            <?= count($allRedeemCodes) ?> code(s) created
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.65rem" id="redeem-codes-items-wrap">
+        <?php foreach ($allRedeemCodes as $rc):
+            $rcExpired = $rc['expires_at'] && strtotime($rc['expires_at']) < time();
+            $rcMaxedOut = (int)$rc['uses_count'] >= (int)$rc['max_uses'];
+            $rcStatus = !$rc['active'] ? ['Inactive', '#94a3b8'] : ($rcExpired ? ['Expired', '#ff8080'] : ($rcMaxedOut ? ['Used up', '#fbbf24'] : ['Active', '#34d399']));
+        ?>
+            <div class="redeem-code-row" data-code-id="<?= (int)$rc['id'] ?>"
+                 style="display:flex;align-items:center;gap:1rem;padding:.85rem 1rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;flex-wrap:wrap">
+                <div style="flex:1;min-width:180px">
+                    <div style="font-weight:700;font-size:.9rem;color:#fff;margin-bottom:.25rem;font-family:'Space Mono',monospace;letter-spacing:.03em"><?= sanitize($rc['code']) ?></div>
+                    <div style="font-size:.75rem;color:rgba(255,255,255,.45);display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+                        <span style="background:rgba(236,72,153,.12);border:1px solid rgba(236,72,153,.3);border-radius:6px;padding:.1rem .45rem;color:#ec4899;font-weight:700">🪙 <?= number_format((int)$rc['tokens']) ?> tokens</span>
+                        <span style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.1rem .45rem;color:rgba(255,255,255,.6)"><?= (int)$rc['uses_count'] ?>/<?= (int)$rc['max_uses'] ?> used</span>
+                        <?php if ($rc['expires_at']): ?>
+                        <span style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:.1rem .45rem;color:rgba(255,255,255,.6)">Expires <?= date('d M Y', strtotime($rc['expires_at'])) ?></span>
+                        <?php endif; ?>
+                        <span class="rc-status-pill" style="background:<?= $rcStatus[1] ?>1a;border:1px solid <?= $rcStatus[1] ?>66;border-radius:6px;padding:.1rem .45rem;color:<?= $rcStatus[1] ?>;font-weight:600"><?= $rcStatus[0] ?></span>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:.5rem;flex-shrink:0">
+                    <button onclick="redeemCodeCopy('<?= sanitize($rc['code']) ?>', this)"
+                            title="Copy code"
+                            style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .75rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:rgba(255,255,255,.7);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s"
+                            onmouseover="this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.background='rgba(255,255,255,.05)'">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    </button>
+                    <button onclick="redeemCodeToggle(<?= (int)$rc['id'] ?>, this)"
+                            title="<?= $rc['active'] ? 'Deactivate' : 'Activate' ?>"
+                            style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .75rem;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:8px;color:#fbbf24;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s"
+                            onmouseover="this.style.background='rgba(251,191,36,.18)'" onmouseout="this.style.background='rgba(251,191,36,.08)'">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+                    </button>
+                    <button onclick="redeemCodeDelete(<?= (int)$rc['id'] ?>, this)"
+                            title="Delete"
                             style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .75rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#ef4444;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s"
                             onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.08)'">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
