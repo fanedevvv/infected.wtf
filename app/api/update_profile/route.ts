@@ -26,6 +26,7 @@ async function deleteFile(relPath: string | null | undefined) {
 
 const ALLOWED_FONTS = ["Syne", "Outfit", "Space Mono", "Rajdhani", "Orbitron", "Bebas Neue", "Exo 2", "Josefin Sans"];
 const ALLOWED_TEXT_EFFECTS = ["none", "glow", "rainbow", "shake", "glitch", "scramble", "shine", "typewriter", "flip"];
+const ALLOWED_LAYOUTS = ["classic", "minimal", "compact", "split", "frame", "stacked", "wide"];
 
 export async function POST(req: NextRequest) {
   let user;
@@ -86,7 +87,7 @@ export async function POST(req: NextRequest) {
 
   if (action === "set_layout_template") {
     let layoutTemplate = String(form.get("layout_template") || "classic").trim();
-    if (!["classic", "minimal", "wide"].includes(layoutTemplate)) layoutTemplate = "classic";
+    if (!ALLOWED_LAYOUTS.includes(layoutTemplate)) layoutTemplate = "classic";
     const isPremium = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date());
     if (layoutTemplate === "wide" && !isPremium) {
       return err("Wide layout is a Premium feature.");
@@ -117,6 +118,10 @@ export async function POST(req: NextRequest) {
     }
     let font = String(form.get("profile_font") || "Syne").trim();
     if (!ALLOWED_FONTS.includes(font)) font = "Syne";
+    let layoutTemplate = String(form.get("layout_template") || "classic").trim();
+    if (!ALLOWED_LAYOUTS.includes(layoutTemplate)) layoutTemplate = "classic";
+    const isPremium = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date());
+    if (layoutTemplate === "wide" && !isPremium) layoutTemplate = "classic";
     let avatar = String(form.get("avatar") || "").trim();
     if (avatar && !/^uploads\/avatars\/[a-zA-Z0-9_\-.]+$/.test(avatar)) avatar = "";
     const bgImg = String(form.get("background_image") || "").trim();
@@ -141,6 +146,7 @@ export async function POST(req: NextRequest) {
         job: job || null,
         birthDate,
         profileFont: font,
+        layoutTemplate,
         avatar: avatar || null,
         profileOpacity: opacity,
         profileBlur: blur,

@@ -12,6 +12,28 @@ function clientIp(req: NextRequest): string {
   return fwd.split(",")[0].trim() || "0.0.0.0";
 }
 
+async function verifyTurnstile(token: string, ip: string): Promise<boolean> {
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+  if (!secret) {
+    console.warn("[turnstile] TURNSTILE_SECRET_KEY not set — skipping verification.");
+    return true;
+  }
+  if (!token) return false;
+  try {
+    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ secret, response: token, remoteip: ip }),
+      signal: AbortSignal.timeout(8000),
+    });
+    const data = await res.json();
+    return !!data.success;
+  } catch {
+    console.warn("[turnstile] Verification request failed.");
+    return false;
+  }
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.json();
 
@@ -64,6 +86,11 @@ export async function POST(req: NextRequest) {
   }
   if (!terms) {
     return NextResponse.json({ error: "You must agree to the Terms of Service and Privacy Policy." }, { status: 400 });
+  }
+
+  const turnstileOk = await verifyTurnstile(String(body.turnstileToken || ""), clientIp(req));
+  if (!turnstileOk) {
+    return NextResponse.json({ error: "Verification challenge failed. Please try again." }, { status: 400 });
   }
 
   const blindIndex = emailBlindIndex(email);

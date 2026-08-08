@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { showToast } from "@/lib/toast";
 
 const FONTS = ["Syne", "Outfit", "Space Mono", "Rajdhani", "Orbitron", "Bebas Neue", "Exo 2", "Josefin Sans"];
+const LAYOUT_TEMPLATES = ["classic", "minimal", "compact", "split", "frame", "stacked", "wide"] as const;
 
 type Props = {
   tab: string;
@@ -63,6 +64,7 @@ export default function ProfileInfoForm(props: Props) {
     birthDate: props.birthDate,
     bio: props.bio,
     font: props.profileFont,
+    layoutTemplate: props.layoutTemplate,
     opacity: props.profileOpacity,
     blur: props.profileBlur,
     accentColor: props.accentColor,
@@ -97,6 +99,7 @@ export default function ProfileInfoForm(props: Props) {
       birthDate,
       bio,
       font,
+      layoutTemplate,
       opacity,
       blur,
       accentColor,
@@ -114,6 +117,7 @@ export default function ProfileInfoForm(props: Props) {
       cur.birthDate !== o.birthDate ||
       cur.bio !== o.bio ||
       cur.font !== o.font ||
+      cur.layoutTemplate !== o.layoutTemplate ||
       cur.opacity !== o.opacity ||
       cur.accentColor !== o.accentColor ||
       cur.backgroundColor !== o.backgroundColor ||
@@ -127,7 +131,7 @@ export default function ProfileInfoForm(props: Props) {
   useEffect(() => {
     checkDirty();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [displayName, location, job, birthDate, bio, font, opacity, blur, accentColor, backgroundColor, nameColor, bioColor, overlayColor]);
+  }, [displayName, location, job, birthDate, bio, font, layoutTemplate, opacity, blur, accentColor, backgroundColor, nameColor, bioColor, overlayColor]);
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -333,6 +337,10 @@ export default function ProfileInfoForm(props: Props) {
       showToast("Wide layout is a Premium feature.", "error");
       return;
     }
+    if (!LAYOUT_TEMPLATES.includes(tpl as (typeof LAYOUT_TEMPLATES)[number])) {
+      showToast("Invalid layout.", "error");
+      return;
+    }
     const prev = layoutTemplate;
     setLayoutTemplate(tpl);
     try {
@@ -341,7 +349,10 @@ export default function ProfileInfoForm(props: Props) {
       fd.append("layout_template", tpl);
       const r = await fetch("/api/update_profile", { method: "POST", body: fd });
       const j = await r.json();
-      if (!j.success) { showToast(j.error || "Error", "error"); setLayoutTemplate(prev); }
+      if (j.success) {
+        original.current.layoutTemplate = tpl;
+        checkDirty();
+      } else { showToast(j.error || "Error", "error"); setLayoutTemplate(prev); }
     } catch {
       showToast("Network error", "error");
       setLayoutTemplate(prev);
@@ -401,6 +412,7 @@ export default function ProfileInfoForm(props: Props) {
     fd.append("birth_date", birthDate);
     fd.append("bio", bio);
     fd.append("profile_font", font);
+    fd.append("layout_template", layoutTemplate);
     fd.append("avatar", avatar || "");
     fd.append("background_image", bgType === "image" ? bgValue : "");
     fd.append("profile_opacity", String(opacity));
@@ -415,7 +427,7 @@ export default function ProfileInfoForm(props: Props) {
       const j = await res.json();
       if (j.success) {
         showToast("Profile saved!", "success");
-        original.current = { displayName, location, job, birthDate, bio, font, opacity, blur, accentColor, backgroundColor, nameColor, bioColor, overlayColor };
+        original.current = { displayName, location, job, birthDate, bio, font, layoutTemplate, opacity, blur, accentColor, backgroundColor, nameColor, bioColor, overlayColor };
         checkDirty();
       } else {
         showToast(j.error || "Error", "error");
@@ -435,6 +447,7 @@ export default function ProfileInfoForm(props: Props) {
     setBirthDate(o.birthDate);
     setBio(o.bio);
     setFont(o.font);
+    setLayoutTemplate(o.layoutTemplate);
     setOpacity(o.opacity);
     setBlur(o.blur);
     setAccentColor(o.accentColor);
@@ -719,8 +732,12 @@ export default function ProfileInfoForm(props: Props) {
           <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>Choose your profile layout</p>
           <div className="template-card-grid">
             {[
-              { id: "classic", label: "Basic", premium: false, desc: "Avatar and name perfectly centered.", features: ["Centered design", "Mobile optimized", "Clean & minimal"] },
+              { id: "classic", label: "Classic", premium: false, desc: "Avatar and name perfectly centered.", features: ["Centered design", "Mobile optimized", "Clean & minimal"] },
               { id: "minimal", label: "Minimal", premium: false, desc: "No card background — content floats directly on your page.", features: ["No background panel", "Lightweight look", "Mobile optimized"] },
+              { id: "compact", label: "Compact", premium: false, desc: "A tighter layout with denser spacing and smaller chrome.", features: ["Smaller spacing", "Denser content", "Fast to scan"] },
+              { id: "split", label: "Split", premium: false, desc: "A left-leaning composition for a more editorial profile feel.", features: ["Left aligned text", "Broader card", "Modern profile feel"] },
+              { id: "frame", label: "Frame", premium: false, desc: "A bold accent-colored double border around your card.", features: ["Accent-colored frame", "Extra padding", "Statement look"] },
+              { id: "stacked", label: "Stacked", premium: false, desc: "A taller banner with your avatar overlapping dramatically.", features: ["Bigger banner", "Overlapping avatar", "Bold entrance"] },
               { id: "wide", label: "Wide", premium: true, desc: "A wider card with room for multi-column content.", features: ["1040px wide card", "3-column integrations", "Premium exclusive"] },
             ].map((t) => {
               const locked = t.premium && !props.isPremium;

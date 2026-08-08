@@ -79,6 +79,10 @@ export default function RegisterForm({ initialRef, initialUsername }: { initialR
       setError("You must agree to the Terms of Service and Privacy Policy.");
       return;
     }
+    if (!turnstileToken) {
+      setError("Please complete the verification challenge below.");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/auth/register", {
@@ -265,7 +269,7 @@ export default function RegisterForm({ initialRef, initialUsername }: { initialR
           </div>
 
           <div className="turnstile-wrap">
-            <div className="cf-turnstile" data-sitekey="0x4AAAAAADVikD2YYYTsbrFd" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired" data-theme="dark" />
+            <div className="cf-turnstile" data-sitekey="0x4AAAAAAEKAgQTphMVMpgMC" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired" data-theme="dark" />
           </div>
 
           <button type="submit" disabled={loading || !terms} className="btn btn-primary btn-full">

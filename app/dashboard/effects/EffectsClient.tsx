@@ -142,6 +142,7 @@ export default function EffectsClient(props: Props) {
   const [ring, setRing] = useState(props.avatarRing);
   const [shape, setShape] = useState(props.avatarShape);
   const [active, setActive] = useState<Record<string, string>>(props.activeEffects);
+  const [busyEffectId, setBusyEffectId] = useState<string | null>(null);
 
   const owned = new Set(props.purchasedEffects);
 
@@ -211,6 +212,8 @@ export default function EffectsClient(props: Props) {
     const isActive = active[effectType] === effectId;
     const newId = isActive ? null : effectId;
 
+    setBusyEffectId(effectId);
+
     setActive((a) => {
       const n = { ...a };
       if (newId) n[effectType] = newId;
@@ -233,7 +236,20 @@ export default function EffectsClient(props: Props) {
       if (!j.success) showToast(j.error || "Error", "error");
     } catch {
       showToast("Network error", "error");
+    } finally {
+      setBusyEffectId(null);
     }
+  }
+
+  function Spinner() {
+    return (
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" opacity="0.18" />
+        <path d="M21 12a9 9 0 0 0-9-9">
+          <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.8s" repeatCount="indefinite" />
+        </path>
+      </svg>
+    );
   }
 
   async function selectShape(newShape: string) {
@@ -271,8 +287,16 @@ export default function EffectsClient(props: Props) {
               <div className="effect-card-desc">{e.desc}</div>
               {isOwned ? (
                 <div className="effect-toggle-wrap">
-                  <span className="effect-toggle-text">{isActive ? "Enabled" : "Disabled"}</span>
-                  <ToggleSwitch active={isActive} onClick={() => togglePurchased(id, type)} />
+                  <span className="effect-toggle-text">{busyEffectId === id ? "Updating…" : isActive ? "Enabled" : "Disabled"}</span>
+                  <div style={{ opacity: busyEffectId === id ? 0.7 : 1 }}>
+                    {busyEffectId === id ? (
+                      <div className="effect-toggle-switch active" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <Spinner />
+                      </div>
+                    ) : (
+                      <ToggleSwitch active={isActive} onClick={() => togglePurchased(id, type)} />
+                    )}
+                  </div>
                 </div>
               ) : (
                 <a href="/dashboard?page=shop#effects" className="pef-buy-link">

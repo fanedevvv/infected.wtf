@@ -397,9 +397,37 @@ body.sidebar-collapsed .navbar-dashboard { left:0; }
 .profile-card--minimal { background:transparent; border:none; backdrop-filter:none; -webkit-backdrop-filter:none; box-shadow:none; padding:1rem 1rem 1.25rem; }
 .profile-card--minimal .profile-banner-img { border-radius:18px; }
 
+.profile-card--compact { max-width:680px; padding:1.55rem 1.7rem 1.35rem; }
+.profile-card--compact .profile-banner-img { height:132px; margin-bottom:1rem; }
+.profile-card--compact .avatar-img { width:74px; height:74px; }
+.profile-card--compact .profile-username { font-size:1.5rem; }
+.profile-card--compact .profile-bio { font-size:.88rem; }
+.profile-card--compact .profile-meta-row { gap:.65rem; }
+
 .profile-card--wide { max-width:1040px; }
 .profile-wrapper--wide .integrations-grid { grid-template-columns:repeat(3, 1fr); }
 @media (max-width:720px) { .profile-wrapper--wide .integrations-grid { grid-template-columns:1fr 1fr; } }
+
+.profile-card--split { max-width:980px; text-align:left; padding:2rem 2.2rem 1.7rem; }
+.profile-card--split .profile-banner-img { height:180px; }
+.profile-card--split .avatar-wrapper { display:block; margin-left:0; }
+.profile-card--split .profile-username,
+.profile-card--split .profile-bio,
+.profile-card--split .profile-badges,
+.profile-card--split .profile-meta-row { text-align:left; justify-content:flex-start; margin-left:0; }
+.profile-card--split .profile-badges { margin-top:.3rem; }
+.profile-card--split .profile-bio { max-width:720px; margin:0 0 .1rem; }
+.profile-card--split .profile-meta-row { flex-wrap:wrap; }
+
+.profile-card--frame { padding:2.1rem 1.75rem 1.75rem; border:2px solid var(--accent, #39ff14); box-shadow:0 0 0 6px rgba(255,255,255,.04), inset 0 0 0 1px rgba(255,255,255,.06); }
+.profile-card--frame::before { content:""; position:absolute; inset:8px; border:1px solid rgba(255,255,255,.12); border-radius:12px; pointer-events:none; }
+
+.profile-card--stacked { padding-top:0; overflow:hidden; }
+.profile-card--stacked .profile-banner-img { height:220px; margin:0 -2.5rem 0; border-radius:0; }
+.profile-card--stacked .avatar-wrapper--with-banner { margin-top:-56px; }
+.profile-card--stacked .avatar-wrapper:not(.avatar-wrapper--with-banner) { margin-top:2rem; }
+.profile-card--stacked .avatar-img { width:104px; height:104px; }
+@media (max-width:520px) { .profile-card--stacked .profile-banner-img { height:150px; } .profile-card--stacked .avatar-wrapper--with-banner { margin-top:-44px; } }
 
 .profile-banner-img { display:block; width:calc(100% + 5rem); height:160px; object-fit:cover; margin:-2rem -2.5rem 1.25rem; border-radius:18px 18px 0 0; }
 .avatar-wrapper { position:relative; display:inline-block; margin-bottom:.75rem; }
@@ -1372,7 +1400,15 @@ input[type="color"] { width:40px; height:32px; border-radius:8px; border:2px sol
 .template-card-preview { aspect-ratio:16/10; background:#0a0a0f; border-radius:10px; border:1px solid rgba(255,255,255,.06); display:flex; align-items:center; justify-content:center; margin-bottom:.4rem; }
 .template-card-preview-inner { display:flex; flex-direction:column; align-items:center; gap:.35rem; width:70%; }
 .template-card-preview-inner.tpl-minimal { align-items:flex-start; opacity:.6; }
+.template-card-preview-inner.tpl-compact { width:56%; gap:.25rem; }
+.template-card-preview-inner.tpl-compact .tpl-dot { width:16px; height:16px; }
+.template-card-preview-inner.tpl-compact .tpl-line { height:5px; }
+.template-card-preview-inner.tpl-split { align-items:flex-start; width:80%; }
+.template-card-preview-inner.tpl-split .tpl-line.short { width:42%; }
 .template-card-preview-inner.tpl-wide { width:88%; }
+.template-card-preview-inner.tpl-frame { width:80%; padding:.4rem; border:1.5px solid var(--accent); border-radius:8px; }
+.template-card-preview-inner.tpl-stacked { width:70%; gap:.3rem; }
+.template-card-preview-inner.tpl-stacked .tpl-dot { margin-top:-14px; border:2px solid #0a0a0f; }
 .tpl-dot { width:20px; height:20px; border-radius:50%; background:rgba(255,255,255,.15); }
 .tpl-line { width:100%; height:6px; border-radius:3px; background:rgba(255,255,255,.15); }
 .tpl-line.short { width:60%; }
