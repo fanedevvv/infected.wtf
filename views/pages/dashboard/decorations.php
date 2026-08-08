@@ -4,8 +4,8 @@ checkBanned($pdo);
 $userId = (int)$_SESSION['user_id'];
 $profile = getProfile($pdo, $userId);
 
-$itemsDirFs = dirname(__DIR__, 3) . '/assets/img/items';
-$itemsDirWeb = '/assets/img/items';
+$itemsDirFs = dirname(__DIR__, 3) . '/assets/img/decorations';
+$itemsDirWeb = '/assets/img/decorations';
 $decorationItems = [];
 
 if (is_dir($itemsDirFs) && is_readable($itemsDirFs)) {
@@ -36,13 +36,13 @@ ob_start();
 
 <div class="section-header">
     <h2>Decorations</h2>
-    <p>Gallery loaded from <strong>/assets/img/items</strong>.</p>
+    <p>Gallery loaded from <strong>/assets/img/decorations</strong> (locked, read-only).</p>
 </div>
 
 <div class="dash-card" style="padding:1rem">
     <?php if (empty($decorationItems)): ?>
     <div style="padding:.9rem 1rem;border-radius:12px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.03);font-size:.82rem;color:rgba(255,255,255,.45)">
-        Nu s-au găsit imagini în /assets/img/items (format custom_X.png).
+        Nu s-au găsit imagini în /assets/img/decorations (format custom_X.png).
     </div>
     <?php else: ?>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:.8rem">

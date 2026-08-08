@@ -6,8 +6,8 @@ $profile = getProfile($pdo, $userId);
 $bgType  = $profile['background_type'] ?: 'particles';
 $bgVal   = $profile['background_value'] ?: '#050507';
 
-$itemsDirFs = dirname(__DIR__, 3) . '/assets/img/items';
-$itemsDirWeb = '/assets/img/items';
+$itemsDirFs = dirname(__DIR__, 3) . '/assets/img/decorations';
+$itemsDirWeb = '/assets/img/decorations';
 $decorationItems = [];
 
 if (is_dir($itemsDirFs) && is_readable($itemsDirFs)) {
@@ -236,13 +236,13 @@ ob_start();
                 </div>
                 <div>
                     <div style="font-size:.95rem;font-weight:700;color:var(--text)">Decorations Library</div>
-                    <div style="font-size:.75rem;color:var(--text-muted)">Loaded automatically from /assets/img/items (custom_*.png)</div>
+                    <div style="font-size:.75rem;color:var(--text-muted)">Loaded automatically from /assets/img/decorations (locked, read-only)</div>
                 </div>
             </div>
 
             <?php if (empty($decorationItems)): ?>
             <div style="padding:.9rem 1rem;border-radius:12px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.03);font-size:.8rem;color:rgba(255,255,255,.45)">
-                No decorations found in /assets/img/items.
+                No decorations found in /assets/img/decorations.
             </div>
             <?php else: ?>
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.8rem">
