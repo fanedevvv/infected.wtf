@@ -1,7 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { showToast } from "@/lib/toast";
+import { SteamIcon, RobloxIcon, MinecraftIcon, ServerIcon, ValorantIcon, TwitchIcon } from "@/components/IntegrationIcons";
+
+const GAME_TYPES = ["steam", "roblox", "minecraft", "mcserver", "valorant", "twitch"] as const;
+type GameType = (typeof GAME_TYPES)[number];
+
+const GAME_META: Record<GameType, { label: string; color: string; icon: ReactNode; name: (d: Record<string, unknown>) => string }> = {
+  steam: { label: "Steam", color: "#66c0f4", icon: <SteamIcon size={20} />, name: (d) => String(d.personaName || "Steam") },
+  roblox: { label: "Roblox", color: "#e2231a", icon: <RobloxIcon size={20} />, name: (d) => String(d.displayName || d.username || "Roblox") },
+  minecraft: { label: "Minecraft", color: "#5cb85c", icon: <MinecraftIcon size={20} />, name: (d) => String(d.username || "Minecraft") },
+  mcserver: { label: "MC Server", color: "#7cb342", icon: <ServerIcon size={20} />, name: (d) => String(d.host || "MC Server") },
+  valorant: { label: "Valorant", color: "#ff4655", icon: <ValorantIcon size={20} />, name: (d) => `${String(d.riotId || "")}#${String(d.tagLine || "")}` },
+  twitch: { label: "Twitch", color: "#9146ff", icon: <TwitchIcon size={20} />, name: (d) => String(d.username || "Twitch") },
+};
+
+type GameRow = { type: GameType; data: Record<string, unknown>; visible: boolean };
 
 type Integration = {
   id: number;
@@ -56,6 +71,43 @@ export default function IntegrationsContent({
   const [serverInvite, setServerInvite] = useState("");
   const [serverError, setServerError] = useState("");
   const [serverSaving, setServerSaving] = useState(false);
+  const [gameRows, setGameRows] = useState<GameRow[]>([]);
+
+  useEffect(() => {
+    Promise.all(
+      GAME_TYPES.map((type) =>
+        fetch(`/api/integrations/${type}`)
+          .then((r) => r.json())
+          .then((d) => (d.integration ? { type, data: d.integration.data as Record<string, unknown>, visible: d.integration.visible as boolean } : null))
+          .catch(() => null)
+      )
+    ).then((rows) => setGameRows(rows.filter((r): r is GameRow => r !== null)));
+  }, []);
+
+  async function toggleGameVisibility(type: GameType) {
+    try {
+      const res = await fetch(`/api/integrations/${type}`, { method: "PATCH" });
+      const j = await res.json();
+      if (j.success) {
+        setGameRows((rows) => rows.map((r) => (r.type === type ? { ...r, visible: j.visible } : r)));
+      } else showToast(j.error || "Error", "error");
+    } catch {
+      showToast("Network error", "error");
+    }
+  }
+
+  async function removeGameIntegration(type: GameType) {
+    try {
+      const res = await fetch(`/api/integrations/${type}`, { method: "DELETE" });
+      const j = await res.json();
+      if (j.success) {
+        setGameRows((rows) => rows.filter((r) => r.type !== type));
+        showToast(`${GAME_META[type].label} disconnected.`, "success");
+      } else showToast(j.error || "Error", "error");
+    } catch {
+      showToast("Network error", "error");
+    }
+  }
 
   useEffect(() => {
     if (connected) showToast("Discord connected!", "success");
@@ -357,10 +409,30 @@ export default function IntegrationsContent({
             </div>
           )}
 
-          {!hasDiscordUser && !hasDiscordServer && (
+          {gameRows.map((row) => {
+            const meta = GAME_META[row.type];
+            return (
+              <div key={row.type} className="active-int-row" style={{ ["--int-row-color" as string]: meta.color, ["--int-row-bg" as string]: `${meta.color}1a`, ["--int-row-border" as string]: `${meta.color}33` }}>
+                <div className="active-int-row-icon" style={{ color: meta.color }}>{meta.icon}</div>
+                <div className="active-int-row-info">
+                  <div className="active-int-row-name">{meta.name(row.data)}</div>
+                  <div className="active-int-row-meta">
+                    <span className={`vis-dot ${row.visible ? "" : "hidden"}`} />
+                    {meta.label} &middot; {row.visible ? "Visible on profile" : "Hidden from profile"}
+                  </div>
+                </div>
+                <div className="active-int-row-actions">
+                  <button className="icon-btn icon-btn-vis" title={row.visible ? "Hide" : "Show"} onClick={() => toggleGameVisibility(row.type)}><EyeIcon off={!row.visible} /></button>
+                  <button className="icon-btn icon-btn-del" title="Remove" onClick={() => removeGameIntegration(row.type)}><TrashIcon /></button>
+                </div>
+              </div>
+            );
+          })}
+
+          {!hasDiscordUser && !hasDiscordServer && gameRows.length === 0 && (
             <div className="int-empty">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="48" height="48"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
-              No integrations connected yet. Connect Discord to get started.
+              No integrations connected yet. Connect a platform above to get started.
             </div>
           )}
         </div>
