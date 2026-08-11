@@ -242,6 +242,43 @@ export async function POST(req: NextRequest) {
     return ok(`Bundle '${bundle.name}' applied to @${applyTarget.username}.`, { applied, user: applyTarget.username });
   }
 
+  if (action === "create_redeem_code") {
+    if (!actorIsOwner) return err("Only owners can create redeem codes.", 403);
+    const tokens = Math.max(0, parseInt(input.tokens) || 0);
+    if (!tokens) return err("Token reward must be greater than 0.");
+    const maxUses = Math.max(1, parseInt(input.max_uses) || 1);
+    const expiresAt = input.expires_at ? new Date(String(input.expires_at)) : null;
+    let code = String(input.code || "").trim().toUpperCase();
+    if (code) {
+      if (!/^[A-Z0-9_-]{3,40}$/.test(code)) return err("Code must be 3-40 chars: letters, numbers, - or _.");
+      if (await prisma.redeemCode.findUnique({ where: { code } })) return err("A code with that name already exists.");
+    } else {
+      do {
+        code = Math.random().toString(36).slice(2, 10).toUpperCase();
+      } while (await prisma.redeemCode.findUnique({ where: { code } }));
+    }
+    const row = await prisma.redeemCode.create({ data: { code, tokens, maxUses, expiresAt, createdBy: actor.id } });
+    return ok(`Redeem code '${code}' created.`, { code_id: row.id, code: row.code });
+  }
+
+  if (action === "toggle_redeem_code") {
+    if (!actorIsOwner) return err("Only owners can manage redeem codes.", 403);
+    const codeId = Number(input.code_id || 0);
+    if (!codeId) return err("Invalid code ID.");
+    const row = await prisma.redeemCode.findUnique({ where: { id: codeId } });
+    if (!row) return err("Redeem code not found.", 404);
+    const updated = await prisma.redeemCode.update({ where: { id: codeId }, data: { active: !row.active } });
+    return ok(`Code '${row.code}' ${updated.active ? "activated" : "deactivated"}.`, { active: updated.active });
+  }
+
+  if (action === "delete_redeem_code") {
+    if (!actorIsOwner) return err("Only owners can delete redeem codes.", 403);
+    const codeId = Number(input.code_id || 0);
+    if (!codeId) return err("Invalid code ID.");
+    await prisma.redeemCode.delete({ where: { id: codeId } }).catch(() => {});
+    return ok("Redeem code deleted.");
+  }
+
   if (!targetId) return err("Invalid target");
 
   const selfEdit = !!input.self_edit;

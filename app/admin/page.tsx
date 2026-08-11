@@ -43,6 +43,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const x2EventEnabled = settings?.x2TokensEnabled ?? false;
 
   const allBundles = iAmOwner ? await prisma.bundle.findMany({ orderBy: { createdAt: "desc" } }) : [];
+  const allRedeemCodes = iAmOwner ? await prisma.redeemCode.findMany({ orderBy: { createdAt: "desc" } }) : [];
 
   const perPage = 10;
   const page = Math.max(1, parseInt(params.page || "1") || 1);
@@ -108,6 +109,15 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         badges: (b.badges as string[] | null) ?? [],
         effects: (b.effects as string[] | null) ?? [],
         premiumDays: b.premiumDays,
+      }))}
+      redeemCodes={allRedeemCodes.map((r) => ({
+        id: r.id,
+        code: r.code,
+        tokens: r.tokens,
+        maxUses: r.maxUses,
+        usesCount: r.usesCount,
+        expiresAt: r.expiresAt ? r.expiresAt.toISOString() : null,
+        active: r.active,
       }))}
       users={users}
       page={clampedPage}

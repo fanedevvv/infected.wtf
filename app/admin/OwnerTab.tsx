@@ -7,11 +7,13 @@ import { ALL_BADGES } from "@/lib/badge-defs";
 import { SHOP_EFFECTS } from "@/lib/shop";
 
 type Bundle = { id: number; name: string; price: number; priceType: "euro" | "tokens"; badges: string[]; effects: string[]; premiumDays: number };
+type RedeemCode = { id: number; code: string; tokens: number; maxUses: number; usesCount: number; expiresAt: string | null; active: boolean };
 
 const MANAGEABLE_BADGES = ["verified", "champion", "known", "rich", "trapstar", "the_killer", "crew", "billionaire", "content_creator", "designer"];
 
 interface Props {
   bundles: Bundle[];
+  redeemCodes: RedeemCode[];
   whitelistEnabled: boolean;
   x2Enabled: boolean;
   wlLoading: boolean;
@@ -22,7 +24,7 @@ interface Props {
   showConfirmFn: (title: string, text: string, btnLabel: string, cb: () => void) => void;
 }
 
-export default function OwnerTab({ bundles, whitelistEnabled, x2Enabled, wlLoading, x2Loading, toggleWhitelist, toggleX2, router, showConfirmFn }: Props) {
+export default function OwnerTab({ bundles, redeemCodes, whitelistEnabled, x2Enabled, wlLoading, x2Loading, toggleWhitelist, toggleX2, router, showConfirmFn }: Props) {
   // ── Infected Mail ──
   const [mailTitle, setMailTitle] = useState("");
   const [mailBody, setMailBody] = useState("");
@@ -138,6 +140,66 @@ export default function OwnerTab({ bundles, whitelistEnabled, x2Enabled, wlLoadi
       setApplyStatus({ text: "✗ Network error", color: "#ff8080" });
     }
     setApplying(false);
+  }
+
+  // ── Redeem Codes ──
+  const [rcNow] = useState(() => Date.now());
+  const [rcCode, setRcCode] = useState("");
+  const [rcTokens, setRcTokens] = useState("");
+  const [rcMaxUses, setRcMaxUses] = useState("1");
+  const [rcExpires, setRcExpires] = useState("");
+  const [rcStatus, setRcStatus] = useState<{ text: string; color: string } | null>(null);
+  const [rcCreating, setRcCreating] = useState(false);
+
+  async function redeemCodeCreate() {
+    const tokens = parseInt(rcTokens) || 0;
+    if (!tokens || tokens <= 0) { setRcStatus({ text: "✗ Token reward must be greater than 0.", color: "#ff8080" }); return; }
+    setRcCreating(true);
+    setRcStatus({ text: "Creating...", color: "rgba(255,255,255,.45)" });
+    try {
+      const res = await fetch("/api/admin_action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "create_redeem_code", code: rcCode.trim(), tokens, max_uses: parseInt(rcMaxUses) || 1, expires_at: rcExpires || null }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setRcStatus({ text: `✓ Code '${data.code}' created!`, color: "#4ade80" });
+        showToast(`Redeem code "${data.code}" created!`, "success");
+        setRcCode(""); setRcTokens(""); setRcMaxUses("1"); setRcExpires("");
+        router.refresh();
+        setTimeout(() => setRcStatus(null), 4000);
+      } else {
+        setRcStatus({ text: `✗ ${data.error || "Failed"}`, color: "#ff8080" });
+      }
+    } catch {
+      setRcStatus({ text: "✗ Network error", color: "#ff8080" });
+    }
+    setRcCreating(false);
+  }
+
+  async function redeemCodeToggle(codeId: number) {
+    try {
+      const res = await fetch("/api/admin_action", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "toggle_redeem_code", code_id: codeId }) });
+      const data = await res.json();
+      if (data.success) { showToast(data.message, "success"); router.refresh(); }
+      else showToast(data.error || "Failed", "error");
+    } catch { showToast("Network error", "error"); }
+  }
+
+  function redeemCodeDelete(codeId: number, code: string) {
+    showConfirmFn("Delete Redeem Code", `The code "${code}" will be permanently removed and can no longer be redeemed.`, "Delete", async () => {
+      try {
+        const res = await fetch("/api/admin_action", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "delete_redeem_code", code_id: codeId }) });
+        const data = await res.json();
+        if (data.success) { showToast("Redeem code deleted.", "success"); router.refresh(); }
+        else showToast(data.error || "Failed to delete", "error");
+      } catch { showToast("Network error", "error"); }
+    });
+  }
+
+  function redeemCodeCopy(code: string) {
+    navigator.clipboard?.writeText(code).then(() => showToast("Code copied!", "success")).catch(() => {});
   }
 
   return (
@@ -292,6 +354,94 @@ export default function OwnerTab({ bundles, whitelistEnabled, x2Enabled, wlLoadi
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="12" height="12"><polyline points="20 6 9 17 4 12" /></svg> Apply to User
                         </button>
                         <button onClick={() => bundleDelete(bn.id)}
+                          style={{ display: "inline-flex", alignItems: "center", gap: ".4rem", padding: ".45rem .75rem", background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 8, color: "#ef4444", fontSize: ".78rem", fontWeight: 600, cursor: "pointer" }}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="12" height="12"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /></svg>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* ── Redeem Codes ── */}
+      <div className="dash-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(236,72,153,.3)", background: "linear-gradient(160deg,rgba(236,72,153,.05) 0%,rgba(168,85,247,.02) 100%)" }}>
+        <div className="dash-card-header" style={{ borderBottom: "1px solid rgba(255,255,255,.06)", paddingBottom: "1rem", marginBottom: "1.4rem" }}>
+          <span className="dash-card-title" style={{ display: "flex", alignItems: "center", gap: ".6rem" }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ec4899" strokeWidth="2" width="18" height="18"><polyline points="20 12 20 22 4 22 4 12" /><rect x="2" y="7" width="20" height="5" /><line x1="12" y1="22" x2="12" y2="7" /><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" /><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" /></svg>
+            <span style={{ color: "#ec4899" }}>Redeem Codes</span>
+            <span style={{ fontSize: ".65rem", padding: ".2rem .55rem", background: "rgba(236,72,153,.15)", border: "1px solid rgba(236,72,153,.4)", borderRadius: 99, color: "#ec4899", fontWeight: 700, letterSpacing: ".05em" }}>OWNER</span>
+          </span>
+          <span style={{ fontSize: ".78rem", color: "rgba(255,255,255,.35)" }}>Create codes users can redeem for free tokens</span>
+        </div>
+
+        <div style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.07)", borderRadius: 12, padding: "1.2rem", marginBottom: "1.4rem" }}>
+          <div style={{ fontSize: ".75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "rgba(255,255,255,.45)", marginBottom: "1rem" }}>Create New Code</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".85rem", marginBottom: "1rem" }}>
+            <div style={{ gridColumn: "1/-1" }}>
+              <label style={{ fontSize: ".72rem", color: "rgba(255,255,255,.45)", fontWeight: 600, display: "block", marginBottom: ".35rem" }}>CUSTOM CODE (optional — auto-generated if empty)</label>
+              <input type="text" value={rcCode} onChange={(e) => setRcCode(e.target.value)} placeholder="e.g. WELCOME-2025" maxLength={40}
+                style={{ width: "100%", padding: ".6rem .85rem", background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 8, color: "#fff", fontSize: ".85rem", outline: "none", boxSizing: "border-box", textTransform: "uppercase" }} />
+            </div>
+            <div>
+              <label style={{ fontSize: ".72rem", color: "rgba(255,255,255,.45)", fontWeight: 600, display: "block", marginBottom: ".35rem" }}>TOKEN REWARD</label>
+              <input type="number" value={rcTokens} onChange={(e) => setRcTokens(e.target.value)} placeholder="50" min={1}
+                style={{ width: "100%", padding: ".6rem .85rem", background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 8, color: "#fff", fontSize: ".85rem", outline: "none", boxSizing: "border-box" }} />
+            </div>
+            <div>
+              <label style={{ fontSize: ".72rem", color: "rgba(255,255,255,.45)", fontWeight: 600, display: "block", marginBottom: ".35rem" }}>MAX USES</label>
+              <input type="number" value={rcMaxUses} onChange={(e) => setRcMaxUses(e.target.value)} placeholder="1" min={1}
+                style={{ width: "100%", padding: ".6rem .85rem", background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 8, color: "#fff", fontSize: ".85rem", outline: "none", boxSizing: "border-box" }} />
+            </div>
+            <div style={{ gridColumn: "1/-1" }}>
+              <label style={{ fontSize: ".72rem", color: "rgba(255,255,255,.45)", fontWeight: 600, display: "block", marginBottom: ".35rem" }}>EXPIRES AT (optional)</label>
+              <input type="date" value={rcExpires} onChange={(e) => setRcExpires(e.target.value)}
+                style={{ width: "100%", padding: ".6rem .85rem", background: "rgba(20,20,30,1)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 8, color: "#fff", fontSize: ".85rem", outline: "none", boxSizing: "border-box" }} />
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
+            <button onClick={redeemCodeCreate} disabled={rcCreating} style={{ opacity: rcCreating ? .6 : 1, display: "inline-flex", alignItems: "center", gap: ".5rem", padding: ".6rem 1.2rem", background: "linear-gradient(135deg,#ec4899,#a855f7)", border: "none", borderRadius: 8, color: "#fff", fontSize: ".85rem", fontWeight: 700, cursor: "pointer" }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg> Generate Code
+            </button>
+            {rcStatus && <span style={{ fontSize: ".8rem", color: rcStatus.color }}>{rcStatus.text}</span>}
+          </div>
+        </div>
+
+        <div>
+          {redeemCodes.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "1.5rem", color: "rgba(255,255,255,.3)", fontSize: ".82rem" }}>No redeem codes created yet. Create one above.</div>
+          ) : (
+            <>
+              <div style={{ fontSize: ".72rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "rgba(255,255,255,.35)", marginBottom: ".75rem" }}>{redeemCodes.length} code(s) created</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: ".65rem" }}>
+                {redeemCodes.map((rc) => {
+                  const rcExpired = rc.expiresAt ? new Date(rc.expiresAt).getTime() < rcNow : false;
+                  const rcMaxedOut = rc.usesCount >= rc.maxUses;
+                  const rcStatusPill: [string, string] = !rc.active ? ["Inactive", "#94a3b8"] : rcExpired ? ["Expired", "#ff8080"] : rcMaxedOut ? ["Used up", "#fbbf24"] : ["Active", "#34d399"];
+                  return (
+                    <div key={rc.id} style={{ display: "flex", alignItems: "center", gap: "1rem", padding: ".85rem 1rem", background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.07)", borderRadius: 10, flexWrap: "wrap" }}>
+                      <div style={{ flex: 1, minWidth: 180 }}>
+                        <div style={{ fontWeight: 700, fontSize: ".9rem", color: "#fff", marginBottom: ".25rem", fontFamily: "'Space Mono',monospace", letterSpacing: ".03em" }}>{rc.code}</div>
+                        <div style={{ fontSize: ".75rem", color: "rgba(255,255,255,.45)", display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap" }}>
+                          <span style={{ background: "rgba(236,72,153,.12)", border: "1px solid rgba(236,72,153,.3)", borderRadius: 6, padding: ".1rem .45rem", color: "#ec4899", fontWeight: 700 }}>🪙 {rc.tokens.toLocaleString()} tokens</span>
+                          <span style={{ background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 6, padding: ".1rem .45rem", color: "rgba(255,255,255,.6)" }}>{rc.usesCount}/{rc.maxUses} used</span>
+                          {rc.expiresAt && <span style={{ background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 6, padding: ".1rem .45rem", color: "rgba(255,255,255,.6)" }}>Expires {new Date(rc.expiresAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</span>}
+                          <span style={{ background: `${rcStatusPill[1]}1a`, border: `1px solid ${rcStatusPill[1]}66`, borderRadius: 6, padding: ".1rem .45rem", color: rcStatusPill[1], fontWeight: 600 }}>{rcStatusPill[0]}</span>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexShrink: 0 }}>
+                        <button onClick={() => redeemCodeCopy(rc.code)} title="Copy code"
+                          style={{ display: "inline-flex", alignItems: "center", gap: ".4rem", padding: ".45rem .75rem", background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.12)", borderRadius: 8, color: "rgba(255,255,255,.7)", fontSize: ".78rem", fontWeight: 600, cursor: "pointer" }}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="12" height="12"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                        </button>
+                        <button onClick={() => redeemCodeToggle(rc.id)} title={rc.active ? "Deactivate" : "Activate"}
+                          style={{ display: "inline-flex", alignItems: "center", gap: ".4rem", padding: ".45rem .75rem", background: "rgba(251,191,36,.08)", border: "1px solid rgba(251,191,36,.2)", borderRadius: 8, color: "#fbbf24", fontSize: ".78rem", fontWeight: 600, cursor: "pointer" }}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="12" height="12"><path d="M18.36 6.64a9 9 0 1 1-12.73 0" /><line x1="12" y1="2" x2="12" y2="12" /></svg>
+                        </button>
+                        <button onClick={() => redeemCodeDelete(rc.id, rc.code)} title="Delete"
                           style={{ display: "inline-flex", alignItems: "center", gap: ".4rem", padding: ".45rem .75rem", background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 8, color: "#ef4444", fontSize: ".78rem", fontWeight: 600, cursor: "pointer" }}>
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="12" height="12"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /></svg>
                         </button>

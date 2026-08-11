@@ -18,6 +18,7 @@ type AdminUser = {
 };
 
 type Bundle = { id: number; name: string; price: number; priceType: "euro" | "tokens"; badges: string[]; effects: string[]; premiumDays: number };
+type RedeemCode = { id: number; code: string; tokens: number; maxUses: number; usesCount: number; expiresAt: string | null; active: boolean };
 
 interface Props {
   iAmOwner: boolean;
@@ -30,6 +31,7 @@ interface Props {
   whitelistEnabled: boolean;
   x2EventEnabled: boolean;
   bundles: Bundle[];
+  redeemCodes: RedeemCode[];
   users: AdminUser[];
   page: number;
   totalPages: number;
@@ -416,6 +418,7 @@ export default function AdminClient(props: Props) {
       {props.iAmOwner && tab === "owner" && (
         <OwnerTab
           bundles={props.bundles}
+          redeemCodes={props.redeemCodes}
           whitelistEnabled={whitelistEnabled}
           x2Enabled={x2Enabled}
           wlLoading={wlLoading}
