@@ -133,11 +133,6 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
             </svg>
           </button>
-          <Link href="/dashboard" className="navbar-brand-mobile">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/assets/img/logo-icon.png" alt="" className="brand-logo-icon" />
-            <span>INFECTED.WTF</span>
-          </Link>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
           <div ref={bellWrapRef} style={{ position: "relative" }}>
@@ -152,7 +147,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               {unread > 0 && <span className="notif-badge">{Math.min(unread, 99)}</span>}
             </button>
             {notifOpen && (
-              <div style={{ display: "block", position: "absolute", top: "calc(100% + 10px)", right: 0, width: 320, background: "#13131a", border: "1px solid rgba(255,255,255,.1)", borderRadius: 14, boxShadow: "0 20px 50px rgba(0,0,0,.6)", zIndex: 9998, overflow: "hidden" }}>
+              <div style={{ display: "block", position: "absolute", top: "calc(100% + 10px)", right: 0, width: "min(320px, calc(100vw - 2rem))", background: "#13131a", border: "1px solid rgba(255,255,255,.1)", borderRadius: 14, boxShadow: "0 20px 50px rgba(0,0,0,.6)", zIndex: 9998, overflow: "hidden" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: ".9rem 1rem .7rem", borderBottom: "1px solid rgba(255,255,255,.06)" }}>
                   <span style={{ fontSize: ".9rem", fontWeight: 700, color: "#fff" }}>Notifications</span>
                   <button onClick={markAllRead} style={{ fontSize: ".72rem", color: "var(--accent)", background: "none", border: "none", cursor: "pointer" }}>Mark all read</button>

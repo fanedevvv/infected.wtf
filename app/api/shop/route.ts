@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
 import { getActiveProfileId } from "@/lib/active-profile";
 import { SHOP_BADGES, SHOP_EFFECTS } from "@/lib/shop";
-import { DECORATIONS } from "@/lib/decorations";
+import { DECORATIONS, getCustomDecorationMeta, normalizeDecorationId } from "@/lib/decorations";
 
 export async function GET() {
   let user;
@@ -306,25 +306,31 @@ export async function POST(req: NextRequest) {
 
   // ── Buy decoration ───────────────────────────────────────
   if (action === "buy_decoration") {
-    const id = String(body.decorationId || "");
-    const item = DECORATIONS[id];
-    if (!item) return NextResponse.json({ error: "Invalid decoration." }, { status: 400 });
-    const owned = new Set((profile.decorationsOwned as string[] | null) ?? []);
-    if (owned.has(id)) return NextResponse.json({ error: "Already owned." }, { status: 400 });
-    if (user.tokens < item.price) return NextResponse.json({ error: "Not enough tokens." }, { status: 400 });
+    const id = normalizeDecorationId(String(body.decorationId || "").trim());
+    const staticItem = DECORATIONS[id];
+    const customItem = getCustomDecorationMeta(id);
+    if (!staticItem && !customItem) return NextResponse.json({ error: "Invalid decoration." }, { status: 400 });
 
+    const price = staticItem ? staticItem.price : customItem!.price;
+    const rawOwned = (profile.decorationsOwned as string[] | null) ?? [];
+    const ownedNormalized = new Set(rawOwned.map((v) => normalizeDecorationId(v)));
+    if (ownedNormalized.has(id)) return NextResponse.json({ error: "Already owned." }, { status: 400 });
+    if (user.tokens < price) return NextResponse.json({ error: "Not enough tokens." }, { status: 400 });
+
+    const owned = new Set(rawOwned);
     owned.add(id);
+
     await prisma.$transaction([
-      prisma.user.update({ where: { id: user.id }, data: { tokens: { decrement: item.price }, tokensSpent: { increment: item.price } } }),
+      prisma.user.update({ where: { id: user.id }, data: { tokens: { decrement: price }, tokensSpent: { increment: price } } }),
       prisma.profile.updateMany({ where: { id: activeProfileId }, data: { decorationsOwned: Array.from(owned) } }),
     ]);
-    return NextResponse.json({ success: true, message: "Decoration purchased!", tokens: user.tokens - item.price, decoration_id: id });
+    return NextResponse.json({ success: true, message: "Decoration purchased!", tokens: user.tokens - price, decoration_id: id });
   }
 
   // ── Equip / unequip a decoration ─────────────────────────
   if (action === "equip_decoration") {
-    const id = String(body.decorationId || "");
-    const owned = new Set((profile.decorationsOwned as string[] | null) ?? []);
+    const id = normalizeDecorationId(String(body.decorationId || "").trim());
+    const owned = new Set((((profile.decorationsOwned as string[] | null) ?? [])).map((v) => normalizeDecorationId(v)));
     if (id && !owned.has(id)) return NextResponse.json({ error: "You don't own this decoration." }, { status: 400 });
 
     await prisma.profile.updateMany({ where: { id: activeProfileId }, data: { activeDecoration: id || null } });

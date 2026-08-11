@@ -39,7 +39,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   const discordServerInt = integration && integration.discordServerId && integration.discordServerVisible ? integration : null;
 
   const gameRows = await prisma.integration.findMany({
-    where: { userId: user.id, visible: true, type: { in: ["steam", "roblox", "minecraft", "mcserver", "valorant"] } },
+    where: { userId: user.id, visible: true, type: { in: ["steam", "roblox", "minecraft", "mcserver", "valorant", "twitch"] } },
   });
   const gameIntegrations: GameIntegration[] = [];
   for (const row of gameRows) {

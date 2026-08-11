@@ -2,24 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { showToast } from "@/lib/toast";
+import { SteamIcon, RobloxIcon, MinecraftIcon, ServerIcon, ValorantIcon, TwitchIcon } from "@/components/IntegrationIcons";
 
 type IntegrationRow = { data: Record<string, unknown>; visible: boolean } | null;
-
-const SteamIcon = ({ size = 20 }: { size?: number }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" width={size} height={size}><path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.606 0 11.979 0z" /></svg>
-);
-const RobloxIcon = ({ size = 20 }: { size?: number }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" width={size} height={size}><path d="M4.24 0 0 19.76 19.76 24 24 4.24 4.24 0zm9.55 8.09 2.12 9.62-9.62 2.12L4.17 10.2l9.62-2.11z" /></svg>
-);
-const MinecraftIcon = ({ size = 20 }: { size?: number }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" width={size} height={size}><path d="M2 2h20v20H2V2zm4 4v4h4V6H6zm8 0v4h4V6h-4zM6 14v4h4v-4H6zm8 0v4h4v-4h-4z" /></svg>
-);
-const ServerIcon = ({ size = 20 }: { size?: number }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width={size} height={size}><rect x="2" y="3" width="20" height="7" rx="1" /><rect x="2" y="14" width="20" height="7" rx="1" /><line x1="6" y1="6.5" x2="6" y2="6.5" /><line x1="6" y1="17.5" x2="6" y2="17.5" /></svg>
-);
-const ValorantIcon = ({ size = 20 }: { size?: number }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" width={size} height={size}><path d="M23.75 4.24 14.6 15.94a.36.36 0 0 0-.06.32l1.96 6.87a.35.35 0 0 0 .65.06l6.68-18.75a.35.35 0 0 0-.08-.2zM.32 4.5 9.65 15.5a.36.36 0 0 1 .06.32l-2.04 6.9a.35.35 0 0 1-.65.05L.02 4.7a.35.35 0 0 1 .3-.2z" /></svg>
-);
 
 function GameCard({
   type,
@@ -245,6 +230,24 @@ export default function GameIntegrations() {
               <div className="int-preview-info">
                 <div className="int-preview-name">{String(d.host || "")}</div>
                 <div className="int-preview-sub">{d.online ? `● ${String(d.playersOnline ?? 0)}/${String(d.playersMax ?? 0)} online` : "○ offline (last check)"}</div>
+              </div>
+            </div>
+          )}
+        />
+
+        <GameCard
+          type="twitch"
+          title="Twitch"
+          subtitle="Show your Twitch channel on your profile"
+          color="#9146ff"
+          icon={<TwitchIcon />}
+          fields={[{ name: "username", placeholder: "Twitch username" }]}
+          renderPreview={(d) => (
+            <div className="int-preview-generic">
+              <div className="int-preview-avatar"><TwitchIcon size={16} /></div>
+              <div className="int-preview-info">
+                <div className="int-preview-name">{String(d.username || "")}</div>
+                <div className="int-preview-sub">twitch.tv/{String(d.username || "")}</div>
               </div>
             </div>
           )}

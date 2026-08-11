@@ -1,5 +1,17 @@
 export type DecorationRarity = "common" | "rare" | "epic" | "legendary";
 
+export type DecorationCategory =
+  | "Seasonal & Holidays"
+  | "Gaming"
+  | "Anime & TV"
+  | "Characters & Mascots"
+  | "Fantasy & Magic"
+  | "Sci-Fi & Tech"
+  | "Animals & Creatures"
+  | "Nature & Floral"
+  | "Food & Drink"
+  | "Aesthetic & Vibe";
+
 export type DecorationDef = {
   name: string;
   price: number;
@@ -45,3 +57,45 @@ export const RARITY_COLOR: Record<DecorationRarity, string> = {
   epic: "#c084fc",
   legendary: "#fbbf24",
 };
+
+export const DECORATION_CATEGORIES: DecorationCategory[] = [
+  "Seasonal & Holidays",
+  "Gaming",
+  "Anime & TV",
+  "Characters & Mascots",
+  "Fantasy & Magic",
+  "Sci-Fi & Tech",
+  "Animals & Creatures",
+  "Nature & Floral",
+  "Food & Drink",
+  "Aesthetic & Vibe",
+];
+
+export function normalizeDecorationId(id: string | null | undefined): string {
+  if (!id) return "";
+  return id.replace(/^(custom_\d+)\.(png|webp|jpe?g|gif)$/i, "$1");
+}
+
+export function getCustomDecorationMeta(id: string) {
+  const normalized = normalizeDecorationId(id);
+  const m = normalized.match(/^custom_(\d+)$/i);
+  if (!m) return null;
+
+  const num = Number.parseInt(m[1], 10);
+  if (!Number.isFinite(num) || num <= 0) return null;
+
+  const category = DECORATION_CATEGORIES[(num - 1) % DECORATION_CATEGORIES.length];
+  const roll = num % 100;
+  const rarity: DecorationRarity = roll < 55 ? "common" : roll < 82 ? "rare" : roll < 95 ? "epic" : "legendary";
+  const priceByRarity: Record<DecorationRarity, number> = { common: 180, rare: 320, epic: 560, legendary: 900 };
+
+  return {
+    id: normalized,
+    number: num,
+    name: `Decoration #${num}`,
+    desc: `${category} avatar decoration from the legacy library.`,
+    category,
+    rarity,
+    price: priceByRarity[rarity],
+  };
+}

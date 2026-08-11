@@ -43,3 +43,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# server-local runtime data (not part of the app source)
+/config/
+/uploads/
