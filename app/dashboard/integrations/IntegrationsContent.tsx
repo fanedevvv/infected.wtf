@@ -74,14 +74,16 @@ export default function IntegrationsContent({
   const [gameRows, setGameRows] = useState<GameRow[]>([]);
 
   useEffect(() => {
-    Promise.all(
-      GAME_TYPES.map((type) =>
-        fetch(`/api/integrations/${type}`)
-          .then((r) => r.json())
-          .then((d) => (d.integration ? { type, data: d.integration.data as Record<string, unknown>, visible: d.integration.visible as boolean } : null))
-          .catch(() => null)
-      )
-    ).then((rows) => setGameRows(rows.filter((r): r is GameRow => r !== null)));
+    for (const type of GAME_TYPES) {
+      fetch(`/api/integrations/${type}`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (!d.integration) return;
+          const row: GameRow = { type, data: d.integration.data as Record<string, unknown>, visible: d.integration.visible as boolean };
+          setGameRows((rows) => [...rows.filter((r) => r.type !== type), row]);
+        })
+        .catch(() => {});
+    }
   }, []);
 
   async function toggleGameVisibility(type: GameType) {

@@ -4,7 +4,7 @@ import path from "path";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { getActiveProfileId } from "@/lib/active-profile";
-import { DECORATION_CATEGORIES, getCustomDecorationMeta, normalizeDecorationId } from "@/lib/decorations";
+import { DECORATIONS } from "@/lib/decorations";
 import DecorationsClient from "./DecorationsClient";
 
 function listGallery(dir: string): string[] {
@@ -25,28 +25,14 @@ export default async function DecorationsPage() {
   if (!profile) redirect("/dashboard");
 
   const owned = (profile.decorationsOwned as string[] | null) ?? [];
-  const files = listGallery("decorations");
-  const seen = new Set<string>();
-  const catalog = files
-    .map((file) => normalizeDecorationId(file.replace(/\.(png|webp|jpe?g|gif)$/i, "")))
-    .map((id) => getCustomDecorationMeta(id))
-    .filter((m): m is NonNullable<typeof m> => Boolean(m))
-    .filter((m) => {
-      if (seen.has(m.id)) return false;
-      seen.add(m.id);
-      return true;
-    })
-    .sort((a, b) => a.number - b.number)
-    .map((m) => ({ id: m.id, name: m.name, price: m.price, rarity: m.rarity, desc: m.desc, category: m.category, owned: owned.includes(m.id) }));
 
   return (
     <DecorationsClient
       tokens={user.tokens}
       avatar={profile.avatar}
-      catalog={catalog}
+      catalog={Object.entries(DECORATIONS).map(([id, d]) => ({ id, ...d, owned: owned.includes(id) }))}
       activeDecoration={profile.activeDecoration}
       ownedDecorationIds={owned}
-      categories={DECORATION_CATEGORIES}
       library={{ decorations: listGallery("decorations"), items: listGallery("items") }}
     />
   );
