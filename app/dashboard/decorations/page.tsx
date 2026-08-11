@@ -47,6 +47,7 @@ export default async function DecorationsPage() {
       activeDecoration={profile.activeDecoration}
       ownedDecorationIds={owned}
       categories={DECORATION_CATEGORIES}
+      library={{ decorations: listGallery("decorations"), items: listGallery("items") }}
     />
   );
 }

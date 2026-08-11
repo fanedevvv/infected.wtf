@@ -34,6 +34,7 @@ export default function DecorationsClient({
   activeDecoration,
   ownedDecorationIds,
   categories,
+  library,
 }: {
   tokens: number;
   avatar: string | null;
@@ -41,8 +42,10 @@ export default function DecorationsClient({
   activeDecoration: string | null;
   ownedDecorationIds: string[];
   categories: DecorationCategory[];
+  library: { decorations: string[]; items: string[] };
 }) {
-  const [tab, setTab] = useState<"shop" | "inventory">("shop");
+  const [tab, setTab] = useState<"shop" | "inventory" | "library">("shop");
+  const [libSet, setLibSet] = useState<"decorations" | "items">("decorations");
   const [tokenBal, setTokenBal] = useState(tokens);
   const [active, setActive] = useState(activeDecoration);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -177,8 +180,40 @@ export default function DecorationsClient({
       <div className="appr-tabbar" style={{ marginBottom: "1.25rem" }}>
         <button type="button" className={`appr-tab ${tab === "shop" ? "active" : ""}`} style={{ border: "none", background: "none", cursor: "pointer" }} onClick={() => setTab("shop")}>Shop</button>
         <button type="button" className={`appr-tab ${tab === "inventory" ? "active" : ""}`} style={{ border: "none", background: "none", cursor: "pointer" }} onClick={() => setTab("inventory")}>My Inventory ({inventoryItems.length})</button>
+        <button type="button" className={`appr-tab ${tab === "library" ? "active" : ""}`} style={{ border: "none", background: "none", cursor: "pointer" }} onClick={() => setTab("library")}>Library</button>
       </div>
 
+      {tab === "library" ? (
+        <div className="dash-card" style={{ padding: "1rem" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: ".75rem", marginBottom: "1rem" }}>
+            <p style={{ margin: 0, fontSize: ".82rem", color: "rgba(255,255,255,.45)" }}>
+              Raw image reference gallery, loaded from <strong>/assets/img/{libSet}</strong> (locked, read-only — not equippable).
+            </p>
+            <div className="appr-tabbar" style={{ margin: 0 }}>
+              <button type="button" className={`appr-tab ${libSet === "decorations" ? "active" : ""}`} style={{ border: "none", background: "none", cursor: "pointer" }} onClick={() => setLibSet("decorations")}>Decorations ({library.decorations.length})</button>
+              <button type="button" className={`appr-tab ${libSet === "items" ? "active" : ""}`} style={{ border: "none", background: "none", cursor: "pointer" }} onClick={() => setLibSet("items")}>Items ({library.items.length})</button>
+            </div>
+          </div>
+          {library[libSet].length === 0 ? (
+            <div style={{ padding: ".9rem 1rem", borderRadius: 12, border: "1px solid rgba(255,255,255,.09)", background: "rgba(255,255,255,.03)", fontSize: ".82rem", color: "rgba(255,255,255,.45)" }}>
+              No images found in /assets/img/{libSet}.
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(128px,1fr))", gap: ".8rem" }}>
+              {library[libSet].map((file) => (
+                <div key={file} style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 12, padding: ".6rem", display: "flex", flexDirection: "column", gap: ".5rem" }}>
+                  <div style={{ aspectRatio: "1/1", borderRadius: 10, overflow: "hidden", background: "#09090f", border: "1px solid rgba(255,255,255,.06)" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={`/assets/img/${libSet}/${encodeURIComponent(file)}`} alt={file} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
+                  </div>
+                  <div style={{ fontSize: ".68rem", color: "rgba(255,255,255,.58)", textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{file}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+      <>
       <div className="dash-card" style={{ padding: "1rem", marginBottom: "1rem" }}>
         <div style={{ display: "flex", flexWrap: "wrap", gap: ".75rem", alignItems: "center", marginBottom: ".85rem" }}>
           <div style={{ flex: "1 1 280px", minWidth: 220, position: "relative" }}>
@@ -270,6 +305,8 @@ export default function DecorationsClient({
           <span style={{ fontSize: ".82rem", color: "rgba(255,255,255,.75)" }}>Page {page} / {totalPages}</span>
           <button type="button" className="shop-buy-btn" style={{ width: "auto", padding: ".45rem .8rem" }} disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Next</button>
         </div>
+      )}
+      </>
       )}
     </>
   );
