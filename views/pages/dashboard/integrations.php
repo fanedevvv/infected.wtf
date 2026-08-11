@@ -504,32 +504,23 @@ ob_start();
             <div style="display:flex;align-items:flex-start;gap:.8rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.85rem;">
                 <div style="width:24px;height:24px;border-radius:7px;background:rgba(88,101,242,.2);border:1px solid rgba(88,101,242,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:800;color:#5865f2;font-size:.78rem;">2</div>
                 <div>
-                    <div style="font-weight:700;color:#fff;font-size:.85rem;margin-bottom:.15rem;">Enter your Discord ID</div>
-                    <div style="color:rgba(255,255,255,.4);font-size:.78rem;">Enable Developer Mode → right-click name → Copy User ID.</div>
+                    <div style="font-weight:700;color:#fff;font-size:.85rem;margin-bottom:.15rem;">Log in with Discord</div>
+                    <div style="color:rgba(255,255,255,.4);font-size:.78rem;">Discord's official login screen — we only ask for your basic profile (identify scope).</div>
                 </div>
             </div>
             <div style="display:flex;align-items:flex-start;gap:.8rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.85rem;">
                 <div style="width:24px;height:24px;border-radius:7px;background:rgba(88,101,242,.2);border:1px solid rgba(88,101,242,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:800;color:#5865f2;font-size:.78rem;">3</div>
                 <div>
                     <div style="font-weight:700;color:#fff;font-size:.85rem;margin-bottom:.15rem;">Bot verifies & syncs</div>
-                    <div style="color:rgba(255,255,255,.4);font-size:.78rem;">The bot confirms you're in the server and pulls your profile data.</div>
+                    <div style="color:rgba(255,255,255,.4);font-size:.78rem;">The bot confirms you're in the server, pulls your profile data and grants the <strong>Cont Infected</strong> role.</div>
                 </div>
             </div>
         </div>
 
-        <!-- Input -->
-        <div style="margin-bottom:.85rem;">
-            <label style="display:block;font-size:.75rem;font-weight:700;color:rgba(255,255,255,.45);margin-bottom:.4rem;letter-spacing:.04em;text-transform:uppercase;">Your Discord User ID</label>
-            <input type="text" id="discord-id-input" placeholder="e.g. 123456789012345678"
-                   style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.7rem .9rem;color:#fff;font-size:.88rem;font-family:inherit;outline:none;transition:border-color .2s;box-sizing:border-box;"
-                   onfocus="this.style.borderColor='rgba(88,101,242,.6)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
-            <div id="discord-connect-error" style="display:none;color:#ed4245;font-size:.78rem;margin-top:.4rem;"></div>
-        </div>
-
-        <button class="int-btn int-btn-discord" id="discord-connect-btn" onclick="connectDiscord()">
+        <a class="int-btn int-btn-discord" href="/api/discord_oauth.php?action=start" style="text-decoration:none;">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 127.14 96.36" width="20" height="20"><path fill="white" d="M107.7 8.07A105.15 105.15 0 0 0 81.47 0a72.06 72.06 0 0 0-3.36 6.83 97.68 97.68 0 0 0-29.11 0A72.37 72.37 0 0 0 45.64 0a105.89 105.89 0 0 0-26.25 8.09C2.79 32.65-1.71 56.6.54 80.21a105.73 105.73 0 0 0 32.17 16.15 77.7 77.7 0 0 0 6.89-11.11 68.42 68.42 0 0 1-10.85-5.18c.91-.66 1.8-1.34 2.66-2a75.57 75.57 0 0 0 64.32 0c.87.71 1.76 1.39 2.66 2a68.68 68.68 0 0 1-10.87 5.19 77 77 0 0 0 6.89 11.1 105.25 105.25 0 0 0 32.19-16.14c2.64-27.38-4.51-51.11-18.9-72.14zM42.45 65.69C36.18 65.69 31 60 31 53s5-12.74 11.43-12.74S54 46 53.89 53s-5.12 12.69-11.44 12.69zm42.24 0C78.41 65.69 73.25 60 73.25 53s5-12.74 11.44-12.74S96.23 46 96.12 53s-5.12 12.69-11.43 12.69z"/></svg>
-            Verify & Connect
-        </button>
+            Login with Discord
+        </a>
     </div>
 </div>
 
@@ -620,44 +611,20 @@ function showToast(msg, type='success') {
     setTimeout(() => t.className = 'int-toast', 3000);
 }
 
-async function connectDiscord() {
-    const discordId = document.getElementById('discord-id-input').value.trim();
-    const errEl     = document.getElementById('discord-connect-error');
-    const btn       = document.getElementById('discord-connect-btn');
-
-    errEl.style.display = 'none';
-    if (!/^\d{17,20}$/.test(discordId)) {
-        errEl.textContent = 'Please enter a valid Discord User ID (17–20 digits).';
-        errEl.style.display = 'block';
-        return;
+// ── Toast after redirect back from /api/discord_oauth.php ─────────────────────
+(function() {
+    const params = new URLSearchParams(location.search);
+    const status  = params.get('discord');
+    if (!status) return;
+    if (status === 'connected') {
+        showToast('Discord connected successfully!');
+    } else if (status === 'error') {
+        showToast(params.get('discord_msg') || 'Could not connect Discord.', 'error');
     }
-
-    btn.disabled = true;
-    btn.textContent = 'Verifying...';
-
-    const fd = new FormData();
-    fd.append('action', 'connect_discord');
-    fd.append('discord_id', discordId);
-
-    try {
-        const res  = await fetch('/api/integrations.php', { method: 'POST', body: fd });
-        const json = await res.json();
-        if (json.success) {
-            closeDiscordModal();
-            showToast('Discord connected successfully!');
-            setTimeout(() => location.reload(), 1200);
-        } else {
-            errEl.textContent = json.error || 'Failed to connect. Make sure you joined the server.';
-            errEl.style.display = 'block';
-            btn.disabled = false;
-            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 127.14 96.36" width="20" height="20"><path fill="white" d="M107.7 8.07A105.15 105.15 0 0 0 81.47 0a72.06 72.06 0 0 0-3.36 6.83 97.68 97.68 0 0 0-29.11 0A72.37 72.37 0 0 0 45.64 0a105.89 105.89 0 0 0-26.25 8.09C2.79 32.65-1.71 56.6.54 80.21a105.73 105.73 0 0 0 32.17 16.15 77.7 77.7 0 0 0 6.89-11.11 68.42 68.42 0 0 1-10.85-5.18c.91-.66 1.8-1.34 2.66-2a75.57 75.57 0 0 0 64.32 0c.87.71 1.76 1.39 2.66 2a68.68 68.68 0 0 1-10.87 5.19 77 77 0 0 0 6.89 11.1 105.25 105.25 0 0 0 32.19-16.14c2.64-27.38-4.51-51.11-18.9-72.14zM42.45 65.69C36.18 65.69 31 60 31 53s5-12.74 11.43-12.74S54 46 53.89 53s-5.12 12.69-11.44 12.69zm42.24 0C78.41 65.69 73.25 60 73.25 53s5-12.74 11.44-12.74S96.23 46 96.12 53s-5.12 12.69-11.43 12.69z"/></svg> Verify & Connect`;
-        }
-    } catch(e) {
-        errEl.textContent = 'Network error. Try again.';
-        errEl.style.display = 'block';
-        btn.disabled = false;
-    }
-}
+    params.delete('discord'); params.delete('discord_msg');
+    const qs = params.toString();
+    history.replaceState({}, '', location.pathname + (qs ? '?' + qs : ''));
+})();
 
 async function toggleVisibility(id, btn) {
     const fd = new FormData();

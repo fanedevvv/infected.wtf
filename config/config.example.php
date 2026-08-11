@@ -18,8 +18,18 @@ define('UPLOADS_PATH', ROOT_PATH . '/uploads');
 define('DISCORD_BOT_TOKEN',     'token');       // Bot token from Discord Developer Portal
 define('DISCORD_GUILD_ID',      'guild');       // Your Discord server ID (right-click server → Copy ID)
 define('DISCORD_SERVER_INVITE', 'discord server'); // Invite link for your server
-define('DISCORD_BOT_URL', '.');
-define('DISCORD_BOT_API_KEY', 'replace-with-your-own-key');
+define('DISCORD_BOT_URL', 'http://127.0.0.1:4001'); // Internal URL of the discord-bot/ Express API
+define('DISCORD_BOT_API_KEY', 'replace-with-your-own-key'); // Must match discord-bot/.env API_KEY
+
+/* ── Discord OAuth2 ("Login with Discord") ── */
+define('DISCORD_CLIENT_ID',     'client_id');
+define('DISCORD_CLIENT_SECRET', 'client_secret');
+define('DISCORD_REDIRECT_URI',  rtrim(SITE_URL, '/') . '/api/discord_oauth.php?action=callback');
+
+/* ── Discord Role IDs ── */
+define('DISCORD_ROLE_INFECTED', 'role_id');
+define('DISCORD_ROLE_PREMIUM',  'role_id');
+define('DISCORD_ROLE_VERIFIED', 'role_id');
 
 /* EMAIL CRYPTION */
 define('EMAIL_ENCRYPTION_KEY',  'replace-with-32-byte-key-for-aes-256'); // 32 bytes → AES-256

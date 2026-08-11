@@ -3,6 +3,7 @@ session_start(["cookie_secure"=>true,"cookie_httponly"=>true,"cookie_samesite"=>
 require_once __DIR__ . '/../core/database.php';
 require_once __DIR__ . '/../core/auth.php';
 require_once __DIR__ . '/../core/helpers.php';
+require_once __DIR__ . '/../core/discord_bot_client.php';
 
 header('Content-Type: application/json');
 
@@ -21,78 +22,12 @@ function err(string $m): void {
 }
 
 /**
- * Make a GET request to the local Discord bot API.
- * Returns [data|null, error_string|null]
+ * Thin wrappers kept for call-site compatibility — the real implementation
+ * now lives in core/discord_bot_client.php (shared with discord_oauth.php
+ * and admin_action.php).
  */
-function botRequest(string $path): array {
-    $botUrl = defined('DISCORD_BOT_URL') ? rtrim(DISCORD_BOT_URL, '/') : 'http://localhost:3000';
-    $apiKey = defined('DISCORD_BOT_API_KEY') ? DISCORD_BOT_API_KEY : '';
-
-    $fullUrl = "{$botUrl}{$path}";
-    $ch = curl_init($fullUrl);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => 8,
-        CURLOPT_CONNECTTIMEOUT => 5,
-        CURLOPT_HTTPHEADER     => [
-            "X-Api-Key: {$apiKey}",
-            "User-Agent: BioLink/1.0",
-        ],
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_SSL_VERIFYHOST => false,
-    ]);
-
-    $res      = curl_exec($ch);
-    $curlErr  = curl_error($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    if ($res === false || $res === '') {
-        return [null, "cURL error (HTTP {$httpCode}): {$curlErr} — URL: {$fullUrl}"];
-    }
-
-    $decoded = json_decode($res, true);
-    return [$decoded, null];
-}
-
-/**
- * Make a POST request (JSON body) to the local Discord bot API.
- * Returns [data|null, error_string|null]
- */
-function botPost(string $path, array $body = []): array {
-    $botUrl = defined('DISCORD_BOT_URL') ? rtrim(DISCORD_BOT_URL, '/') : 'http://localhost:3000';
-    $apiKey = defined('DISCORD_BOT_API_KEY') ? DISCORD_BOT_API_KEY : '';
-
-    $payload = json_encode($body);
-    $fullUrl = "{$botUrl}{$path}";
-    $ch = curl_init($fullUrl);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => 8,
-        CURLOPT_CONNECTTIMEOUT => 5,
-        CURLOPT_POST           => true,
-        CURLOPT_POSTFIELDS     => $payload,
-        CURLOPT_HTTPHEADER     => [
-            "Content-Type: application/json",
-            "X-Api-Key: {$apiKey}",
-            "User-Agent: BioLink/1.0",
-        ],
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_SSL_VERIFYHOST => false,
-    ]);
-
-    $res      = curl_exec($ch);
-    $curlErr  = curl_error($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    if ($res === false || $res === '') {
-        return [null, "cURL error (HTTP {$httpCode}): {$curlErr} — URL: {$fullUrl}"];
-    }
-
-    $decoded = json_decode($res, true);
-    return [$decoded, null];
-}
+function botRequest(string $path): array { return discordBotRequest($path); }
+function botPost(string $path, array $body = []): array { return discordBotPost($path, $body); }
 
 // ── Diagnostic: test bot connectivity (GET or POST, no auth needed) ───────────
 if ($action === 'test_bot') {
@@ -162,6 +97,9 @@ if ($action === 'connect_discord') {
             ->execute([$userId, 'discord', $discordUser, $username, $avatar, $globalName]);
     }
 
+    // ── Grant the "cont infected" role — always, as soon as Discord is linked ──
+    syncDiscordInfectedRole($discordUser, true);
+
     // ── Auto-assign premium role if user has active premium ──────────────────
     $premiumRow = $pdo->prepare("SELECT is_premium, premium_expires_at FROM users WHERE id=?");
     $premiumRow->execute([$userId]);
@@ -223,11 +161,11 @@ if ($action === 'remove_integration') {
         $pdo->prepare("DELETE FROM integrations WHERE id=? AND user_id=?")->execute([$id, $userId]);
     }
 
-    // Remove premium role from Discord when integration is unlinked
+    // Remove premium/verified/infected roles from Discord when integration is unlinked
     if (!empty($intData['discord_user_id'])) {
         botPost('/remove-premium-role', ['discord_id' => $intData['discord_user_id']]);
-        // Revoca si gradul verified de pe server
         botPost('/remove-verified-role', ['discord_id' => $intData['discord_user_id']]);
+        syncDiscordInfectedRole($intData['discord_user_id'], false);
     }
 
     // ── Revoca badge Discord automat ──────────────────────────────────────────

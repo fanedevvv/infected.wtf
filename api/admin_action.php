@@ -10,6 +10,7 @@ require_once ROOT . '/config/config.php';
 require_once ROOT . '/core/database.php';
 require_once ROOT . '/core/auth.php';
 require_once ROOT . '/core/helpers.php';
+require_once ROOT . '/core/discord_bot_client.php';
 
 header('Content-Type: application/json');
 
@@ -494,14 +495,17 @@ switch ($action) {
         if ($days > 0) {
             $until = date('Y-m-d H:i:s', strtotime("+{$days} days"));
             $pdo->prepare("UPDATE users SET banned=1, ban_until=? WHERE id=?")->execute([$until, $targetId]);
+            syncDiscordBanState($pdo, $targetId, true, "Temporary ({$days}d)");
             ok("@{$target['username']} banned for {$days} day(s) (until {$until}).");
         } else {
             $pdo->prepare("UPDATE users SET banned=1, ban_until=NULL WHERE id=?")->execute([$targetId]);
+            syncDiscordBanState($pdo, $targetId, true, 'Permanent');
             ok("@{$target['username']} has been permanently banned.");
         }
 
     case 'unban':
         $pdo->prepare("UPDATE users SET banned=0, ban_until=NULL WHERE id=?")->execute([$targetId]);
+        syncDiscordBanState($pdo, $targetId, false);
         $actorGrade  = $actorIsOwner ? 'owner' : ($actorIsAdmin ? 'admin' : 'mod');
         $targetGrade = $target['is_owner'] ? 'owner' : ($target['is_admin'] ? 'admin' : (!empty($target['is_mod']) ? 'mod' : 'user'));
         notifyBot('unban', $actorId, $actorUsername, $actorGrade, $target['username'], $targetId, $targetGrade);
