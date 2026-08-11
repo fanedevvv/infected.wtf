@@ -8,6 +8,11 @@ import { DecorationFrame } from "@/components/DecorationSVGs";
 
 type CatalogItem = { id: string; name: string; price: number; rarity: DecorationRarity; desc: string; owned: boolean };
 
+function normalizeDecorationId(id: string | null | undefined): string {
+  if (!id) return "";
+  return id.replace(/^(custom_\d+)\.(png|webp|jpe?g|gif)$/i, "$1");
+}
+
 function TokenIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13">
@@ -21,12 +26,14 @@ export default function DecorationsClient({
   avatar,
   catalog,
   activeDecoration,
+  ownedDecorationIds,
   library,
 }: {
   tokens: number;
   avatar: string | null;
   catalog: CatalogItem[];
   activeDecoration: string | null;
+  ownedDecorationIds: string[];
   library: { decorations: string[]; items: string[] };
 }) {
   const [tab, setTab] = useState<"shop" | "inventory" | "library">("shop");
@@ -35,6 +42,28 @@ export default function DecorationsClient({
   const [active, setActive] = useState(activeDecoration);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [items, setItems] = useState(catalog);
+
+  const catalogIds = new Set(items.map((it) => normalizeDecorationId(it.id)));
+  const ownedIdByNormalized = new Map<string, string>();
+  for (const rawId of ownedDecorationIds) {
+    ownedIdByNormalized.set(normalizeDecorationId(rawId), rawId);
+  }
+  const legacyOnlyItems: CatalogItem[] = library.decorations
+    .map((file) => normalizeDecorationId(file.replace(/\.(png|webp|jpe?g|gif)$/i, "")))
+    .filter((id) => /^custom_\d+$/i.test(id) && !catalogIds.has(id))
+    .map((id) => {
+      const ownedRawId = ownedIdByNormalized.get(id);
+      return {
+      id: ownedRawId || id,
+      name: `Decoration #${id.replace(/^custom_/i, "")}`,
+      price: 0,
+      rarity: "common" as const,
+      desc: "Legacy PHP decoration from assets library.",
+      owned: Boolean(ownedRawId),
+    };
+    });
+
+  const allItems = [...items, ...legacyOnlyItems];
 
   async function buy(id: string, price: number) {
     if (tokenBal < price) { showToast("Not enough tokens.", "error"); return; }
@@ -82,7 +111,7 @@ export default function DecorationsClient({
     }
   }
 
-  const inventoryItems = items.filter((it) => it.owned);
+  const inventoryItems = allItems.filter((it) => it.owned);
   const shown = tab === "shop" ? items : inventoryItems;
 
   return (
@@ -102,7 +131,7 @@ export default function DecorationsClient({
           <DecorationFrame id={active} />
         </div>
         <div>
-          <div style={{ fontWeight: 700, color: "#fff" }}>{active ? items.find((i) => i.id === active)?.name || "Active decoration" : "No decoration equipped"}</div>
+          <div style={{ fontWeight: 700, color: "#fff" }}>{active ? allItems.find((i) => normalizeDecorationId(i.id) === normalizeDecorationId(active))?.name || "Active decoration" : "No decoration equipped"}</div>
           {active && (
             <button className="shop-buy-btn" style={{ marginTop: ".5rem", width: "auto", padding: ".5rem 1rem" }} disabled={busyId === "unequip"} onClick={() => equip(null)}>
               {busyId === "unequip" ? "Removing…" : "Remove decoration"}

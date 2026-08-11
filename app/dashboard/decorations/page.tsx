@@ -32,6 +32,7 @@ export default async function DecorationsPage() {
       avatar={profile.avatar}
       catalog={Object.entries(DECORATIONS).map(([id, d]) => ({ id, ...d, owned: owned.includes(id) }))}
       activeDecoration={profile.activeDecoration}
+      ownedDecorationIds={owned}
       library={{ decorations: listGallery("decorations"), items: listGallery("items") }}
     />
   );

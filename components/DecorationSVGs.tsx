@@ -425,8 +425,31 @@ export const DECORATION_SVGS: Record<string, () => React.ReactElement> = {
   dragon_wings: DragonWings,
 };
 
+function legacyDecorationSrc(id: string): string | null {
+  const m = id.match(/^custom_(\d+)(?:\.(png|webp|jpe?g|gif))?$/i);
+  if (!m) return null;
+  const ext = (m[2] || "png").toLowerCase();
+  return `/assets/img/decorations/custom_${m[1]}.${ext}`;
+}
+
 export function DecorationFrame({ id }: { id: string | null | undefined }) {
   if (!id) return null;
+  const legacySrc = legacyDecorationSrc(id);
+  if (legacySrc) {
+    return (
+      <div className="decoration-frame" aria-hidden="true">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={legacySrc}
+          alt=""
+          className="decoration-raster"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).style.display = "none";
+          }}
+        />
+      </div>
+    );
+  }
   const Comp = DECORATION_SVGS[id];
   if (!Comp) return null;
   return (
