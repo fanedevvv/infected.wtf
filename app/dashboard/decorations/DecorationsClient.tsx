@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { showToast } from "@/lib/toast";
 import { RARITY_COLOR } from "@/lib/decorations";
 import type { DecorationRarity } from "@/lib/decorations";
 import { DecorationFrame } from "@/components/DecorationSVGs";
 
 type CatalogItem = { id: string; name: string; price: number; rarity: DecorationRarity; desc: string; owned: boolean };
+const PAGE_SIZE = 48;
 
 function normalizeDecorationId(id: string | null | undefined): string {
   if (!id) return "";
@@ -26,44 +27,18 @@ export default function DecorationsClient({
   avatar,
   catalog,
   activeDecoration,
-  ownedDecorationIds,
-  library,
 }: {
   tokens: number;
   avatar: string | null;
   catalog: CatalogItem[];
   activeDecoration: string | null;
-  ownedDecorationIds: string[];
-  library: { decorations: string[]; items: string[] };
 }) {
-  const [tab, setTab] = useState<"shop" | "inventory" | "library">("shop");
-  const [libSet, setLibSet] = useState<"decorations" | "items">("decorations");
+  const [tab, setTab] = useState<"shop" | "inventory">("shop");
   const [tokenBal, setTokenBal] = useState(tokens);
   const [active, setActive] = useState(activeDecoration);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [items, setItems] = useState(catalog);
-
-  const catalogIds = new Set(items.map((it) => normalizeDecorationId(it.id)));
-  const ownedIdByNormalized = new Map<string, string>();
-  for (const rawId of ownedDecorationIds) {
-    ownedIdByNormalized.set(normalizeDecorationId(rawId), rawId);
-  }
-  const legacyOnlyItems: CatalogItem[] = library.decorations
-    .map((file) => normalizeDecorationId(file.replace(/\.(png|webp|jpe?g|gif)$/i, "")))
-    .filter((id) => /^custom_\d+$/i.test(id) && !catalogIds.has(id))
-    .map((id) => {
-      const ownedRawId = ownedIdByNormalized.get(id);
-      return {
-      id: ownedRawId || id,
-      name: `Decoration #${id.replace(/^custom_/i, "")}`,
-      price: 0,
-      rarity: "common" as const,
-      desc: "Legacy PHP decoration from assets library.",
-      owned: Boolean(ownedRawId),
-    };
-    });
-
-  const allItems = [...items, ...legacyOnlyItems];
+  const [page, setPage] = useState(1);
 
   async function buy(id: string, price: number) {
     if (tokenBal < price) { showToast("Not enough tokens.", "error"); return; }
@@ -111,8 +86,23 @@ export default function DecorationsClient({
     }
   }
 
-  const inventoryItems = allItems.filter((it) => it.owned);
+  const inventoryItems = items.filter((it) => it.owned);
   const shown = tab === "shop" ? items : inventoryItems;
+  const activeNormalized = normalizeDecorationId(active);
+  const totalPages = Math.max(1, Math.ceil(shown.length / PAGE_SIZE));
+
+  useEffect(() => {
+    setPage(1);
+  }, [tab]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
+  const pageItems = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return shown.slice(start, start + PAGE_SIZE);
+  }, [shown, page]);
 
   return (
     <>
@@ -131,7 +121,7 @@ export default function DecorationsClient({
           <DecorationFrame id={active} />
         </div>
         <div>
-          <div style={{ fontWeight: 700, color: "#fff" }}>{active ? allItems.find((i) => normalizeDecorationId(i.id) === normalizeDecorationId(active))?.name || "Active decoration" : "No decoration equipped"}</div>
+          <div style={{ fontWeight: 700, color: "#fff" }}>{active ? items.find((i) => normalizeDecorationId(i.id) === activeNormalized)?.name || "Active decoration" : "No decoration equipped"}</div>
           {active && (
             <button className="shop-buy-btn" style={{ marginTop: ".5rem", width: "auto", padding: ".5rem 1rem" }} disabled={busyId === "unequip"} onClick={() => equip(null)}>
               {busyId === "unequip" ? "Removing…" : "Remove decoration"}
@@ -143,43 +133,13 @@ export default function DecorationsClient({
       <div className="appr-tabbar" style={{ marginBottom: "1.25rem" }}>
         <button type="button" className={`appr-tab ${tab === "shop" ? "active" : ""}`} style={{ border: "none", background: "none", cursor: "pointer" }} onClick={() => setTab("shop")}>Shop</button>
         <button type="button" className={`appr-tab ${tab === "inventory" ? "active" : ""}`} style={{ border: "none", background: "none", cursor: "pointer" }} onClick={() => setTab("inventory")}>My Inventory ({inventoryItems.length})</button>
-        <button type="button" className={`appr-tab ${tab === "library" ? "active" : ""}`} style={{ border: "none", background: "none", cursor: "pointer" }} onClick={() => setTab("library")}>Library</button>
       </div>
 
-      {tab === "library" ? (
-        <div className="dash-card" style={{ padding: "1rem" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: ".75rem", marginBottom: "1rem" }}>
-            <p style={{ margin: 0, fontSize: ".82rem", color: "rgba(255,255,255,.45)" }}>
-              Raw image reference gallery, loaded from <strong>/assets/img/{libSet}</strong> (locked, read-only — not equippable).
-            </p>
-            <div className="appr-tabbar" style={{ margin: 0 }}>
-              <button type="button" className={`appr-tab ${libSet === "decorations" ? "active" : ""}`} style={{ border: "none", background: "none", cursor: "pointer" }} onClick={() => setLibSet("decorations")}>Decorations ({library.decorations.length})</button>
-              <button type="button" className={`appr-tab ${libSet === "items" ? "active" : ""}`} style={{ border: "none", background: "none", cursor: "pointer" }} onClick={() => setLibSet("items")}>Items ({library.items.length})</button>
-            </div>
-          </div>
-          {library[libSet].length === 0 ? (
-            <div style={{ padding: ".9rem 1rem", borderRadius: 12, border: "1px solid rgba(255,255,255,.09)", background: "rgba(255,255,255,.03)", fontSize: ".82rem", color: "rgba(255,255,255,.45)" }}>
-              No images found in /assets/img/{libSet}.
-            </div>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(128px,1fr))", gap: ".8rem" }}>
-              {library[libSet].map((file) => (
-                <div key={file} style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 12, padding: ".6rem", display: "flex", flexDirection: "column", gap: ".5rem" }}>
-                  <div style={{ aspectRatio: "1/1", borderRadius: 10, overflow: "hidden", background: "#09090f", border: "1px solid rgba(255,255,255,.06)" }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={`/assets/img/${libSet}/${encodeURIComponent(file)}`} alt={file} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
-                  </div>
-                  <div style={{ fontSize: ".68rem", color: "rgba(255,255,255,.58)", textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{file}</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      ) : shown.length === 0 ? (
+      {shown.length === 0 ? (
         <p style={{ color: "rgba(255,255,255,.4)", fontSize: ".9rem" }}>You don&apos;t own any decorations yet — visit the Shop tab to buy some.</p>
       ) : (
         <div className="shop-grid">
-          {shown.map((it) => (
+          {pageItems.map((it) => (
             <div key={it.id} className="shop-card" style={{ ["--sc" as string]: RARITY_COLOR[it.rarity] }}>
               <div className="shop-card-glow" />
               <div className="shop-card-top">
@@ -200,7 +160,7 @@ export default function DecorationsClient({
               </div>
               <div className="shop-card-actions" style={{ display: "flex", gap: ".5rem" }}>
                 {it.owned ? (
-                  active === it.id ? (
+                  activeNormalized === normalizeDecorationId(it.id) ? (
                     <div className="shop-card-owned-badge" style={{ flex: 1 }}>EQUIPPED</div>
                   ) : (
                     <button className="shop-buy-btn" disabled={busyId === it.id} onClick={() => equip(it.id)}>
@@ -215,6 +175,34 @@ export default function DecorationsClient({
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {shown.length > PAGE_SIZE && (
+        <div className="dash-card" style={{ marginTop: "1rem", padding: ".85rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: ".75rem", flexWrap: "wrap" }}>
+          <span style={{ fontSize: ".8rem", color: "rgba(255,255,255,.6)" }}>
+            Page {page} / {totalPages} • {shown.length.toLocaleString()} decorations
+          </span>
+          <div style={{ display: "flex", gap: ".5rem" }}>
+            <button
+              type="button"
+              className="shop-buy-btn"
+              style={{ width: "auto", padding: ".45rem .9rem" }}
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              className="shop-buy-btn"
+              style={{ width: "auto", padding: ".45rem .9rem" }}
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
     </>

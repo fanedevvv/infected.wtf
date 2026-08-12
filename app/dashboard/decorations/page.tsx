@@ -4,11 +4,12 @@ import path from "path";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { getActiveProfileId } from "@/lib/active-profile";
-import { DECORATIONS } from "@/lib/decorations";
+import { getCustomDecorationMeta, normalizeDecorationId } from "@/lib/decorations";
+import { DISCORD_DECORATION_NAMES } from "@/lib/discord-decoration-names";
 import DecorationsClient from "./DecorationsClient";
 
-function listGallery(dir: string): string[] {
-  const abs = path.join(process.cwd(), "public", "assets", "img", dir);
+function listDecorationFiles(): string[] {
+  const abs = path.join(process.cwd(), "public", "assets", "img", "decorations");
   if (!fs.existsSync(abs)) return [];
   return fs
     .readdirSync(abs)
@@ -25,15 +26,41 @@ export default async function DecorationsPage() {
   if (!profile) redirect("/dashboard");
 
   const owned = (profile.decorationsOwned as string[] | null) ?? [];
+  const seen = new Set<string>();
+  const catalog = listDecorationFiles()
+    .map((file) => normalizeDecorationId(file.replace(/\.(png|webp|jpe?g|gif)$/i, "")))
+    .map((id) => {
+      const meta = getCustomDecorationMeta(id);
+      if (!meta) return null;
+      const idx = meta.number - 1;
+      const fallback = `Custom Decoration ${meta.number}`;
+      return {
+        id: meta.id,
+        name: DISCORD_DECORATION_NAMES[idx] || fallback,
+        price: meta.price,
+        rarity: meta.rarity,
+        desc: meta.desc,
+      };
+    })
+    .filter((row): row is NonNullable<typeof row> => Boolean(row))
+    .filter((row) => {
+      if (seen.has(row.id)) return false;
+      seen.add(row.id);
+      return true;
+    })
+    .sort((a, b) => {
+      const an = Number((a.id.match(/^custom_(\d+)$/i) || ["", "0"])[1]);
+      const bn = Number((b.id.match(/^custom_(\d+)$/i) || ["", "0"])[1]);
+      return an - bn;
+    })
+    .map((row) => ({ ...row, owned: owned.includes(row.id) }));
 
   return (
     <DecorationsClient
       tokens={user.tokens}
       avatar={profile.avatar}
-      catalog={Object.entries(DECORATIONS).map(([id, d]) => ({ id, ...d, owned: owned.includes(id) }))}
+      catalog={catalog}
       activeDecoration={profile.activeDecoration}
-      ownedDecorationIds={owned}
-      library={{ decorations: listGallery("decorations"), items: listGallery("items") }}
     />
   );
 }
