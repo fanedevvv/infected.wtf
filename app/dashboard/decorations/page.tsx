@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { getActiveProfileId } from "@/lib/active-profile";
 import { getCustomDecorationMeta, normalizeDecorationId } from "@/lib/decorations";
-import { DISCORD_DECORATION_NAMES } from "@/lib/discord-decoration-names";
+import { getDiscordDecorationNameById } from "@/lib/discord-decoration-names";
 import DecorationsClient from "./DecorationsClient";
 
 function listDecorationFiles(): string[] {
@@ -32,11 +32,11 @@ export default async function DecorationsPage() {
     .map((id) => {
       const meta = getCustomDecorationMeta(id);
       if (!meta) return null;
-      const idx = meta.number - 1;
-      const fallback = `Custom Decoration ${meta.number}`;
+      const name = getDiscordDecorationNameById(meta.id);
+      if (!name) return null;
       return {
         id: meta.id,
-        name: DISCORD_DECORATION_NAMES[idx] || fallback,
+        name,
         price: meta.price,
         rarity: meta.rarity,
         desc: meta.desc,

@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
     const file = form.get("background");
     if (!(file instanceof File)) return err("Background upload error.");
     if (file.size > 100 * 1024 * 1024) return err("Max 100MB.");
-    const exts: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif", "video/mp4": "mp4" };
+    const exts: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif", "video/mp4": "mp4", "video/webm": "webm" };
     const ext = exts[file.type];
     if (!ext) return err("Unsupported type.");
 
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
     const fname = `bg_${userId}_${Date.now()}.${ext}`;
     await saveFile("backgrounds", fname, Buffer.from(await file.arrayBuffer()));
     const relPath = `uploads/backgrounds/${fname}`;
-    const bgType = file.type === "video/mp4" ? "video" : "image";
+    const bgType = file.type === "video/mp4" || file.type === "video/webm" ? "video" : "image";
     await prisma.profile.updateMany({ where: { id: activeProfileId }, data: { backgroundType: bgType, backgroundValue: relPath } });
     return ok({ path: relPath, url: `/${relPath}` });
   }

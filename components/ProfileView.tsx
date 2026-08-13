@@ -228,7 +228,8 @@ export default function ProfileView(p: ProfileViewProps) {
         ? { backgroundImage: `url(/${p.backgroundValue})`, backgroundSize: "cover", backgroundPosition: "center" }
         : { background: p.backgroundColor };
 
-  const effectiveLayout = p.layoutTemplate === "wide" && !p.isPremium ? "classic" : p.layoutTemplate;
+  const PREMIUM_LAYOUTS = ["wide", "aurora", "cinematic"];
+  const effectiveLayout = PREMIUM_LAYOUTS.includes(p.layoutTemplate) && !p.isPremium ? "classic" : p.layoutTemplate;
 
   const paletteVars = {
     ["--accent" as string]: p.accentColor,
@@ -286,8 +287,7 @@ export default function ProfileView(p: ProfileViewProps) {
         <div className={`profile-wrapper profile-wrapper--${effectiveLayout}`}>
           <div className={`profile-card profile-card--${effectiveLayout}`} ref={cardRef}>
             {p.banner && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={`/${p.banner}`} alt="" className="profile-banner-img fade-in" />
+              <div className="profile-banner-img fade-in" style={{ backgroundImage: `url(/${p.banner})` }} />
             )}
             <div className={`avatar-wrapper fade-in avatar-shape-${p.avatarShape} ${p.banner ? "avatar-wrapper--with-banner" : ""}`}>
               {!hasActiveAvatarEffect && p.isPremium && p.avatarRing === "premium" ? (

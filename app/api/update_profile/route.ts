@@ -26,7 +26,8 @@ async function deleteFile(relPath: string | null | undefined) {
 
 const ALLOWED_FONTS = ["Syne", "Outfit", "Space Mono", "Rajdhani", "Orbitron", "Bebas Neue", "Exo 2", "Josefin Sans"];
 const ALLOWED_TEXT_EFFECTS = ["none", "glow", "rainbow", "shake", "glitch", "scramble", "shine", "typewriter", "flip"];
-const ALLOWED_LAYOUTS = ["classic", "minimal", "compact", "split", "frame", "stacked", "wide"];
+const ALLOWED_LAYOUTS = ["classic", "minimal", "compact", "split", "frame", "stacked", "outline", "mono", "wide", "aurora", "cinematic"];
+const PREMIUM_LAYOUTS = ["wide", "aurora", "cinematic"];
 
 export async function POST(req: NextRequest) {
   let user;
@@ -89,8 +90,8 @@ export async function POST(req: NextRequest) {
     let layoutTemplate = String(form.get("layout_template") || "classic").trim();
     if (!ALLOWED_LAYOUTS.includes(layoutTemplate)) layoutTemplate = "classic";
     const isPremium = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date());
-    if (layoutTemplate === "wide" && !isPremium) {
-      return err("Wide layout is a Premium feature.");
+    if (PREMIUM_LAYOUTS.includes(layoutTemplate) && !isPremium) {
+      return err("This layout is a Premium feature.");
     }
     await prisma.profile.updateMany({ where: { id: activeProfileId }, data: { layoutTemplate } });
     return ok("Layout saved!");
@@ -121,7 +122,7 @@ export async function POST(req: NextRequest) {
     let layoutTemplate = String(form.get("layout_template") || "classic").trim();
     if (!ALLOWED_LAYOUTS.includes(layoutTemplate)) layoutTemplate = "classic";
     const isPremium = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date());
-    if (layoutTemplate === "wide" && !isPremium) layoutTemplate = "classic";
+    if (PREMIUM_LAYOUTS.includes(layoutTemplate) && !isPremium) layoutTemplate = "classic";
     let avatar = String(form.get("avatar") || "").trim();
     if (avatar && !/^uploads\/avatars\/[a-zA-Z0-9_\-.]+$/.test(avatar)) avatar = "";
     const bgImg = String(form.get("background_image") || "").trim();

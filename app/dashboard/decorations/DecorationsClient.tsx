@@ -8,6 +8,14 @@ import { DecorationFrame } from "@/components/DecorationSVGs";
 
 type CatalogItem = { id: string; name: string; price: number; rarity: DecorationRarity; desc: string; owned: boolean };
 const PAGE_SIZE = 48;
+const RARITY_ORDER: Record<DecorationRarity, number> = {
+  common: 0,
+  rare: 1,
+  epic: 2,
+  legendary: 3,
+};
+
+type SortMode = "rarity" | "price_asc" | "price_desc" | "alpha";
 
 function normalizeDecorationId(id: string | null | undefined): string {
   if (!id) return "";
@@ -39,6 +47,8 @@ export default function DecorationsClient({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [items, setItems] = useState(catalog);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<SortMode>("rarity");
 
   async function buy(id: string, price: number) {
     if (tokenBal < price) { showToast("Not enough tokens.", "error"); return; }
@@ -87,13 +97,24 @@ export default function DecorationsClient({
   }
 
   const inventoryItems = items.filter((it) => it.owned);
-  const shown = tab === "shop" ? items : inventoryItems;
   const activeNormalized = normalizeDecorationId(active);
-  const totalPages = Math.max(1, Math.ceil(shown.length / PAGE_SIZE));
+  const visibleItems = useMemo(() => {
+    const source = tab === "shop" ? items : inventoryItems;
+    const query = search.trim().toLowerCase();
+    const filtered = query ? source.filter((item) => item.name.toLowerCase().includes(query)) : source;
+
+    return [...filtered].sort((a, b) => {
+      if (sortBy === "price_asc") return a.price - b.price || a.name.localeCompare(b.name);
+      if (sortBy === "price_desc") return b.price - a.price || a.name.localeCompare(b.name);
+      if (sortBy === "alpha") return a.name.localeCompare(b.name) || RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity];
+      return RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity] || a.name.localeCompare(b.name);
+    });
+  }, [tab, items, inventoryItems, search, sortBy]);
+  const totalPages = Math.max(1, Math.ceil(visibleItems.length / PAGE_SIZE));
 
   useEffect(() => {
     setPage(1);
-  }, [tab]);
+  }, [tab, search, sortBy]);
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
@@ -101,8 +122,8 @@ export default function DecorationsClient({
 
   const pageItems = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE;
-    return shown.slice(start, start + PAGE_SIZE);
-  }, [shown, page]);
+    return visibleItems.slice(start, start + PAGE_SIZE);
+  }, [visibleItems, page]);
 
   return (
     <>
@@ -135,8 +156,55 @@ export default function DecorationsClient({
         <button type="button" className={`appr-tab ${tab === "inventory" ? "active" : ""}`} style={{ border: "none", background: "none", cursor: "pointer" }} onClick={() => setTab("inventory")}>My Inventory ({inventoryItems.length})</button>
       </div>
 
-      {shown.length === 0 ? (
-        <p style={{ color: "rgba(255,255,255,.4)", fontSize: ".9rem" }}>You don&apos;t own any decorations yet — visit the Shop tab to buy some.</p>
+      <div className="dash-card decorations-controls" style={{ marginBottom: "1.25rem" }}>
+        <div className="decorations-search-wrap">
+          <input
+            className="form-control decorations-search-input"
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name"
+            aria-label="Search decorations by name"
+          />
+          <select
+            className="form-control decorations-sort-select"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortMode)}
+            aria-label="Sort decorations"
+          >
+            <option value="rarity">Sort by rarity</option>
+            <option value="price_asc">Price: low to high</option>
+            <option value="price_desc">Price: high to low</option>
+            <option value="alpha">Alphabetical</option>
+          </select>
+        </div>
+        <div className="decorations-controls-meta">
+          <span>
+            Showing {visibleItems.length.toLocaleString()} {visibleItems.length === 1 ? "decoration" : "decorations"}
+          </span>
+          {(search || sortBy !== "rarity") && (
+            <button
+              type="button"
+              className="decorations-reset-btn"
+              onClick={() => {
+                setSearch("");
+                setSortBy("rarity");
+              }}
+            >
+              Reset
+            </button>
+          )}
+        </div>
+      </div>
+
+      {visibleItems.length === 0 ? (
+        <p style={{ color: "rgba(255,255,255,.4)", fontSize: ".9rem" }}>
+          {search.trim()
+            ? "No decorations match your search."
+            : tab === "inventory"
+              ? "You don&apos;t own any decorations yet — visit the Shop tab to buy some."
+              : "No decorations available."}
+        </p>
       ) : (
         <div className="shop-grid">
           {pageItems.map((it) => (
@@ -178,10 +246,10 @@ export default function DecorationsClient({
         </div>
       )}
 
-      {shown.length > PAGE_SIZE && (
+      {visibleItems.length > PAGE_SIZE && (
         <div className="dash-card" style={{ marginTop: "1rem", padding: ".85rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: ".75rem", flexWrap: "wrap" }}>
           <span style={{ fontSize: ".8rem", color: "rgba(255,255,255,.6)" }}>
-            Page {page} / {totalPages} • {shown.length.toLocaleString()} decorations
+            Page {page} / {totalPages} • {visibleItems.length.toLocaleString()} decorations
           </span>
           <div style={{ display: "flex", gap: ".5rem" }}>
             <button

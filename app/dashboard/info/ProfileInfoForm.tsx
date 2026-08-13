@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { showToast } from "@/lib/toast";
 
 const FONTS = ["Syne", "Outfit", "Space Mono", "Rajdhani", "Orbitron", "Bebas Neue", "Exo 2", "Josefin Sans"];
-const LAYOUT_TEMPLATES = ["classic", "minimal", "compact", "split", "frame", "stacked", "wide"] as const;
+const LAYOUT_TEMPLATES = ["classic", "minimal", "compact", "split", "frame", "stacked", "outline", "mono", "wide", "aurora", "cinematic"] as const;
+const PREMIUM_LAYOUT_TEMPLATES = ["wide", "aurora", "cinematic"] as const;
 
 type Props = {
   tab: string;
@@ -242,7 +243,7 @@ export default function ProfileInfoForm(props: Props) {
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       const j = await res.json();
       if (j.success) {
-        setBgType(file.type === "video/mp4" ? "video" : "image");
+        setBgType(file.type === "video/mp4" || file.type === "video/webm" ? "video" : "image");
         setBgValue(j.path);
         showToast("Background updated!", "success");
       } else {
@@ -333,8 +334,8 @@ export default function ProfileInfoForm(props: Props) {
   }
 
   async function selectLayoutTemplate(tpl: string) {
-    if (tpl === "wide" && !props.isPremium) {
-      showToast("Wide layout is a Premium feature.", "error");
+    if (PREMIUM_LAYOUT_TEMPLATES.includes(tpl as (typeof PREMIUM_LAYOUT_TEMPLATES)[number]) && !props.isPremium) {
+      showToast("This layout is a Premium feature.", "error");
       return;
     }
     if (!LAYOUT_TEMPLATES.includes(tpl as (typeof LAYOUT_TEMPLATES)[number])) {
@@ -509,11 +510,11 @@ export default function ProfileInfoForm(props: Props) {
                     <div className="upload-placeholder">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="30" height="30"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
                       <span>{bgUploading ? "Uploading…" : "Upload background"}</span>
-                      <span className="upload-hint">img · mp4 · webm · 50MB</span>
+                      <span className="upload-hint">img · mp4 · webm · 100MB</span>
                     </div>
                   )}
                 </div>
-                <input ref={bgInputRef} type="file" accept="image/*,video/mp4" style={{ display: "none" }} onChange={handleBgChange} />
+                <input ref={bgInputRef} type="file" accept="image/*,video/mp4,video/webm" style={{ display: "none" }} onChange={handleBgChange} />
               </div>
 
               <label className="visuals-label" style={{ marginTop: "1.1rem" }}>Banner</label>
@@ -738,7 +739,11 @@ export default function ProfileInfoForm(props: Props) {
               { id: "split", label: "Split", premium: false, desc: "A left-leaning composition for a more editorial profile feel.", features: ["Left aligned text", "Broader card", "Modern profile feel"] },
               { id: "frame", label: "Frame", premium: false, desc: "A bold accent-colored double border around your card.", features: ["Accent-colored frame", "Extra padding", "Statement look"] },
               { id: "stacked", label: "Stacked", premium: false, desc: "A taller banner with your avatar overlapping dramatically.", features: ["Bigger banner", "Overlapping avatar", "Bold entrance"] },
+              { id: "outline", label: "Outline", premium: false, desc: "A crisp accent-colored outline, no blur — fast and simple.", features: ["Accent outline border", "No blur or shadow", "Lightweight"] },
+              { id: "mono", label: "Mono", premium: false, desc: "Flat, solid, high-contrast card with zero frills.", features: ["Solid flat background", "No gradients", "Fastest to load"] },
               { id: "wide", label: "Wide", premium: true, desc: "A wider card with room for multi-column content.", features: ["1040px wide card", "3-column integrations", "Premium exclusive"] },
+              { id: "aurora", label: "Aurora", premium: true, desc: "A glowing ambient halo in your accent color surrounds the card.", features: ["Ambient glow halo", "Heavy glass blur", "Premium exclusive"] },
+              { id: "cinematic", label: "Cinematic", premium: true, desc: "A dramatic full-bleed hero banner with a cinematic gradient fade.", features: ["280px hero banner", "Gradient fade overlay", "Premium exclusive"] },
             ].map((t) => {
               const locked = t.premium && !props.isPremium;
               return (
