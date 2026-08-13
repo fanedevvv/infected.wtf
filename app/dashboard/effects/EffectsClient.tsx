@@ -142,26 +142,57 @@ export default function EffectsClient(props: Props) {
   const [ring, setRing] = useState(props.avatarRing);
   const [shape, setShape] = useState(props.avatarShape);
   const [active, setActive] = useState<Record<string, string>>(props.activeEffects);
-  const [busyEffectId, setBusyEffectId] = useState<string | null>(null);
+  const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const original = useRef({
+    particle: props.particleEffect,
+    cursorTrail: props.cursorTrail,
+    nameEffect: props.nameEffect,
+    bioEffect: props.bioEffect,
+    ring: props.avatarRing,
+    shape: props.avatarShape,
+    bg: props.activeEffects.bg ?? null,
+    cursor: props.activeEffects.cursor ?? null,
+    avatar: props.activeEffects.avatar ?? null,
+  });
 
   const owned = new Set(props.purchasedEffects);
 
-  async function saveFree(next: { particle?: boolean; cursorTrail?: boolean; ring?: string; nameEffect?: string; bioEffect?: string }) {
-    const fd = new FormData();
-    fd.append("action", "effects-form");
-    if (next.particle ?? particle) fd.append("particle_effect", "1");
-    if (next.cursorTrail ?? cursorTrail) fd.append("cursor_trail", "1");
-    fd.append("avatar_ring", next.ring ?? ring);
-    fd.append("name_effect", next.nameEffect ?? nameEffect);
-    fd.append("bio_effect", next.bioEffect ?? bioEffect);
-    try {
-      const res = await fetch("/api/update_profile", { method: "POST", body: fd });
-      const j = await res.json();
-      if (!j.success) showToast(j.error || "Error", "error");
-    } catch {
-      showToast("Network error", "error");
-    }
+  function checkDirty(next?: {
+    particle?: boolean;
+    cursorTrail?: boolean;
+    nameEffect?: string;
+    bioEffect?: string;
+    ring?: string;
+    shape?: string;
+    active?: Record<string, string>;
+  }) {
+    const curParticle = next?.particle ?? particle;
+    const curCursorTrail = next?.cursorTrail ?? cursorTrail;
+    const curNameEffect = next?.nameEffect ?? nameEffect;
+    const curBioEffect = next?.bioEffect ?? bioEffect;
+    const curRing = next?.ring ?? ring;
+    const curShape = next?.shape ?? shape;
+    const curActive = next?.active ?? active;
+    const o = original.current;
+    const isDirty =
+      curParticle !== o.particle ||
+      curCursorTrail !== o.cursorTrail ||
+      curNameEffect !== o.nameEffect ||
+      curBioEffect !== o.bioEffect ||
+      curRing !== o.ring ||
+      curShape !== o.shape ||
+      (curActive.bg ?? null) !== o.bg ||
+      (curActive.cursor ?? null) !== o.cursor ||
+      (curActive.avatar ?? null) !== o.avatar;
+    setDirty(isDirty);
   }
+
+  useEffect(() => {
+    checkDirty();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [particle, cursorTrail, nameEffect, bioEffect, ring, shape, active]);
 
   function togglePar() {
     const on = !particle;
@@ -173,7 +204,6 @@ export default function EffectsClient(props: Props) {
         return n;
       });
     }
-    saveFree({ particle: on });
   }
   function toggleCur() {
     const on = !cursorTrail;
@@ -185,15 +215,12 @@ export default function EffectsClient(props: Props) {
         return n;
       });
     }
-    saveFree({ cursorTrail: on });
   }
   function selectNameEffect(id: string) {
     setNameEffect(id);
-    saveFree({ nameEffect: id });
   }
   function selectBioEffect(id: string) {
     setBioEffect(id);
-    saveFree({ bioEffect: id });
   }
   function toggleRing(type: "normal" | "premium") {
     const newRing = ring === type ? "none" : type;
@@ -205,14 +232,11 @@ export default function EffectsClient(props: Props) {
         return n;
       });
     }
-    saveFree({ ring: newRing });
   }
 
-  async function togglePurchased(effectId: string, effectType: "bg" | "cursor" | "avatar") {
+  function togglePurchased(effectId: string, effectType: "bg" | "cursor" | "avatar") {
     const isActive = active[effectType] === effectId;
     const newId = isActive ? null : effectId;
-
-    setBusyEffectId(effectId);
 
     setActive((a) => {
       const n = { ...a };
@@ -225,41 +249,95 @@ export default function EffectsClient(props: Props) {
       if (effectType === "cursor") setCursorTrail(false);
       if (effectType === "avatar") setRing("none");
     }
+  }
 
+  function selectShape(newShape: string) {
+    setShape(newShape);
+  }
+
+  async function saveChanges() {
+    setSaving(true);
     try {
-      const res = await fetch("/api/shop", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "equip_effect", effectId: newId ?? "", slot: effectType }),
-      });
-      const j = await res.json();
-      if (!j.success) showToast(j.error || "Error", "error");
+      const freeFd = new FormData();
+      freeFd.append("action", "effects-form");
+      if (particle) freeFd.append("particle_effect", "1");
+      if (cursorTrail) freeFd.append("cursor_trail", "1");
+      freeFd.append("avatar_ring", ring);
+      freeFd.append("name_effect", nameEffect);
+      freeFd.append("bio_effect", bioEffect);
+
+      const freeRes = await fetch("/api/update_profile", { method: "POST", body: freeFd });
+      const freeJson = await freeRes.json();
+      if (!freeJson.success) {
+        showToast(freeJson.error || "Error", "error");
+        return;
+      }
+
+      const shapeFd = new FormData();
+      shapeFd.append("action", "save_avatar_shape");
+      shapeFd.append("avatar_shape", shape);
+      const shapeRes = await fetch("/api/update_profile", { method: "POST", body: shapeFd });
+      const shapeJson = await shapeRes.json();
+      if (!shapeJson.success) {
+        showToast(shapeJson.error || "Error", "error");
+        return;
+      }
+
+      const slots: Array<"bg" | "cursor" | "avatar"> = ["bg", "cursor", "avatar"];
+      for (const slot of slots) {
+        const nextId = active[slot] ?? null;
+        const prevId = original.current[slot];
+        if (nextId === prevId) continue;
+        const equipRes = await fetch("/api/shop", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "equip_effect", effectId: nextId ?? "", slot }),
+        });
+        const equipJson = await equipRes.json();
+        if (!equipJson.success) {
+          showToast(equipJson.error || "Error", "error");
+          return;
+        }
+      }
+
+      original.current = {
+        particle,
+        cursorTrail,
+        nameEffect,
+        bioEffect,
+        ring,
+        shape,
+        bg: active.bg ?? null,
+        cursor: active.cursor ?? null,
+        avatar: active.avatar ?? null,
+      };
+      checkDirty();
+      showToast("Changes saved!", "success");
     } catch {
       showToast("Network error", "error");
     } finally {
-      setBusyEffectId(null);
+      setSaving(false);
     }
   }
 
-  function Spinner() {
-    return (
-      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="9" opacity="0.18" />
-        <path d="M21 12a9 9 0 0 0-9-9">
-          <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.8s" repeatCount="indefinite" />
-        </path>
-      </svg>
-    );
-  }
-
-  async function selectShape(newShape: string) {
-    setShape(newShape);
-    const fd = new FormData();
-    fd.append("action", "save_avatar_shape");
-    fd.append("avatar_shape", newShape);
-    try {
-      await fetch("/api/update_profile", { method: "POST", body: fd });
-    } catch {}
+  function resetChanges() {
+    const o = original.current;
+    setParticle(o.particle);
+    setCursorTrail(o.cursorTrail);
+    setNameEffect(o.nameEffect);
+    setBioEffect(o.bioEffect);
+    setRing(o.ring);
+    setShape(o.shape);
+    setActive((prev) => {
+      const next = { ...prev };
+      if (o.bg) next.bg = o.bg;
+      else delete next.bg;
+      if (o.cursor) next.cursor = o.cursor;
+      else delete next.cursor;
+      if (o.avatar) next.avatar = o.avatar;
+      else delete next.avatar;
+      return next;
+    });
   }
 
   function PurchasedEffectGrid({ ids, type }: { ids: string[]; type: "bg" | "cursor" | "avatar" }) {
@@ -287,16 +365,8 @@ export default function EffectsClient(props: Props) {
               <div className="effect-card-desc">{e.desc}</div>
               {isOwned ? (
                 <div className="effect-toggle-wrap">
-                  <span className="effect-toggle-text">{busyEffectId === id ? "Updating…" : isActive ? "Enabled" : "Disabled"}</span>
-                  <div style={{ opacity: busyEffectId === id ? 0.7 : 1 }}>
-                    {busyEffectId === id ? (
-                      <div className="effect-toggle-switch active" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <Spinner />
-                      </div>
-                    ) : (
-                      <ToggleSwitch active={isActive} onClick={() => togglePurchased(id, type)} />
-                    )}
-                  </div>
+                  <span className="effect-toggle-text">{isActive ? "Enabled" : "Disabled"}</span>
+                  <ToggleSwitch active={isActive} onClick={() => togglePurchased(id, type)} />
                 </div>
               ) : (
                 <a href="/dashboard?page=shop#effects" className="pef-buy-link">
@@ -472,6 +542,17 @@ export default function EffectsClient(props: Props) {
       </div>
       </>
       )}
+
+      <div className={`unsaved-bar ${dirty ? "visible" : ""}`}>
+        <span className="unsaved-bar-text">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="15" height="15" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+          You have unsaved changes!
+        </span>
+        <div className="unsaved-bar-actions">
+          <button className="btn btn-secondary btn-sm" onClick={resetChanges}>Reset</button>
+          <button className="btn btn-primary btn-sm" onClick={saveChanges} disabled={saving}>{saving ? "Saving…" : "Save Changes"}</button>
+        </div>
+      </div>
     </>
   );
 }

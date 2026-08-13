@@ -119,6 +119,8 @@ export async function POST(req: NextRequest) {
     }
     let font = String(form.get("profile_font") || "Syne").trim();
     if (!ALLOWED_FONTS.includes(font)) font = "Syne";
+    let playlistStyle = String(form.get("playlist_style") || "glow").trim();
+    if (!["glow", "compact", "vinyl"].includes(playlistStyle)) playlistStyle = "glow";
     let layoutTemplate = String(form.get("layout_template") || "classic").trim();
     if (!ALLOWED_LAYOUTS.includes(layoutTemplate)) layoutTemplate = "classic";
     const isPremium = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date());
@@ -147,6 +149,7 @@ export async function POST(req: NextRequest) {
         job: job || null,
         birthDate,
         profileFont: font,
+        playlistStyle,
         layoutTemplate,
         avatar: avatar || null,
         profileOpacity: opacity,

@@ -65,6 +65,7 @@ export default function ProfileInfoForm(props: Props) {
     birthDate: props.birthDate,
     bio: props.bio,
     font: props.profileFont,
+    playlistStyle: props.playlistStyle,
     layoutTemplate: props.layoutTemplate,
     opacity: props.profileOpacity,
     blur: props.profileBlur,
@@ -100,6 +101,7 @@ export default function ProfileInfoForm(props: Props) {
       birthDate,
       bio,
       font,
+      playlistStyle,
       layoutTemplate,
       opacity,
       blur,
@@ -118,6 +120,7 @@ export default function ProfileInfoForm(props: Props) {
       cur.birthDate !== o.birthDate ||
       cur.bio !== o.bio ||
       cur.font !== o.font ||
+      cur.playlistStyle !== o.playlistStyle ||
       cur.layoutTemplate !== o.layoutTemplate ||
       cur.opacity !== o.opacity ||
       cur.accentColor !== o.accentColor ||
@@ -132,7 +135,7 @@ export default function ProfileInfoForm(props: Props) {
   useEffect(() => {
     checkDirty();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [displayName, location, job, birthDate, bio, font, layoutTemplate, opacity, blur, accentColor, backgroundColor, nameColor, bioColor, overlayColor]);
+  }, [displayName, location, job, birthDate, bio, font, playlistStyle, layoutTemplate, opacity, blur, accentColor, backgroundColor, nameColor, bioColor, overlayColor]);
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -321,16 +324,6 @@ export default function ProfileInfoForm(props: Props) {
 
   async function selectPlaylistStyle(style: string) {
     setPlaylistStyle(style);
-    try {
-      const fd = new FormData();
-      fd.append("action", "set_playlist_style");
-      fd.append("playlist_style", style);
-      const r = await fetch("/api/update_profile", { method: "POST", body: fd });
-      const j = await r.json();
-      if (!j.success) showToast(j.error || "Error", "error");
-    } catch {
-      showToast("Network error", "error");
-    }
   }
 
   async function selectLayoutTemplate(tpl: string) {
@@ -342,22 +335,7 @@ export default function ProfileInfoForm(props: Props) {
       showToast("Invalid layout.", "error");
       return;
     }
-    const prev = layoutTemplate;
     setLayoutTemplate(tpl);
-    try {
-      const fd = new FormData();
-      fd.append("action", "set_layout_template");
-      fd.append("layout_template", tpl);
-      const r = await fetch("/api/update_profile", { method: "POST", body: fd });
-      const j = await r.json();
-      if (j.success) {
-        original.current.layoutTemplate = tpl;
-        checkDirty();
-      } else { showToast(j.error || "Error", "error"); setLayoutTemplate(prev); }
-    } catch {
-      showToast("Network error", "error");
-      setLayoutTemplate(prev);
-    }
   }
 
   async function handleCursorChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -413,6 +391,7 @@ export default function ProfileInfoForm(props: Props) {
     fd.append("birth_date", birthDate);
     fd.append("bio", bio);
     fd.append("profile_font", font);
+    fd.append("playlist_style", playlistStyle);
     fd.append("layout_template", layoutTemplate);
     fd.append("avatar", avatar || "");
     fd.append("background_image", bgType === "image" ? bgValue : "");
@@ -428,7 +407,7 @@ export default function ProfileInfoForm(props: Props) {
       const j = await res.json();
       if (j.success) {
         showToast("Profile saved!", "success");
-        original.current = { displayName, location, job, birthDate, bio, font, layoutTemplate, opacity, blur, accentColor, backgroundColor, nameColor, bioColor, overlayColor };
+        original.current = { displayName, location, job, birthDate, bio, font, playlistStyle, layoutTemplate, opacity, blur, accentColor, backgroundColor, nameColor, bioColor, overlayColor };
         checkDirty();
       } else {
         showToast(j.error || "Error", "error");
@@ -448,6 +427,7 @@ export default function ProfileInfoForm(props: Props) {
     setBirthDate(o.birthDate);
     setBio(o.bio);
     setFont(o.font);
+    setPlaylistStyle(o.playlistStyle);
     setLayoutTemplate(o.layoutTemplate);
     setOpacity(o.opacity);
     setBlur(o.blur);
@@ -767,7 +747,7 @@ export default function ProfileInfoForm(props: Props) {
                     disabled={locked}
                     onClick={() => selectLayoutTemplate(t.id)}
                   >
-                    {locked ? "🔒 Premium" : layoutTemplate === t.id ? "Applied" : "Apply"}
+                    {locked ? "🔒 Premium" : layoutTemplate === t.id ? "Selected" : "Select"}
                   </button>
                 </div>
               );
