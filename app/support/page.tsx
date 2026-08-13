@@ -41,7 +41,7 @@ export default async function SupportPage() {
           <div className="discord-cta-body">
             <div className="discord-cta-title">Join the INFECTED.WTF Discord</div>
             <div className="discord-cta-desc">Get help with your account, report bugs, suggest features, or just hang out with the community. Our developers are active and respond quickly.</div>
-            <a href="https://discord.gg/BAEpkJ62VM" target="_blank" rel="noopener noreferrer" className="discord-btn">
+            <a href="https://discord.gg/kPx9zWzWez" target="_blank" rel="noopener noreferrer" className="discord-btn">
               <DiscordIcon size={16} fill="currentColor" />
               Join Discord Server
             </a>
@@ -52,19 +52,14 @@ export default async function SupportPage() {
           <div className="team-heading">Meet the Developers</div>
           <div className="team-grid">
             <div className="team-card">
-              <div className="team-avatar team-avatar-cat">C</div>
-              <div>
-                <div className="team-name">CaTaSiLENT</div>
-                <div className="team-role">Lead Developer</div>
-                <span className="team-role-badge role-dev">Developer</span>
+              <div className="team-avatar team-avatar-img">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="https://cdn.discordapp.com/avatars/1443369756462944330/a_cf2b646b85b3e6fc50a9713d98ced037.gif" alt="FanE" />
               </div>
-            </div>
-            <div className="team-card">
-              <div className="team-avatar team-avatar-zeus">Z</div>
               <div>
-                <div className="team-name">Zeus</div>
+                <div className="team-name">FanE</div>
                 <div className="team-role">Developer</div>
-                <span className="team-role-badge role-dev-zeus">Developer</span>
+                <span className="team-role-badge role-dev-fane">Developer</span>
               </div>
             </div>
           </div>

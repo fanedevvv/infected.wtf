@@ -27,7 +27,7 @@ export function HomeNavLinks({ user }: { user?: { username: string } | null }) {
         <Link href="/leaderboard">Leaderboard</Link>
         <Link href="/dashboard?page=shop">Shop</Link>
         <Link href="/partners">Partners</Link>
-        <a href="https://discord.gg/BAEpkJ62VM" target="_blank" rel="noreferrer">Discord</a>
+        <a href="https://discord.gg/kPx9zWzWez" target="_blank" rel="noreferrer">Discord</a>
         <a href="#pricing">Pricing</a>
         {user ? (
           <Link href="/dashboard" className="btn btn-primary btn-sm">Dashboard</Link>
@@ -56,7 +56,7 @@ export function HomeNavLinks({ user }: { user?: { username: string } | null }) {
           <Link href="/leaderboard" onClick={close}>Leaderboard</Link>
           <Link href="/dashboard?page=shop" onClick={close}>Shop</Link>
           <Link href="/partners" onClick={close}>Partners</Link>
-          <a href="https://discord.gg/BAEpkJ62VM" target="_blank" rel="noreferrer" onClick={close}>Discord</a>
+          <a href="https://discord.gg/kPx9zWzWez" target="_blank" rel="noreferrer" onClick={close}>Discord</a>
           <a href="#pricing" onClick={close}>Pricing</a>
           {user ? (
             <Link href="/dashboard" className="btn btn-primary btn-sm" onClick={close}>Dashboard</Link>

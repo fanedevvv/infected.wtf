@@ -26,14 +26,14 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
 
   if (!isOwner) {
     const h = await headers();
-    const ip = (h.get("x-forwarded-for") || h.get("cf-connecting-ip") || "0.0.0.0").split(",")[0].trim();
+    const ip = (h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0].trim() || "0.0.0.0");
     const ua = h.get("user-agent") || "";
     const country = h.get("cf-ipcountry") || "";
     recordProfileView(profile.id, user.id, ip, ua, country).catch(() => {});
   }
 
   const badges = await getProfileBadges(profile.id);
-  const isPremium = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date());
+  const isPremium = !!(user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date()));
 
   const integration = await prisma.integration.findFirst({ where: { userId: user.id, type: "discord" } });
   const discordInt = integration && integration.discordUserId && integration.visible ? integration : null;
@@ -52,11 +52,11 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       const host = (row.data as { host?: string }).host;
       if (!host) continue;
       const live = await lookupMcServer(host);
-      gameIntegrations.push({ type: "mcserver", data: live || (row.data as GameIntegration["data"] as { host: string; online: boolean; playersOnline: number; playersMax: number; motd: string; icon: string }) });
+      gameIntegrations.push({ type: "mcserver", data: live || (row.data as unknown as { host: string; online: boolean; playersOnline: number; playersMax: number; motd: string; icon: string }) });
     } else if (row.type === "spotify") {
       if (spotifySnapshot) gameIntegrations.push({ type: "spotify", data: spotifySnapshot });
     } else {
-      gameIntegrations.push({ type: row.type, data: row.data } as GameIntegration);
+      gameIntegrations.push({ type: row.type, data: row.data } as unknown as GameIntegration);
     }
   }
 
@@ -97,17 +97,17 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       bioColor={profile.bioColor}
       overlayColor={profile.overlayColor}
       backgroundType={profile.backgroundType}
-      backgroundValue={profile.backgroundValue}
+      backgroundValue={profile.backgroundValue ?? ""}
       isPremium={isPremium}
-      particleEffect={profile.particleEffect}
-      cursorTrail={profile.cursorTrail}
+      particleEffect={!!profile.particleEffect}
+      cursorTrail={!!profile.cursorTrail}
       nameEffect={profile.nameEffect}
       bioEffect={profile.bioEffect}
       musicTracks={(((profile.musicTracks as (string | null)[] | null) ?? []).filter(Boolean) as string[])}
       playlistStyle={profile.playlistStyle}
       cursorPath={profile.cursorPath}
-      views={profile.views}
-      createdAt={user.createdAt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+      views={profile.views ?? 0}
+      createdAt={(user.createdAt ?? new Date()).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
       isOwner={isOwner}
       socialLinks={user.socialLinks}
       badges={badges}

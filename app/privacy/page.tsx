@@ -114,7 +114,7 @@ export default async function PrivacyPage() {
 
         <div className="legal-section" id="p10">
           <h2><span className="legal-num">10</span> Contact</h2>
-          <p>For privacy-related questions or data requests, please visit our <a href="/support">Support page</a> or join our <a href="https://discord.gg/BAEpkJ62VM" target="_blank" rel="noopener noreferrer">Discord server</a>.</p>
+          <p>For privacy-related questions or data requests, please visit our <a href="/support">Support page</a> or join our <a href="https://discord.gg/kPx9zWzWez" target="_blank" rel="noopener noreferrer">Discord server</a>.</p>
         </div>
       </div>
 

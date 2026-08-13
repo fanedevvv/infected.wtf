@@ -26,15 +26,16 @@ function parseOS(ua: string): string {
   return "Unknown";
 }
 
-/** Records a unique daily profile view for a specific page and awards view tokens to its owner; mirrors incrementViews() in helpers.php. */
+/** Records a one-time-per-IP profile view for a specific page and awards view tokens to its owner; mirrors incrementViews() in helpers.php. */
 export async function recordProfileView(profileId: number, profileUserId: number, ip: string, ua: string, countryCode: string) {
   const today = new Date();
   today.setUTCHours(0, 0, 0, 0);
-  const ipHash = sha256(ip + today.toISOString().slice(0, 10));
+  const ipHash = sha256(ip);
 
   try {
     await prisma.viewsLog.create({
       data: {
+        profileId,
         profileUserId,
         ipHash,
         deviceType: parseDevice(ua),
@@ -46,7 +47,7 @@ export async function recordProfileView(profileId: number, profileUserId: number
       },
     });
   } catch {
-    return; // duplicate view today for this IP — unique constraint hit, nothing to do
+    return; // this IP already has a recorded view for this profile — unique constraint hit, nothing to do
   }
 
   const profile = await prisma.profile.update({

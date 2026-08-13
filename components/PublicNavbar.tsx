@@ -30,7 +30,7 @@ export default function PublicNavbar({ user, active }: { user?: { username: stri
         </Link>
         <Link href="/dashboard?page=shop">Shop</Link>
         <Link href="/partners">Partners</Link>
-        <a href="https://discord.gg/BAEpkJ62VM" target="_blank" rel="noreferrer">Discord</a>
+        <a href="https://discord.gg/kPx9zWzWez" target="_blank" rel="noreferrer">Discord</a>
         <Link href="/#pricing">Pricing</Link>
         {user ? (
           <Link href="/dashboard" className="btn btn-primary btn-sm">Dashboard</Link>
@@ -60,7 +60,7 @@ export default function PublicNavbar({ user, active }: { user?: { username: stri
         </Link>
         <Link href="/dashboard?page=shop" onClick={close}>Shop</Link>
         <Link href="/partners" onClick={close}>Partners</Link>
-        <a href="https://discord.gg/BAEpkJ62VM" target="_blank" rel="noreferrer" onClick={close}>Discord</a>
+        <a href="https://discord.gg/kPx9zWzWez" target="_blank" rel="noreferrer" onClick={close}>Discord</a>
         <Link href="/#pricing" onClick={close}>Pricing</Link>
         {user ? (
           <Link href="/dashboard" className="btn btn-primary btn-sm" onClick={close}>Dashboard</Link>
