@@ -3,8 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { refreshSpotifyIntegrationForUser, toSpotifyPublicData } from "@/lib/spotify";
 
-function parseData(raw: string | null | undefined) {
+function parseData(raw: unknown) {
   if (!raw) return {};
+  if (typeof raw === "object") return raw as Record<string, unknown>;
+  if (typeof raw !== "string") return {};
   try {
     const parsed = JSON.parse(raw) as Record<string, unknown>;
     return parsed && typeof parsed === "object" ? parsed : {};
@@ -20,7 +22,7 @@ export async function GET() {
   const row = await prisma.integration.findUnique({ where: { userId_type: { userId: user.id, type: "spotify" } } });
   if (!row) return NextResponse.json({ integration: null });
 
-  const safeData = toSpotifyPublicData(parseData(row.data as string));
+  const safeData = toSpotifyPublicData(parseData(row.data));
   return NextResponse.json({ integration: safeData ? { data: safeData, visible: row.visible } : null });
 }
 

@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/auth-helpers";
 import ProfileView from "@/components/ProfileView";
 import { GameIntegration } from "@/components/GameIntegrationCards";
 import { lookupMcServer } from "@/lib/game-lookup";
+import { refreshSpotifyIntegrationForUser } from "@/lib/spotify";
 
 export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username: slug } = await params;
@@ -39,8 +40,11 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   const discordServerInt = integration && integration.discordServerId && integration.discordServerVisible ? integration : null;
 
   const gameRows = await prisma.integration.findMany({
-    where: { userId: user.id, visible: true, type: { in: ["steam", "roblox", "minecraft", "mcserver", "valorant", "twitch"] } },
+    where: { userId: user.id, visible: true, type: { in: ["steam", "roblox", "minecraft", "mcserver", "valorant", "twitch", "spotify"] } },
   });
+  const spotifySnapshot = gameRows.some((row) => row.type === "spotify")
+    ? await refreshSpotifyIntegrationForUser(user.id).catch(() => null)
+    : null;
   const gameIntegrations: GameIntegration[] = [];
   for (const row of gameRows) {
     if (!row.data) continue;
@@ -49,6 +53,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       if (!host) continue;
       const live = await lookupMcServer(host);
       gameIntegrations.push({ type: "mcserver", data: live || (row.data as GameIntegration["data"] as { host: string; online: boolean; playersOnline: number; playersMax: number; motd: string; icon: string }) });
+    } else if (row.type === "spotify") {
+      if (spotifySnapshot) gameIntegrations.push({ type: "spotify", data: spotifySnapshot });
     } else {
       gameIntegrations.push({ type: row.type, data: row.data } as GameIntegration);
     }
