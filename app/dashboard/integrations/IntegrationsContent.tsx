@@ -2,9 +2,9 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { showToast } from "@/lib/toast";
-import { SteamIcon, RobloxIcon, MinecraftIcon, ServerIcon, ValorantIcon, TwitchIcon } from "@/components/IntegrationIcons";
+import { SteamIcon, RobloxIcon, MinecraftIcon, ServerIcon, ValorantIcon, TwitchIcon, SpotifyIcon } from "@/components/IntegrationIcons";
 
-const GAME_TYPES = ["steam", "roblox", "minecraft", "mcserver", "valorant", "twitch"] as const;
+const GAME_TYPES = ["steam", "roblox", "minecraft", "mcserver", "valorant", "twitch", "spotify"] as const;
 type GameType = (typeof GAME_TYPES)[number];
 
 const GAME_META: Record<GameType, { label: string; color: string; icon: ReactNode; name: (d: Record<string, unknown>) => string }> = {
@@ -14,6 +14,7 @@ const GAME_META: Record<GameType, { label: string; color: string; icon: ReactNod
   mcserver: { label: "MC Server", color: "#7cb342", icon: <ServerIcon size={20} />, name: (d) => String(d.host || "MC Server") },
   valorant: { label: "Valorant", color: "#ff4655", icon: <ValorantIcon size={20} />, name: (d) => `${String(d.riotId || "")}#${String(d.tagLine || "")}` },
   twitch: { label: "Twitch", color: "#9146ff", icon: <TwitchIcon size={20} />, name: (d) => String(d.username || "Twitch") },
+  spotify: { label: "Spotify", color: "#1db954", icon: <SpotifyIcon size={20} />, name: (d) => String(d.displayName || "Spotify") },
 };
 
 type GameRow = { type: GameType; data: Record<string, unknown>; visible: boolean };
@@ -112,7 +113,8 @@ export default function IntegrationsContent({
   }
 
   useEffect(() => {
-    if (connected) showToast("Discord connected!", "success");
+    if (connected === "spotify") showToast("Spotify connected!", "success");
+    else if (connected) showToast("Discord connected!", "success");
     if (error) showToast(error === "already_linked" ? "That Discord account is already linked to another user." : "Something went wrong connecting Discord.", "error");
   }, [connected, error]);
 
@@ -336,20 +338,22 @@ export default function IntegrationsContent({
           )}
         </div>
 
-        {/* Coming soon */}
-        <div className="int-card" style={{ ["--int-color" as string]: "#1db954", opacity: 0.55, pointerEvents: "none" }}>
+        <div className="int-card" style={{ ["--int-color" as string]: "#1db954" }}>
           <div className="int-card-header">
-            <div className="int-card-icon" style={{ background: "rgba(29,185,84,.15)", border: "1px solid rgba(29,185,84,.2)" }}>
-              <svg viewBox="0 0 24 24" fill="#1db954" width="22" height="22"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02z" /></svg>
+            <div className="int-card-icon" style={{ background: "rgba(29,185,84,.15)", border: "1px solid rgba(29,185,84,.2)", color: "#1db954" }}>
+              <SpotifyIcon size={22} />
             </div>
             <div>
               <div className="int-card-title">Spotify</div>
-              <div className="int-card-subtitle">Music · Coming soon</div>
+              <div className="int-card-subtitle">Now playing &amp; recent tracks</div>
             </div>
           </div>
-          <p className="int-card-desc">Show your currently playing track and recently listened songs on your profile.</p>
+          <div className="int-status connected"><div className="int-status-dot" />Available now</div>
+          <p className="int-card-desc">Connect Spotify to show what you are listening to directly on your profile.</p>
           <div className="int-card-footer">
-            <button className="int-btn" style={{ background: "rgba(255,255,255,.06)", color: "rgba(255,255,255,.3)", cursor: "not-allowed" }}>Coming Soon</button>
+            <a href="/api/integrations/spotify/connect" className="int-btn" style={{ background: "linear-gradient(135deg,#1db954,#169c46)", color: "#fff" }}>
+              <SpotifyIcon size={16} /> Connect Spotify
+            </a>
           </div>
         </div>
 

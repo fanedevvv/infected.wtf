@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { showToast } from "@/lib/toast";
-import { SteamIcon, RobloxIcon, MinecraftIcon, ServerIcon, ValorantIcon, TwitchIcon } from "@/components/IntegrationIcons";
+import { SteamIcon, RobloxIcon, MinecraftIcon, ServerIcon, ValorantIcon, TwitchIcon, SpotifyIcon } from "@/components/IntegrationIcons";
 
 type IntegrationRow = { data: Record<string, unknown>; visible: boolean } | null;
 
@@ -251,6 +251,51 @@ export default function GameIntegrations() {
               </div>
             </div>
           )}
+        />
+
+        <GameCard
+          type="spotify"
+          title="Spotify"
+          subtitle="Show your now playing and recently played tracks"
+          color="#1db954"
+          icon={<SpotifyIcon />}
+          connectHref="/api/integrations/spotify/connect"
+          renderPreview={(d) => {
+            const now = (d.nowPlaying as Record<string, unknown> | null) || null;
+            const recent = (Array.isArray(d.recentTracks) ? d.recentTracks : []) as Array<Record<string, unknown>>;
+            return (
+              <div className="int-preview-generic" style={{ alignItems: "flex-start" }}>
+                <div className="int-preview-avatar">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  {typeof now?.albumImage === "string" && now.albumImage ? (
+                    <img src={now.albumImage} alt="" />
+                  ) : (
+                    <SpotifyIcon size={16} />
+                  )}
+                </div>
+                <div className="int-preview-info" style={{ display: "flex", flexDirection: "column", gap: ".2rem" }}>
+                  {now && typeof now.trackName === "string" && now.trackName ? (
+                    <>
+                      <div className="int-preview-sub" style={{ color: "#1db954", fontWeight: 700 }}>{now.isPlaying ? "Now Playing" : "Last Played"}</div>
+                      <div className="int-preview-name">{String(now.trackName)}</div>
+                      <div className="int-preview-sub">{String(now.artists || "")}</div>
+                    </>
+                  ) : recent[0] ? (
+                    <>
+                      <div className="int-preview-sub" style={{ color: "#1db954", fontWeight: 700 }}>Recently Played</div>
+                      <div className="int-preview-name">{String(recent[0].trackName || "")}</div>
+                      <div className="int-preview-sub">{String(recent[0].artists || "")}</div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="int-preview-name">{String(d.displayName || "Spotify")}</div>
+                      <div className="int-preview-sub">Connected</div>
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          }}
         />
 
         <GameCard
