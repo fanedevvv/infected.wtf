@@ -405,8 +405,6 @@ body.sidebar-collapsed .navbar-dashboard { left:0; }
 .profile-card--compact .profile-meta-row { gap:.65rem; }
 
 .profile-card--wide { max-width:1040px; }
-.profile-wrapper--wide .integrations-grid { grid-template-columns:repeat(3, 1fr); }
-@media (max-width:720px) { .profile-wrapper--wide .integrations-grid { grid-template-columns:1fr 1fr; } }
 
 .profile-card--split { max-width:980px; text-align:left; padding:2rem 2.2rem 1.7rem; --card-pad-x:2.2rem; --card-pad-top:2rem; }
 .profile-card--split .profile-banner-img { height:180px; }
@@ -2703,7 +2701,8 @@ body:has(.unsaved-bar.visible) .toast-container { bottom: calc(1.5rem + 58px); }
 /* ── Profile: Integrations grid (Discord Account + Discord Server widgets) ── */
 .integrations-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr));
+    align-items: stretch;
     gap: .55rem;
     margin: .65rem auto 0;
     width: 100%;
@@ -2713,6 +2712,10 @@ body:has(.unsaved-bar.visible) .toast-container { bottom: calc(1.5rem + 58px); }
     max-width: 340px;
     margin: 0 auto;
     width: 100%;
+}
+.profile-card--split .integrations-grid > :only-child,
+.profile-card--split .integrations-grid > :nth-child(2):last-child {
+    margin-left: 0;
 }
 @media(max-width:480px){.integrations-grid{grid-template-columns:1fr}}
 

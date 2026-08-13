@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
+import { revokeInfectedRole } from "@/lib/discord";
 
 export async function GET() {
   let user;
@@ -25,6 +26,7 @@ export async function DELETE() {
 
   const row = await prisma.integration.findUnique({ where: { userId_type: { userId: user.id, type: "discord" } } });
   if (row) {
+    if (row.discordUserId) await revokeInfectedRole(row.discordUserId);
     if (row.discordServerInvite) {
       await prisma.integration.update({
         where: { id: row.id },

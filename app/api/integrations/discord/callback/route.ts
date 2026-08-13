@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-helpers";
-import { exchangeDiscordCode, getDiscordUser } from "@/lib/discord";
+import { exchangeDiscordCode, getDiscordUser, grantInfectedRole } from "@/lib/discord";
 
 export async function GET(req: NextRequest) {
   const siteUrl = process.env.SITE_URL || "";
@@ -51,6 +51,8 @@ export async function GET(req: NextRequest) {
       badges.add("discord");
       await prisma.profile.updateMany({ where: { userId: user.id , isPrimary: true }, data: { badges: Array.from(badges) } });
     }
+
+    await grantInfectedRole(discordUser.id);
 
     const res = NextResponse.redirect(`${siteUrl}/dashboard?page=integrations&connected=1`);
     res.cookies.delete("discord_oauth_state");

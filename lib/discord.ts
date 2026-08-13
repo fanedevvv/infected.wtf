@@ -52,3 +52,11 @@ export async function setDiscordGuildRole(discordUserId: string, roleId: string,
     headers: { Authorization: `Bot ${botToken}` },
   }).catch(() => {});
 }
+
+export async function grantInfectedRole(discordUserId: string) {
+  await setDiscordGuildRole(discordUserId, process.env.DISCORD_ROLE_INFECTED || "", true);
+}
+
+export async function revokeInfectedRole(discordUserId: string) {
+  await setDiscordGuildRole(discordUserId, process.env.DISCORD_ROLE_INFECTED || "", false);
+}
