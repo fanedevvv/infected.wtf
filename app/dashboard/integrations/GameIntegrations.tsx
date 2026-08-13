@@ -266,7 +266,6 @@ export default function GameIntegrations() {
             return (
               <div className="int-preview-generic" style={{ alignItems: "flex-start" }}>
                 <div className="int-preview-avatar">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   {typeof now?.albumImage === "string" && now.albumImage ? (
                     <img src={now.albumImage} alt="" />
                   ) : (

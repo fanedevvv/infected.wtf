@@ -21,6 +21,8 @@ export type GameIntegration =
           albumName: string;
           albumImage: string;
           trackUrl: string;
+          progressMs: number;
+          durationMs: number;
         } | null;
         recentTracks: Array<{
           trackName: string;
@@ -151,7 +153,6 @@ export default function GameIntegrationCards({ integrations }: { integrations: G
           return (
             <GameCardShell key="spotify" type="spotify" href={now?.trackUrl || it.data.profileUrl}>
               <div className="game-int-icon">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 {now?.albumImage || it.data.avatarUrl ? (
                   <img src={now?.albumImage || it.data.avatarUrl} alt="" />
                 ) : (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import Link from "next/link";
 import { showToast } from "@/lib/toast";
 import { SteamIcon, RobloxIcon, MinecraftIcon, ServerIcon, ValorantIcon, TwitchIcon, SpotifyIcon } from "@/components/IntegrationIcons";
 
@@ -115,7 +116,18 @@ export default function IntegrationsContent({
   useEffect(() => {
     if (connected === "spotify") showToast("Spotify connected!", "success");
     else if (connected) showToast("Discord connected!", "success");
-    if (error) showToast(error === "already_linked" ? "That Discord account is already linked to another user." : "Something went wrong connecting Discord.", "error");
+    if (error) {
+      if (error === "already_linked") {
+        showToast("That Discord account is already linked to another user.", "error");
+      } else if (error.startsWith("spotify_")) {
+        const msg = error === "spotify_missing_config"
+          ? "Spotify integration is not configured on the server yet."
+          : "Something went wrong connecting Spotify.";
+        showToast(msg, "error");
+      } else {
+        showToast("Something went wrong connecting Discord.", "error");
+      }
+    }
   }, [connected, error]);
 
   const hasDiscordUser = !!integration?.discordUserId;
@@ -240,7 +252,6 @@ export default function IntegrationsContent({
     refresh();
     const iv = setInterval(refresh, 5 * 60 * 1000);
     return () => clearInterval(iv);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasDiscordServer]);
 
   return (
@@ -287,7 +298,7 @@ export default function IntegrationsContent({
               <div className="int-status disconnected"><div className="int-status-dot" />Not connected</div>
               <p className="int-card-desc">Show your Discord presence, badges, guild tag, and live activity directly on your profile.</p>
               <div className="int-card-footer">
-                <a href="/api/integrations/discord/connect" className="int-btn int-btn-discord"><DiscordIcon /> Connect Discord</a>
+                <Link href="/api/integrations/discord/connect" className="int-btn int-btn-discord"><DiscordIcon /> Connect Discord</Link>
               </div>
             </>
           )}
@@ -351,9 +362,9 @@ export default function IntegrationsContent({
           <div className="int-status connected"><div className="int-status-dot" />Available now</div>
           <p className="int-card-desc">Connect Spotify to show what you are listening to directly on your profile.</p>
           <div className="int-card-footer">
-            <a href="/api/integrations/spotify/connect" className="int-btn" style={{ background: "linear-gradient(135deg,#1db954,#169c46)", color: "#fff" }}>
+            <Link href="/api/integrations/spotify/connect" className="int-btn" style={{ background: "linear-gradient(135deg,#1db954,#169c46)", color: "#fff" }}>
               <SpotifyIcon size={16} /> Connect Spotify
-            </a>
+            </Link>
           </div>
         </div>
 

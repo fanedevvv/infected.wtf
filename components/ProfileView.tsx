@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Avatar from "./Avatar";
+import Link from "next/link";
 import EffectText from "./EffectText";
 import MusicPlayer from "./MusicPlayer";
 import ParticleBackground from "./ParticleBackground";
@@ -9,6 +9,7 @@ import CursorTrail from "./CursorTrail";
 import DiscordPresenceCard from "./DiscordPresenceCard";
 import DiscordServerCard from "./DiscordServerCard";
 import GameIntegrationCards, { GameIntegration } from "./GameIntegrationCards";
+import SpotifyPresenceCard from "./SpotifyPresenceCard";
 import PurchasedEffectsEngine from "./PurchasedEffectsEngine";
 import { DecorationFrame } from "./DecorationSVGs";
 
@@ -147,6 +148,9 @@ export default function ProfileView(p: ProfileViewProps) {
   const [likeCount, setLikeCount] = useState(p.likeCount);
   const [likeBusy, setLikeBusy] = useState(false);
 
+  const spotifyIntegration = p.gameIntegrations.find((it) => it.type === "spotify");
+  const gameIntegrationsNoSpotify = p.gameIntegrations.filter((it) => it.type !== "spotify");
+
   async function toggleLike() {
     if (!p.viewerLoggedIn) {
       window.location.href = "/login";
@@ -280,7 +284,7 @@ export default function ProfileView(p: ProfileViewProps) {
 
         {p.isOwner && (
           <div className="edit-profile-btn">
-            <a href="/dashboard" className="btn btn-secondary btn-sm">✏ Edit</a>
+            <Link href="/dashboard" className="btn btn-secondary btn-sm">✏ Edit</Link>
           </div>
         )}
 
@@ -423,7 +427,13 @@ export default function ProfileView(p: ProfileViewProps) {
                     total={p.discordServerInt.total}
                   />
                 )}
-                <GameIntegrationCards integrations={p.gameIntegrations} />
+                {spotifyIntegration?.type === "spotify" && (
+                  <SpotifyPresenceCard
+                    key={`${spotifyIntegration.data.nowPlaying?.trackName || "none"}-${spotifyIntegration.data.lastSyncAt}`}
+                    data={spotifyIntegration.data}
+                  />
+                )}
+                <GameIntegrationCards integrations={gameIntegrationsNoSpotify} />
               </div>
             )}
 
@@ -454,7 +464,7 @@ export default function ProfileView(p: ProfileViewProps) {
 
         {!p.isPremium && (
           <div className="profile-footer">
-            <a href="/">⬡ INFECTED.WTF</a>
+            <Link href="/">⬡ INFECTED.WTF</Link>
           </div>
         )}
       </div>

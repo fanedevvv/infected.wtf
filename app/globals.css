@@ -2724,6 +2724,71 @@ body:has(.unsaved-bar.visible) .toast-container { bottom: calc(1.5rem + 58px); }
 .game-int-name { font-size:.78rem; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .game-int-sub { font-size:.68rem; color:rgba(255,255,255,.45); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
+.spotify-presence-card {
+    grid-column: 1 / -1;
+    width: 100%;
+    background: linear-gradient(145deg, rgba(29,185,84,.15), rgba(11,14,20,.9));
+    border: 1px solid rgba(29,185,84,.35);
+    border-radius: 14px;
+    padding: .85rem;
+    display: flex;
+    flex-direction: column;
+    gap: .65rem;
+}
+.sp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .6rem;
+}
+.sp-title-wrap { display: flex; align-items: center; gap: .6rem; min-width: 0; }
+.sp-spotify-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(29,185,84,.2); color: #1db954; flex-shrink: 0;
+}
+.sp-title { font-size: .82rem; font-weight: 800; color: #fff; line-height: 1.1; }
+.sp-subtitle { font-size: .68rem; color: rgba(255,255,255,.55); }
+.sp-open-link {
+    text-decoration: none;
+    color: #0b0f13;
+    background: #1db954;
+    border-radius: 999px;
+    font-size: .68rem;
+    font-weight: 700;
+    padding: .3rem .65rem;
+}
+.sp-now-row { display: flex; align-items: flex-start; gap: .7rem; }
+.sp-cover-wrap { position: relative; width: 56px; height: 56px; flex-shrink: 0; }
+.sp-cover { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; border: 1px solid rgba(255,255,255,.12); }
+.sp-live-dot {
+    position: absolute; right: -2px; bottom: -2px; width: 10px; height: 10px;
+    border-radius: 50%; background: #1db954; box-shadow: 0 0 0 3px rgba(11,14,20,.95), 0 0 8px rgba(29,185,84,.85);
+}
+.sp-now-info { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: .2rem; }
+.sp-track-name { color: #fff; font-size: .8rem; font-weight: 700; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-artists { color: rgba(255,255,255,.68); font-size: .7rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-album { color: rgba(255,255,255,.45); font-size: .66rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-progress-track { margin-top: .25rem; height: 5px; border-radius: 999px; background: rgba(255,255,255,.12); overflow: hidden; }
+.sp-progress-fill { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #1db954, #68ffa8); }
+.sp-progress-time { display: flex; justify-content: space-between; font-size: .62rem; color: rgba(255,255,255,.52); margin-top: .12rem; }
+.sp-empty { font-size: .72rem; color: rgba(255,255,255,.6); padding: .2rem 0; }
+.sp-recent-list { display: flex; flex-direction: column; gap: .35rem; }
+.sp-recent-item {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    background: rgba(0,0,0,.22);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 10px;
+    padding: .35rem;
+}
+.sp-recent-cover { width: 32px; height: 32px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+.sp-recent-info { min-width: 0; display: flex; flex-direction: column; gap: .08rem; }
+.sp-recent-name { font-size: .68rem; color: #fff; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-recent-artist { font-size: .62rem; color: rgba(255,255,255,.52); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
 .discord-int-card {
     max-width: 100%;
     background: rgba(88,101,242,.08);

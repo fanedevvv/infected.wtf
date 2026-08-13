@@ -13,6 +13,7 @@ type SpotifyArtist = { name?: string };
 type SpotifyAlbum = { name?: string; images?: SpotifyImage[] };
 type SpotifyTrack = {
   name?: string;
+  duration_ms?: number;
   artists?: SpotifyArtist[];
   album?: SpotifyAlbum;
   external_urls?: { spotify?: string };
@@ -154,7 +155,7 @@ async function fetchNowPlaying(accessToken: string): Promise<SpotifyPublicData["
     albumImage: String(item.album?.images?.[0]?.url || ""),
     trackUrl: String(item.external_urls?.spotify || ""),
     progressMs: Number(data.progress_ms || 0),
-    durationMs: 0,
+    durationMs: Number(item.duration_ms || 0),
   };
 }
 
@@ -199,8 +200,10 @@ async function fetchSpotifySnapshot(accessToken: string) {
   };
 }
 
-function parseStoredData(raw: string | null | undefined): Partial<SpotifyStoredData> {
+function parseStoredData(raw: unknown): Partial<SpotifyStoredData> {
   if (!raw) return {};
+  if (typeof raw === "object") return raw as Partial<SpotifyStoredData>;
+  if (typeof raw !== "string") return {};
   try {
     const parsed = JSON.parse(raw) as Partial<SpotifyStoredData>;
     return typeof parsed === "object" && parsed ? parsed : {};
@@ -249,7 +252,7 @@ export async function refreshSpotifyIntegrationForUser(userId: number, force = f
   const row = await prisma.integration.findUnique({ where: { userId_type: { userId, type: "spotify" } } });
   if (!row?.data) return null;
 
-  const stored = parseStoredData(row.data as string);
+  const stored = parseStoredData(row.data);
   const refreshToken = String(stored.refreshToken || "");
   if (!refreshToken) return toSpotifyPublicData(stored);
 
