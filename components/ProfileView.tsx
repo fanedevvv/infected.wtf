@@ -126,7 +126,7 @@ interface ProfileViewProps {
   createdAt: string;
   isOwner: boolean;
   socialLinks: { id: number; platform: string; url: string }[];
-  badges: { id: string; label: string }[];
+  badges: { id: string; label: string; color?: string }[];
   cursorPath: string | null;
   discordInt: { discordUserId: string; discordUsername: string; discordGlobalName: string | null; discordAvatar: string | null } | null;
   discordServerInt: { invite: string; serverName: string; serverIcon: string | null; serverId: string; online: number; total: number } | null;
@@ -344,8 +344,18 @@ export default function ProfileView(p: ProfileViewProps) {
                       <span className="badge-tooltip">Premium</span>
                     </div>
                   ) : (
-                    <div key={b.id} className={`profile-badge badge-${b.id}`}>
-                      {BADGE_ICON[b.id]}
+                    <div
+                      key={b.id}
+                      className={`profile-badge badge-${b.id}`}
+                      style={
+                        !BADGE_ICON[b.id] && b.color
+                          ? { background: `${b.color}22`, border: `1px solid ${b.color}55`, color: b.color }
+                          : undefined
+                      }
+                    >
+                      {BADGE_ICON[b.id] || (
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><circle cx="12" cy="12" r="8" /></svg>
+                      )}
                       <span className="badge-tooltip">{b.label}</span>
                     </div>
                   )

@@ -3,7 +3,6 @@ const TABS = [
   { id: "appearance", label: "Appearance" },
   { id: "layout", label: "Layout" },
   { id: "badges", label: "Badges" },
-  { id: "social", label: "Social" },
   { id: "integrations", label: "Integrations" },
 ];
 

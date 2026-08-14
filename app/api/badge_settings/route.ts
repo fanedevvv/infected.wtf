@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
+import { parseStringArray, serializeStringArray } from "@/lib/json-array";
 
 export async function POST(req: NextRequest) {
   let user;
@@ -19,16 +20,16 @@ export async function POST(req: NextRequest) {
     if (!badgeId) return NextResponse.json({ success: false, error: "Missing badge_id." });
 
     const profile = await prisma.profile.findFirst({ where: { userId, isPrimary: true }, select: { badgeHidden: true } });
-    const set = new Set((profile?.badgeHidden as string[] | null) ?? []);
+    const set = new Set(parseStringArray(profile?.badgeHidden));
     if (hidden) set.add(badgeId);
     else set.delete(badgeId);
-    await prisma.profile.updateMany({ where: { userId, isPrimary: true }, data: { badgeHidden: Array.from(set) } });
+    await prisma.profile.updateMany({ where: { userId, isPrimary: true }, data: { badgeHidden: serializeStringArray(Array.from(set)) } });
     return NextResponse.json({ success: true });
   }
 
   if (action === "save_order") {
     const order = Array.isArray(body.order) ? body.order.map(String) : [];
-    await prisma.profile.updateMany({ where: { userId, isPrimary: true }, data: { badgeOrder: order } });
+    await prisma.profile.updateMany({ where: { userId, isPrimary: true }, data: { badgeOrder: serializeStringArray(order) } });
     return NextResponse.json({ success: true });
   }
 

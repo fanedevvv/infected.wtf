@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { SHOP_EFFECTS } from "@/lib/shop";
 import { DECORATIONS } from "@/lib/decorations";
+import { syncDiscordBadgeRole, createDynamicBadge, deleteDynamicBadge } from "@/lib/discord";
+import { parseStringArray, serializeStringArray } from "@/lib/json-array";
 
 function ok(message = "Done", extra: Record<string, unknown> = {}) {
   return NextResponse.json({ success: true, message, ...extra });
@@ -65,23 +67,6 @@ async function syncDiscordPremiumRole(userId: number, hasPremium: boolean) {
   const integration = await prisma.integration.findFirst({ where: { userId, type: "discord" } });
   if (!integration?.discordUserId) return;
   const endpoint = hasPremium ? "/assign-premium-role" : "/remove-premium-role";
-  try {
-    await fetch(`${botUrl.replace(/\/$/, "")}${endpoint}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Api-Key": apiKey },
-      body: JSON.stringify({ discord_id: integration.discordUserId }),
-      signal: AbortSignal.timeout(2000),
-    });
-  } catch {}
-}
-
-async function syncDiscordVerifiedRole(userId: number, grant: boolean) {
-  const botUrl = process.env.DISCORD_BOT_URL;
-  if (!botUrl) return;
-  const apiKey = process.env.DISCORD_BOT_API_KEY || "";
-  const integration = await prisma.integration.findFirst({ where: { userId, type: "discord" } });
-  if (!integration?.discordUserId) return;
-  const endpoint = grant ? "/assign-verified-role" : "/remove-verified-role";
   try {
     await fetch(`${botUrl.replace(/\/$/, "")}${endpoint}`, {
       method: "POST",
@@ -164,7 +149,7 @@ export async function POST(req: NextRequest) {
     const premiumDays = Math.max(0, parseInt(input.premium_days) || 0);
     if (!name) return err("Bundle name is required.");
     if (name.length > 100) return err("Bundle name too long.");
-    const bundle = await prisma.bundle.create({ data: { name, price, priceType, badges, effects, premiumDays, createdBy: actor.id } });
+    const bundle = await prisma.bundle.create({ data: { name, price, priceType, badges: serializeStringArray(badges), effects: serializeStringArray(effects), premiumDays, createdBy: actor.id } });
     return ok(`Bundle '${name}' created.`, { bundle_id: bundle.id });
   }
 
@@ -174,6 +159,26 @@ export async function POST(req: NextRequest) {
     if (!bundleId) return err("Invalid bundle ID.");
     await prisma.bundle.delete({ where: { id: bundleId } }).catch(() => {});
     return ok("Bundle deleted.");
+  }
+
+  // Creates a new "grade": a matching Discord role is created and a DynamicBadge row links them.
+  if (action === "create_dynamic_badge") {
+    if (!actorIsOwner) return err("Only owners can create badges.", 403);
+    const name = String(input.name || "").trim().slice(0, 80);
+    const color = /^#[0-9a-fA-F]{6}$/.test(String(input.color || "")) ? String(input.color) : "#5865F2";
+    if (!name) return err("Badge name is required.");
+    const created = await createDynamicBadge(name, color);
+    if (!created) return err("Failed to create the Discord role — check the bot is online and DISCORD_BOT_URL is set.");
+    return ok(`Badge '${name}' created — Discord role added and ready to grant.`, { badge_key: created.badgeKey });
+  }
+
+  if (action === "delete_dynamic_badge") {
+    if (!actorIsOwner) return err("Only owners can delete badges.", 403);
+    const badgeKey = String(input.badge_key || "").trim();
+    if (!badgeKey.startsWith("dc_")) return err("Invalid badge key.");
+    const removed = await deleteDynamicBadge(badgeKey);
+    if (!removed) return err("Badge not found.");
+    return ok("Badge and its Discord role deleted.");
   }
 
   if (action === "apply_bundle") {
@@ -200,16 +205,16 @@ export async function POST(req: NextRequest) {
     const bundle = await prisma.bundle.findUnique({ where: { id: bundleId } });
     if (!bundle) return err("Bundle not found.");
 
-    const bundleBadges = (bundle.badges as string[] | null) ?? [];
-    const bundleEffects = (bundle.effects as string[] | null) ?? [];
+    const bundleBadges = parseStringArray(bundle.badges);
+    const bundleEffects = parseStringArray(bundle.effects);
     const bundlePremium = bundle.premiumDays;
     const applied: string[] = [];
 
     if (bundleBadges.length > 0) {
       const profile = await prisma.profile.findFirst({ where: { userId: applyUserId , isPrimary: true }, select: { badges: true } });
-      const owned = new Set((profile?.badges as string[] | null) ?? []);
+      const owned = new Set(parseStringArray(profile?.badges));
       for (const b of bundleBadges) { owned.add(b); applied.push(`badge:${b}`); }
-      await prisma.profile.updateMany({ where: { userId: applyUserId , isPrimary: true }, data: { badges: Array.from(owned) } });
+      await prisma.profile.updateMany({ where: { userId: applyUserId , isPrimary: true }, data: { badges: serializeStringArray(Array.from(owned)) } });
     }
 
     if (bundleEffects.length > 0) {
@@ -344,13 +349,14 @@ export async function POST(req: NextRequest) {
     case "badge_revoke": {
       if (!actorIsOwner) return err("Only owners can manage badges", 403);
       const badgeId = String(input.badge_id || "").trim();
-      if (!MANAGEABLE_BADGES.includes(badgeId)) return err("Invalid badge ID");
+      const isDynamic = badgeId.startsWith("dc_") && (await prisma.dynamicBadge.findUnique({ where: { badgeKey: badgeId } }));
+      if (!MANAGEABLE_BADGES.includes(badgeId) && !isDynamic) return err("Invalid badge ID");
       const grant = action === "badge_grant";
       const profile = await prisma.profile.findFirst({ where: { userId: targetId , isPrimary: true }, select: { badges: true } });
-      const owned = new Set((profile?.badges as string[] | null) ?? []);
+      const owned = new Set(parseStringArray(profile?.badges));
       if (grant) owned.add(badgeId); else owned.delete(badgeId);
-      await prisma.profile.updateMany({ where: { userId: targetId , isPrimary: true }, data: { badges: Array.from(owned) } });
-      if (badgeId === "verified") await syncDiscordVerifiedRole(targetId, grant);
+      await prisma.profile.updateMany({ where: { userId: targetId , isPrimary: true }, data: { badges: serializeStringArray(Array.from(owned)) } });
+      await syncDiscordBadgeRole(targetId, badgeId, grant);
       if (grant) {
         await prisma.notification.create({
           data: { userId: targetId, type: "badge", title: "You received a new badge! 🏅", body: `The '${badgeId}' badge was granted to your profile by an admin.`, icon: "badge", link: "/dashboard?page=badges" },
@@ -426,6 +432,10 @@ export async function POST(req: NextRequest) {
         where: { id: targetId },
         data: { isAdmin: role === "admin" || role === "owner", isOwner: role === "owner", isMod: role === "mod" },
       });
+      if (target.isOwner && role !== "owner") await syncDiscordBadgeRole(targetId, "owner", false);
+      if (target.isAdmin && role !== "admin" && role !== "owner") await syncDiscordBadgeRole(targetId, "admin", false);
+      if (role === "owner") await syncDiscordBadgeRole(targetId, "owner", true);
+      if (role === "admin" || role === "owner") await syncDiscordBadgeRole(targetId, "admin", true);
       return ok(`@${target.username} role set to ${role}.`);
     }
 

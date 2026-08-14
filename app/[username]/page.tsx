@@ -8,6 +8,7 @@ import ProfileView from "@/components/ProfileView";
 import { GameIntegration } from "@/components/GameIntegrationCards";
 import { lookupMcServer } from "@/lib/game-lookup";
 import { refreshSpotifyIntegrationForUser } from "@/lib/spotify";
+import { parseStringArray, parseJsonObject } from "@/lib/json-array";
 
 export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username: slug } = await params;
@@ -40,23 +41,24 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   const discordServerInt = integration && integration.discordServerId && integration.discordServerVisible ? integration : null;
 
   const gameRows = await prisma.integration.findMany({
-    where: { userId: user.id, visible: true, type: { in: ["steam", "roblox", "minecraft", "mcserver", "valorant", "twitch", "spotify"] } },
+    where: { userId: user.id, visible: true, type: { in: ["steam", "roblox", "minecraft", "mcserver", "valorant", "twitch", "spotify", "github"] } },
   });
   const spotifySnapshot = gameRows.some((row) => row.type === "spotify")
     ? await refreshSpotifyIntegrationForUser(user.id).catch(() => null)
     : null;
   const gameIntegrations: GameIntegration[] = [];
   for (const row of gameRows) {
-    if (!row.data) continue;
+    const parsedData = parseJsonObject(row.data);
+    if (!parsedData && row.type !== "spotify") continue;
     if (row.type === "mcserver") {
-      const host = (row.data as { host?: string }).host;
+      const host = (parsedData as { host?: string } | null)?.host;
       if (!host) continue;
       const live = await lookupMcServer(host);
-      gameIntegrations.push({ type: "mcserver", data: live || (row.data as unknown as { host: string; online: boolean; playersOnline: number; playersMax: number; motd: string; icon: string }) });
+      gameIntegrations.push({ type: "mcserver", data: live || (parsedData as { host: string; online: boolean; playersOnline: number; playersMax: number; motd: string; icon: string }) });
     } else if (row.type === "spotify") {
       if (spotifySnapshot) gameIntegrations.push({ type: "spotify", data: spotifySnapshot });
     } else {
-      gameIntegrations.push({ type: row.type, data: row.data } as unknown as GameIntegration);
+      gameIntegrations.push({ type: row.type, data: parsedData } as unknown as GameIntegration);
     }
   }
 
@@ -103,7 +105,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       cursorTrail={!!profile.cursorTrail}
       nameEffect={profile.nameEffect}
       bioEffect={profile.bioEffect}
-      musicTracks={(((profile.musicTracks as (string | null)[] | null) ?? []).filter(Boolean) as string[])}
+      musicTracks={parseStringArray(profile.musicTracks).filter(Boolean)}
       playlistStyle={profile.playlistStyle}
       cursorPath={profile.cursorPath}
       views={profile.views ?? 0}

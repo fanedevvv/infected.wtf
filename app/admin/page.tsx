@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-helpers";
+import { parseStringArray } from "@/lib/json-array";
 import AdminClient from "./AdminClient";
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ page?: string; q?: string }> }) {
@@ -36,7 +37,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const tokensAgg = await prisma.user.aggregate({ _sum: { tokensSpent: true } });
   const totalTokensSpent = tokensAgg._sum.tokensSpent ?? 0;
   const badgeProfiles = await prisma.profile.findMany({ select: { badges: true } });
-  const verifiedCount = badgeProfiles.filter((p) => ((p.badges as string[] | null) ?? []).includes("verified")).length;
+  const verifiedCount = badgeProfiles.filter((p) => parseStringArray(p.badges).includes("verified")).length;
 
   const settings = await prisma.siteSettings.findFirst();
   const whitelistEnabled = settings?.whitelistEnabled ?? false;
@@ -44,6 +45,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
   const allBundles = iAmOwner ? await prisma.bundle.findMany({ orderBy: { createdAt: "desc" } }) : [];
   const allRedeemCodes = iAmOwner ? await prisma.redeemCode.findMany({ orderBy: { createdAt: "desc" } }) : [];
+  const allDynamicBadges = iAmOwner ? await prisma.dynamicBadge.findMany({ orderBy: { createdAt: "desc" } }) : [];
 
   const perPage = 10;
   const page = Math.max(1, parseInt(params.page || "1") || 1);
@@ -83,7 +85,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       premiumExpiresAt: u.premiumExpiresAt ? u.premiumExpiresAt.toISOString() : null,
       views: profile?.views ?? 0,
       links: u._count.socialLinks,
-      badges: (profile?.badges as string[] | null) ?? [],
+      badges: parseStringArray(profile?.badges),
       effects: (profile?.purchasedEffects as string[] | null) ?? [],
       decorations: (profile?.decorationsOwned as string[] | null) ?? [],
       avatar: profile?.avatar ? `/${profile.avatar}` : "/assets/img/default-avatar.png",
@@ -106,7 +108,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         name: b.name,
         price: Number(b.price),
         priceType: b.priceType as "euro" | "tokens",
-        badges: (b.badges as string[] | null) ?? [],
+        badges: parseStringArray(b.badges),
         effects: (b.effects as string[] | null) ?? [],
         premiumDays: b.premiumDays,
       }))}
@@ -118,6 +120,11 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         usesCount: r.usesCount,
         expiresAt: r.expiresAt ? r.expiresAt.toISOString() : null,
         active: r.active,
+      }))}
+      dynamicBadges={allDynamicBadges.map((d) => ({
+        badgeKey: d.badgeKey,
+        label: d.label,
+        color: d.color || "#5865F2",
       }))}
       users={users}
       page={clampedPage}

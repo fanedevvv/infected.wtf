@@ -27,8 +27,8 @@ export async function POST(req: NextRequest) {
 
   await prisma.integration.upsert({
     where: { userId_type: { userId: user.id, type: "mcserver" } },
-    create: { userId: user.id, type: "mcserver", visible: true, data: result },
-    update: { visible: true, data: result },
+    create: { userId: user.id, type: "mcserver", visible: true, data: JSON.stringify(result) },
+    update: { visible: true, data: JSON.stringify(result) },
   });
 
   return NextResponse.json({ success: true, data: result });

@@ -37,6 +37,13 @@ export type SpotifyRecentTrack = {
   trackUrl: string;
 };
 
+export type SpotifyTopTrack = {
+  trackName: string;
+  artists: string;
+  albumImage: string;
+  trackUrl: string;
+};
+
 export type SpotifyPublicData = {
   spotifyUserId: string;
   displayName: string;
@@ -53,6 +60,7 @@ export type SpotifyPublicData = {
     durationMs: number;
   } | null;
   recentTracks: SpotifyRecentTrack[];
+  topTracks: SpotifyTopTrack[];
   lastSyncAt: string;
 };
 
@@ -185,17 +193,43 @@ async function fetchRecentTracks(accessToken: string): Promise<SpotifyRecentTrac
     .filter((item): item is SpotifyRecentTrack => Boolean(item));
 }
 
+async function fetchTopTracks(accessToken: string): Promise<SpotifyTopTrack[]> {
+  const res = await fetch("https://api.spotify.com/v1/me/top/tracks?time_range=medium_term&limit=5", {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "User-Agent": "BioLink/1.0",
+    },
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error("Unable to fetch top tracks.");
+  const data = (await res.json()) as { items?: SpotifyTrack[] };
+
+  return (data.items || [])
+    .map((track) => {
+      if (!track?.name) return null;
+      return {
+        trackName: String(track.name || ""),
+        artists: (track.artists || []).map((a) => a.name).filter(Boolean).join(", "),
+        albumImage: String(track.album?.images?.[0]?.url || ""),
+        trackUrl: String(track.external_urls?.spotify || ""),
+      };
+    })
+    .filter((item): item is SpotifyTopTrack => Boolean(item));
+}
+
 async function fetchSpotifySnapshot(accessToken: string) {
-  const [profile, nowPlaying, recentTracks] = await Promise.all([
+  const [profile, nowPlaying, recentTracks, topTracks] = await Promise.all([
     fetchSpotifyProfile(accessToken),
     fetchNowPlaying(accessToken).catch(() => null),
     fetchRecentTracks(accessToken).catch(() => []),
+    fetchTopTracks(accessToken).catch(() => []),
   ]);
 
   return {
     ...profile,
     nowPlaying,
     recentTracks,
+    topTracks,
     lastSyncAt: new Date().toISOString(),
   };
 }
@@ -221,6 +255,7 @@ export function toSpotifyPublicData(data: Partial<SpotifyStoredData>): SpotifyPu
     avatarUrl: data.avatarUrl || "",
     nowPlaying: data.nowPlaying || null,
     recentTracks: Array.isArray(data.recentTracks) ? data.recentTracks : [],
+    topTracks: Array.isArray(data.topTracks) ? data.topTracks : [],
     lastSyncAt: data.lastSyncAt || new Date(0).toISOString(),
   };
 }
@@ -241,8 +276,8 @@ export async function saveSpotifyAuthAndSnapshot(params: {
 
   await prisma.integration.upsert({
     where: { userId_type: { userId: params.userId, type: "spotify" } },
-    create: { userId: params.userId, type: "spotify", visible: true, data },
-    update: { visible: true, data },
+    create: { userId: params.userId, type: "spotify", visible: true, data: JSON.stringify(data) },
+    update: { visible: true, data: JSON.stringify(data) },
   });
 
   return toSpotifyPublicData(data);
@@ -281,6 +316,6 @@ export async function refreshSpotifyIntegrationForUser(userId: number, force = f
     expiresAt,
   } as SpotifyStoredData;
 
-  await prisma.integration.update({ where: { id: row.id }, data: { data: nextData } });
+  await prisma.integration.update({ where: { id: row.id }, data: { data: JSON.stringify(nextData) } });
   return toSpotifyPublicData(nextData);
 }

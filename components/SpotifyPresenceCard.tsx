@@ -22,6 +22,13 @@ type SpotifyNowPlaying = {
   durationMs: number;
 };
 
+type SpotifyTopTrack = {
+  trackName: string;
+  artists: string;
+  albumImage: string;
+  trackUrl: string;
+};
+
 type SpotifyData = {
   spotifyUserId: string;
   displayName: string;
@@ -29,6 +36,7 @@ type SpotifyData = {
   avatarUrl: string;
   nowPlaying: SpotifyNowPlaying | null;
   recentTracks: SpotifyTrack[];
+  topTracks: SpotifyTopTrack[];
   lastSyncAt: string;
 };
 
@@ -106,18 +114,40 @@ export default function SpotifyPresenceCard({ data }: { data: SpotifyData }) {
         <div className="sp-empty">No active playback right now.</div>
       )}
 
+      {data.topTracks.length > 0 && (
+        <div className="sp-section">
+          <div className="sp-section-label">Most played</div>
+          <div className="sp-recent-list">
+            {data.topTracks.slice(0, 3).map((track, idx) => (
+              <a key={`top-${track.trackName}-${idx}`} href={track.trackUrl || data.profileUrl || "#"} target="_blank" rel="noopener noreferrer" className="sp-recent-item">
+                <span className="sp-rank">#{idx + 1}</span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={track.albumImage || data.avatarUrl || "/assets/img/default-avatar.png"} alt="" className="sp-recent-cover" />
+                <div className="sp-recent-info">
+                  <div className="sp-recent-name">{track.trackName}</div>
+                  <div className="sp-recent-artist">{track.artists}</div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
       {data.recentTracks.length > 0 && (
-        <div className="sp-recent-list">
-          {data.recentTracks.slice(0, 3).map((track, idx) => (
-            <a key={`${track.trackName}-${idx}`} href={track.trackUrl || data.profileUrl || "#"} target="_blank" rel="noopener noreferrer" className="sp-recent-item">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={track.albumImage || data.avatarUrl || "/assets/img/default-avatar.png"} alt="" className="sp-recent-cover" />
-              <div className="sp-recent-info">
-                <div className="sp-recent-name">{track.trackName}</div>
-                <div className="sp-recent-artist">{track.artists}</div>
-              </div>
-            </a>
-          ))}
+        <div className="sp-section">
+          <div className="sp-section-label">Last played</div>
+          <div className="sp-recent-list">
+            {data.recentTracks.slice(0, 3).map((track, idx) => (
+              <a key={`${track.trackName}-${idx}`} href={track.trackUrl || data.profileUrl || "#"} target="_blank" rel="noopener noreferrer" className="sp-recent-item">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={track.albumImage || data.avatarUrl || "/assets/img/default-avatar.png"} alt="" className="sp-recent-cover" />
+                <div className="sp-recent-info">
+                  <div className="sp-recent-name">{track.trackName}</div>
+                  <div className="sp-recent-artist">{track.artists}</div>
+                </div>
+              </a>
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
 import { getActiveProfileId } from "@/lib/active-profile";
 import { SPIN_COOLDOWN_MS, rollSpinPrize } from "@/lib/spin";
+import { parseStringArray, serializeStringArray } from "@/lib/json-array";
 
 export async function GET() {
   let user;
@@ -47,10 +48,10 @@ export async function POST() {
 
   if (prize.type === "badge" && activeProfileId) {
     const profile = await prisma.profile.findUnique({ where: { id: activeProfileId } });
-    const owned = new Set((profile?.badges as string[] | null) ?? []);
+    const owned = new Set(parseStringArray(profile?.badges));
     if (!owned.has(prize.id)) {
       owned.add(prize.id);
-      ops.push(prisma.profile.updateMany({ where: { id: activeProfileId }, data: { badges: Array.from(owned) } }));
+      ops.push(prisma.profile.updateMany({ where: { id: activeProfileId }, data: { badges: serializeStringArray(Array.from(owned)) } }));
     }
   }
 

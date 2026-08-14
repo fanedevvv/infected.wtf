@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
 import { destroySession } from "@/lib/session";
 import { getActiveProfileId } from "@/lib/active-profile";
+import { parseStringArray, serializeStringArray } from "@/lib/json-array";
 
 function ok(message = "OK") {
   return NextResponse.json({ success: true, message });
@@ -68,14 +69,10 @@ export async function POST(req: NextRequest) {
   }
 
   if (action === "delete_music_track") {
-    const slot = Math.max(1, Math.min(3, parseInt(String(form.get("slot") || "1"), 10) || 1));
     const row = await prisma.profile.findFirst({ where: { id: activeProfileId }, select: { musicTracks: true } });
-    const tracks: (string | null)[] = [null, null, null];
-    const existing = (row?.musicTracks as (string | null)[] | null) ?? [];
-    for (let i = 0; i < 3; i++) tracks[i] = existing[i] ?? null;
-    await deleteFile(tracks[slot - 1]);
-    tracks[slot - 1] = null;
-    await prisma.profile.updateMany({ where: { id: activeProfileId }, data: { musicTracks: tracks } });
+    const existing = parseStringArray(row?.musicTracks);
+    await deleteFile(existing[0]);
+    await prisma.profile.updateMany({ where: { id: activeProfileId }, data: { musicTracks: serializeStringArray([]) } });
     return ok("Track removed!");
   }
 

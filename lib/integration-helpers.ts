@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "./prisma";
 import { getCurrentUser } from "./auth-helpers";
+import { parseJsonObject } from "./json-array";
 
 export async function integrationStatus(type: string) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const row = await prisma.integration.findUnique({ where: { userId_type: { userId: user.id, type } } });
-  return NextResponse.json({ integration: row ? { data: row.data, visible: row.visible } : null });
+  return NextResponse.json({ integration: row ? { data: parseJsonObject(row.data), visible: row.visible } : null });
 }
 
 export async function disconnectIntegration(type: string) {

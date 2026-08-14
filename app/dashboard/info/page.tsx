@@ -2,13 +2,12 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { getActiveProfileId } from "@/lib/active-profile";
+import { parseStringArray } from "@/lib/json-array";
 import ProfileInfoForm from "./ProfileInfoForm";
 import { AppearanceTabBar, AppearanceSubNav, SubNavItem } from "./AppearanceNav";
 import EffectsPage from "../effects/page";
 import BadgesPage from "../badges/page";
-import LinksPage from "../links/page";
 import IntegrationsPage from "../integrations/page";
-import GameIntegrations from "../integrations/GameIntegrations";
 
 const ICONS: Record<string, React.ReactNode> = {
   visuals: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>,
@@ -56,7 +55,7 @@ export default async function ProfileInfoPage({
 
   const isPremium = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date());
   const params = await searchParams;
-  const tab = ["media", "appearance", "layout", "badges", "social", "integrations"].includes(params.tab || "")
+  const tab = ["media", "appearance", "layout", "badges", "integrations"].includes(params.tab || "")
     ? params.tab!
     : "media";
   const subItems = SUBNAV[tab];
@@ -88,10 +87,7 @@ export default async function ProfileInfoPage({
                   banner={profile.banner}
                   backgroundType={profile.backgroundType || "particles"}
                   backgroundValue={profile.backgroundValue || "#050507"}
-                  musicTracks={(() => {
-                    const arr = (profile.musicTracks as (string | null)[] | null) ?? [];
-                    return [arr[0] ?? null, arr[1] ?? null, arr[2] ?? null];
-                  })()}
+                  musicTracks={[parseStringArray(profile.musicTracks)[0] ?? null]}
                   playlistStyle={profile.playlistStyle}
                   layoutTemplate={profile.layoutTemplate}
                   isPremium={isPremium}
@@ -115,13 +111,8 @@ export default async function ProfileInfoPage({
         </div>
       ) : tab === "badges" ? (
         <BadgesPage />
-      ) : tab === "social" ? (
-        <LinksPage />
       ) : (
-        <>
-          <IntegrationsPage searchParams={Promise.resolve({ error: params.error, connected: params.connected })} />
-          <GameIntegrations />
-        </>
+        <IntegrationsPage searchParams={Promise.resolve({ error: params.error, connected: params.connected })} />
       )}
     </>
   );

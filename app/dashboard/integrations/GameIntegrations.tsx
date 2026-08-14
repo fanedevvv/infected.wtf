@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { showToast } from "@/lib/toast";
-import { SteamIcon, RobloxIcon, MinecraftIcon, ServerIcon, ValorantIcon, TwitchIcon, SpotifyIcon } from "@/components/IntegrationIcons";
+import { SteamIcon, RobloxIcon, MinecraftIcon, ServerIcon, ValorantIcon, TwitchIcon, SpotifyIcon, GithubIcon } from "@/components/IntegrationIcons";
 
 type IntegrationRow = { data: Record<string, unknown>; visible: boolean } | null;
 
@@ -295,6 +295,27 @@ export default function GameIntegrations() {
               </div>
             );
           }}
+        />
+
+        <GameCard
+          type="github"
+          title="GitHub"
+          subtitle="Show your GitHub profile and repo count"
+          color="#f0f6fc"
+          icon={<GithubIcon />}
+          fields={[{ name: "username", placeholder: "GitHub username" }]}
+          renderPreview={(d) => (
+            <div className="int-preview-generic">
+              <div className="int-preview-avatar">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {d.avatarUrl ? <img src={String(d.avatarUrl)} alt="" /> : <GithubIcon size={16} />}
+              </div>
+              <div className="int-preview-info">
+                <div className="int-preview-name">{String(d.name || d.username || "")}</div>
+                <div className="int-preview-sub">{String(d.publicRepos ?? 0)} repos · {String(d.followers ?? 0)} followers</div>
+              </div>
+            </div>
+          )}
         />
 
         <GameCard

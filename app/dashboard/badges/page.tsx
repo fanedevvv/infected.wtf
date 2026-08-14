@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { getDashboardBadgeState } from "@/lib/badges";
 import { ALL_BADGES } from "@/lib/badge-defs";
+import { prisma } from "@/lib/prisma";
 import BadgesGrid from "./BadgesGrid";
 
 export default async function BadgesPage() {
@@ -10,6 +11,12 @@ export default async function BadgesPage() {
 
   const { earned, hidden, order, isPromoterElite } = await getDashboardBadgeState(user.id);
   const earnedSet = new Set(earned);
+
+  const earnedDynamicIds = earned.filter((id) => id.startsWith("dc_"));
+  const dynamicBadges = earnedDynamicIds.length
+    ? await prisma.dynamicBadge.findMany({ where: { badgeKey: { in: earnedDynamicIds } } })
+    : [];
+  const dynamicDefs = new Map(dynamicBadges.map((d) => [d.badgeKey, { name: d.label, desc: "Synced from a Discord role.", color: d.color || "#5865F2" }]));
 
   const badges = { ...ALL_BADGES };
   if (isPromoterElite && badges.promoter) {
@@ -44,6 +51,16 @@ export default async function BadgesPage() {
       hidden: hidden.has(bid),
       elite: bid === "promoter" && isPromoterElite,
     })),
+    ...Array.from(dynamicDefs.entries()).map(([bid, b]) => ({
+      cardId: bid,
+      realId: bid,
+      name: b.name,
+      desc: b.desc,
+      color: b.color,
+      unlocked: true,
+      hidden: hidden.has(bid),
+      elite: false,
+    })),
     ...lockedList.map(({ bid, b }) => ({
       cardId: bid,
       realId: bid,
@@ -56,5 +73,5 @@ export default async function BadgesPage() {
     })),
   ];
 
-  return <BadgesGrid cards={cards} totalCount={Object.keys(ALL_BADGES).length} earnedCount={earned.length} />;
+  return <BadgesGrid cards={cards} totalCount={Object.keys(ALL_BADGES).length + dynamicDefs.size} earnedCount={earned.length} />;
 }

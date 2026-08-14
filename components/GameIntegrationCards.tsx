@@ -1,4 +1,4 @@
-import { ValorantIcon, TwitchIcon, SpotifyIcon } from "@/components/IntegrationIcons";
+import { ValorantIcon, TwitchIcon, SpotifyIcon, GithubIcon } from "@/components/IntegrationIcons";
 
 export type GameIntegration =
   | { type: "steam"; data: { steamId64: string; personaName: string; avatarUrl: string; profileUrl: string } }
@@ -7,6 +7,7 @@ export type GameIntegration =
   | { type: "mcserver"; data: { host: string; online: boolean; playersOnline: number; playersMax: number; motd: string; icon: string } }
   | { type: "valorant"; data: { riotId: string; tagLine: string; region: string } }
   | { type: "twitch"; data: { username: string } }
+  | { type: "github"; data: { username: string; name: string; avatarUrl: string; profileUrl: string; publicRepos: number; followers: number } }
   | {
       type: "spotify";
       data: {
@@ -31,6 +32,12 @@ export type GameIntegration =
           playedAt: string;
           trackUrl: string;
         }>;
+        topTracks: Array<{
+          trackName: string;
+          artists: string;
+          albumImage: string;
+          trackUrl: string;
+        }>;
         lastSyncAt: string;
       };
     };
@@ -43,6 +50,7 @@ const COLORS: Record<string, string> = {
   valorant: "#ff4655",
   twitch: "#9146ff",
   spotify: "#1db954",
+  github: "#f0f6fc",
 };
 
 function GameCardShell({ type, href, children }: { type: string; href?: string; children: React.ReactNode }) {
@@ -143,6 +151,20 @@ export default function GameIntegrationCards({ integrations }: { integrations: G
               <div className="game-int-info">
                 <div className="game-int-name">{it.data.username}</div>
                 <div className="game-int-sub">Twitch</div>
+              </div>
+            </GameCardShell>
+          );
+        }
+        if (it.type === "github") {
+          return (
+            <GameCardShell key="github" type="github" href={it.data.profileUrl}>
+              <div className="game-int-icon">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {it.data.avatarUrl ? <img src={it.data.avatarUrl} alt="" /> : <GithubIcon size={18} />}
+              </div>
+              <div className="game-int-info">
+                <div className="game-int-name">{it.data.name || it.data.username}</div>
+                <div className="game-int-sub">{it.data.publicRepos} repos · {it.data.followers} followers</div>
               </div>
             </GameCardShell>
           );

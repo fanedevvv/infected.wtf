@@ -142,7 +142,9 @@ export default function BadgesGrid({ cards: initialCards, totalCount, earnedCoun
               )}
 
               <div className="badge-card-icon" style={{ color: c.unlocked ? c.color : undefined }}>
-                {BADGE_SVG[c.elite ? "promoter_elite" : c.realId]}
+                {BADGE_SVG[c.elite ? "promoter_elite" : c.realId] || (
+                  <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8" /></svg>
+                )}
               </div>
 
               <div className="badge-card-name" style={{ color: c.unlocked ? c.color : undefined }}>

@@ -19,6 +19,7 @@ type AdminUser = {
 
 type Bundle = { id: number; name: string; price: number; priceType: "euro" | "tokens"; badges: string[]; effects: string[]; premiumDays: number };
 type RedeemCode = { id: number; code: string; tokens: number; maxUses: number; usesCount: number; expiresAt: string | null; active: boolean };
+type DynamicBadge = { badgeKey: string; label: string; color: string };
 
 interface Props {
   iAmOwner: boolean;
@@ -32,6 +33,7 @@ interface Props {
   x2EventEnabled: boolean;
   bundles: Bundle[];
   redeemCodes: RedeemCode[];
+  dynamicBadges: DynamicBadge[];
   users: AdminUser[];
   page: number;
   totalPages: number;
@@ -73,6 +75,57 @@ export default function AdminClient(props: Props) {
   const [x2Enabled, setX2Enabled] = useState(props.x2EventEnabled);
   const [wlLoading, setWlLoading] = useState(false);
   const [x2Loading, setX2Loading] = useState(false);
+
+  const [dynamicBadges, setDynamicBadges] = useState(props.dynamicBadges);
+  const [newBadgeName, setNewBadgeName] = useState("");
+  const [newBadgeColor, setNewBadgeColor] = useState("#5865F2");
+  const [creatingBadge, setCreatingBadge] = useState(false);
+
+  async function createBadge() {
+    const name = newBadgeName.trim();
+    if (!name || creatingBadge) return;
+    setCreatingBadge(true);
+    try {
+      const res = await fetch("/api/admin_action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "create_dynamic_badge", name, color: newBadgeColor }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast(json.message || "Badge created", "success");
+        setDynamicBadges((prev) => [{ badgeKey: json.badge_key, label: name, color: newBadgeColor }, ...prev]);
+        setNewBadgeName("");
+      } else {
+        showToast(json.error || "Error", "error");
+      }
+    } catch {
+      showToast("Network error", "error");
+    } finally {
+      setCreatingBadge(false);
+    }
+  }
+
+  function deleteBadge(badgeKey: string, label: string) {
+    showConfirm(`Delete "${label}"`, `Delete this badge and its Discord role? This can't be undone.`, "Delete", async () => {
+      try {
+        const res = await fetch("/api/admin_action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "delete_dynamic_badge", badge_key: badgeKey }),
+        });
+        const json = await res.json();
+        if (json.success) {
+          showToast(json.message || "Badge deleted", "success");
+          setDynamicBadges((prev) => prev.filter((b) => b.badgeKey !== badgeKey));
+        } else {
+          showToast(json.error || "Error", "error");
+        }
+      } catch {
+        showToast("Network error", "error");
+      }
+    });
+  }
 
   useEffect(() => {
     const saved = typeof window !== "undefined" ? sessionStorage.getItem("adminTab") : null;
@@ -427,6 +480,14 @@ export default function AdminClient(props: Props) {
           toggleX2={toggleX2}
           router={router}
           showConfirmFn={showConfirm}
+          dynamicBadges={dynamicBadges}
+          newBadgeName={newBadgeName}
+          setNewBadgeName={setNewBadgeName}
+          newBadgeColor={newBadgeColor}
+          setNewBadgeColor={setNewBadgeColor}
+          creatingBadge={creatingBadge}
+          createBadge={createBadge}
+          deleteBadge={deleteBadge}
         />
       )}
 
@@ -549,6 +610,26 @@ export default function AdminClient(props: Props) {
                               </div>
                             )}
                             {has && <div className="ep-badge-acts"><button className="ep-b-revoke" onClick={() => epBadge(bid, false)}>Revoke</button></div>}
+                          </div>
+                        );
+                      })}
+                      {dynamicBadges.map((b) => {
+                        const has = epUser.badges.includes(b.badgeKey);
+                        return (
+                          <div className="ep-badge-row" key={b.badgeKey}>
+                            <div className="ep-badge-ico" style={{ background: b.color + "22", color: b.color, border: `1px solid ${b.color}44`, width: 26, height: 26, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                              <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><circle cx="12" cy="12" r="8" /></svg>
+                            </div>
+                            <span className="ep-badge-nm" style={{ color: b.color }}>{b.label}</span>
+                            {!has ? (
+                              <div className="ep-badge-acts"><button className="ep-b-grant" onClick={() => epBadge(b.badgeKey, true)}>Grant</button></div>
+                            ) : (
+                              <div className="ep-badge-owned" style={{ display: "flex" }}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14" style={{ color: "#5fefa5" }}><path d="M20 6L9 17l-5-5" /></svg>
+                                <span>Owned</span>
+                              </div>
+                            )}
+                            {has && <div className="ep-badge-acts"><button className="ep-b-revoke" onClick={() => epBadge(b.badgeKey, false)}>Revoke</button></div>}
                           </div>
                         );
                       })}

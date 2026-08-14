@@ -1,5 +1,7 @@
 import { prisma } from "./prisma";
 import { sha256 } from "./crypto";
+import { syncDiscordBadgeRole } from "./discord";
+import { parseStringArray, serializeStringArray } from "./json-array";
 
 function parseDevice(ua: string): string {
   if (/tablet|ipad/i.test(ua)) return "tablet";
@@ -60,18 +62,25 @@ export async function recordProfileView(profileId: number, profileUserId: number
     await prisma.profile.update({ where: { id: profileId }, data: { localViews: { increment: 1 } } });
   }
 
-  if (profile.views >= 1000) await grantBadge(profileId, "hall_of_fame", true);
-  if (profile.views >= 10000) await grantBadge(profileId, "champion", true);
+  if (profile.views >= 1000 && (await grantBadge(profileId, "hall_of_fame", true))) {
+    await syncDiscordBadgeRole(profileUserId, "hall_of_fame", true);
+  }
+  if (profile.views >= 10000 && (await grantBadge(profileId, "champion", true))) {
+    await syncDiscordBadgeRole(profileUserId, "champion", true);
+  }
 
   const isPremium = user?.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date());
   const tokens = isPremium ? 5 : 3;
   await prisma.user.update({ where: { id: profileUserId }, data: { tokens: { increment: tokens } } });
 }
 
-async function grantBadge(profileId: number, badgeId: string, grant: boolean) {
+/** Returns true if the badge set actually changed (i.e. this was a new grant/revoke), false if it was already in that state. */
+async function grantBadge(profileId: number, badgeId: string, grant: boolean): Promise<boolean> {
   const profile = await prisma.profile.findUnique({ where: { id: profileId } });
-  const current = new Set((profile?.badges as string[] | null) ?? []);
+  const current = new Set(parseStringArray(profile?.badges));
+  const changed = grant ? !current.has(badgeId) : current.has(badgeId);
   if (grant) current.add(badgeId);
   else current.delete(badgeId);
-  await prisma.profile.update({ where: { id: profileId }, data: { badges: Array.from(current) } });
+  await prisma.profile.update({ where: { id: profileId }, data: { badges: serializeStringArray(Array.from(current)) } });
+  return changed;
 }

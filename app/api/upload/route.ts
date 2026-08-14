@@ -5,6 +5,7 @@ import { existsSync } from "fs";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
 import { getActiveProfileId } from "@/lib/active-profile";
+import { parseStringArray, serializeStringArray } from "@/lib/json-array";
 
 function ok(data: Record<string, unknown>) {
   return NextResponse.json({ success: true, ...data });
@@ -112,18 +113,15 @@ export async function POST(req: NextRequest) {
     if (!allowedMime.includes(file.type) && !allowedExt.includes(ext)) return err(`Unsupported type. We accept MP3, OGG, WAV.`);
     if (!allowedExt.includes(ext)) ext = "mp3";
 
-    const slot = Math.max(1, Math.min(3, parseInt(String(form.get("slot") || "1"), 10) || 1));
     const old = await prisma.profile.findFirst({ where: { id: activeProfileId }, select: { musicTracks: true } });
-    const tracks: (string | null)[] = [null, null, null];
-    const existing = (old?.musicTracks as (string | null)[] | null) ?? [];
-    for (let i = 0; i < 3; i++) tracks[i] = existing[i] ?? null;
-    await deleteOld(tracks[slot - 1]);
+    const existing = parseStringArray(old?.musicTracks);
+    await deleteOld(existing[0]);
 
-    const fname = `music_${userId}_${slot}_${Date.now()}.${ext}`;
+    const fname = `music_${userId}_1_${Date.now()}.${ext}`;
     await saveFile("music", fname, Buffer.from(await file.arrayBuffer()));
     const relPath = `uploads/music/${fname}`;
-    tracks[slot - 1] = relPath;
-    await prisma.profile.updateMany({ where: { id: activeProfileId }, data: { musicTracks: tracks } });
+    const tracks = [relPath];
+    await prisma.profile.updateMany({ where: { id: activeProfileId }, data: { musicTracks: serializeStringArray(tracks) } });
     return ok({ path: relPath, url: `/${relPath}`, tracks });
   }
 

@@ -1,4 +1,6 @@
 import { prisma } from "./prisma";
+import { parseStringArray, serializeStringArray } from "./json-array";
+import { syncDiscordBadgeRole } from "./discord";
 
 const BADGE_LABELS: Record<string, string> = {
   verified: "Verified",
@@ -25,7 +27,15 @@ const BADGE_LABELS: Record<string, string> = {
   booster: "Server Booster",
 };
 
-export type Badge = { id: string; label: string };
+export type Badge = { id: string; label: string; color?: string };
+
+/** Looks up display info for any dynamic (Discord-role-backed) badge ids present in the given set. */
+async function loadDynamicBadges(ids: string[]): Promise<Badge[]> {
+  const dynIds = ids.filter((id) => id.startsWith("dc_"));
+  if (dynIds.length === 0) return [];
+  const rows = await prisma.dynamicBadge.findMany({ where: { badgeKey: { in: dynIds } } });
+  return rows.map((r) => ({ id: r.badgeKey, label: r.label, color: r.color ?? undefined }));
+}
 
 /** Public-profile badge set for a specific page (profile row): earned + role badges, hidden ones excluded, custom order applied. */
 export async function getProfileBadges(profileId: number): Promise<Badge[]> {
@@ -38,9 +48,9 @@ export async function getProfileBadges(profileId: number): Promise<Badge[]> {
   });
   if (!user) return [];
 
-  const manual = (profile.badges as string[] | null) ?? [];
-  const hidden = new Set((profile.badgeHidden as string[] | null) ?? []);
-  const order = (profile.badgeOrder as string[] | null) ?? [];
+  const manual = parseStringArray(profile.badges);
+  const hidden = new Set(parseStringArray(profile.badgeHidden));
+  const order = parseStringArray(profile.badgeOrder);
   const manualSet = new Set(manual);
 
   const badges: Badge[] = [];
@@ -76,6 +86,8 @@ export async function getProfileBadges(profileId: number): Promise<Badge[]> {
   if (user.integrations.length > 0) badges.push({ id: "discord", label: BADGE_LABELS.discord });
   if (manualSet.has("booster")) badges.push({ id: "booster", label: BADGE_LABELS.booster });
 
+  badges.push(...(await loadDynamicBadges(manual)));
+
   const visible = badges.filter((b) => !hidden.has(b.id));
 
   if (order.length > 0) {
@@ -107,19 +119,23 @@ export async function getDashboardBadgeState(userId: number): Promise<DashboardB
   const profile = user?.profiles[0];
   if (!user || !profile) return { earned: [], hidden: new Set(), order: [], isPromoterElite: false };
 
-  const manual = (profile.badges as string[] | null) ?? [];
-  const hidden = new Set((profile.badgeHidden as string[] | null) ?? []);
-  const order = (profile.badgeOrder as string[] | null) ?? [];
+  const manual = parseStringArray(profile.badges);
+  const hidden = new Set(parseStringArray(profile.badgeHidden));
+  const order = parseStringArray(profile.badgeOrder);
   const manualSet = new Set(manual);
 
   const earned: string[] = [];
   if (manualSet.has("verified")) earned.push("verified");
 
   const rankCount = await prisma.user.count({ where: { id: { lte: userId } } });
-  if (rankCount <= 1000) earned.push("og");
+  const isOg = rankCount <= 1000;
+  if (isOg) earned.push("og");
+  if (isOg) await syncDiscordBadgeRole(userId, "og", true);
 
   const top3 = await prisma.profile.findMany({ orderBy: { views: "desc" }, take: 3, select: { userId: true } });
-  if (top3.some((p) => p.userId === userId)) earned.push("views_master");
+  const isViewsMaster = top3.some((p) => p.userId === userId);
+  if (isViewsMaster) earned.push("views_master");
+  await syncDiscordBadgeRole(userId, "views_master", isViewsMaster);
 
   const views = profile.views ?? 0;
   if (views >= 1000) earned.push("hall_of_fame");
@@ -136,6 +152,8 @@ export async function getDashboardBadgeState(userId: number): Promise<DashboardB
   if (user.integrations.length > 0) earned.push("discord");
   if (manualSet.has("booster")) earned.push("booster");
 
+  for (const b of await loadDynamicBadges(manual)) earned.push(b.id);
+
   const refCount = await prisma.referral.count({ where: { referrerId: userId } });
   let isPromoterElite = false;
   let badgesJson = manual;
@@ -145,13 +163,16 @@ export async function getDashboardBadgeState(userId: number): Promise<DashboardB
     earned.push("promoter");
     if (!badgesJson.includes("promoter_elite")) {
       badgesJson = [...badgesJson.filter((b) => b !== "promoter"), "promoter_elite"];
-      await prisma.profile.updateMany({ where: { userId, isPrimary: true }, data: { badges: badgesJson } });
+      await prisma.profile.updateMany({ where: { userId, isPrimary: true }, data: { badges: serializeStringArray(badgesJson) } });
+      await syncDiscordBadgeRole(userId, "promoter", false);
+      await syncDiscordBadgeRole(userId, "promoter_elite", true);
     }
   } else if (refCount >= 10) {
     earned.push("promoter");
     if (!badgesJson.includes("promoter")) {
       badgesJson = [...badgesJson, "promoter"];
-      await prisma.profile.updateMany({ where: { userId, isPrimary: true }, data: { badges: badgesJson } });
+      await prisma.profile.updateMany({ where: { userId, isPrimary: true }, data: { badges: serializeStringArray(badgesJson) } });
+      await syncDiscordBadgeRole(userId, "promoter", true);
     }
   }
 

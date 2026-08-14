@@ -37,6 +37,21 @@ export async function lookupMinecraft(username: string) {
   return { uuid: data.id, username: data.name, avatarUrl: `https://crafatar.com/avatars/${data.id}?size=100&overlay` };
 }
 
+export async function lookupGithub(username: string) {
+  const data = (await fetchJson(`https://api.github.com/users/${encodeURIComponent(username)}`, {
+    headers: { "User-Agent": "infected.wtf", Accept: "application/vnd.github+json" },
+  })) as { login?: string; name?: string; avatar_url?: string; html_url?: string; public_repos?: number; followers?: number } | null;
+  if (!data?.login) return null;
+  return {
+    username: data.login,
+    name: data.name || data.login,
+    avatarUrl: data.avatar_url || "",
+    profileUrl: data.html_url || `https://github.com/${data.login}`,
+    publicRepos: data.public_repos ?? 0,
+    followers: data.followers ?? 0,
+  };
+}
+
 export async function lookupMcServer(host: string) {
   const cleanHost = host.trim().replace(/^https?:\/\//, "").split("/")[0];
   if (!cleanHost || !/^[a-zA-Z0-9.\-:]+$/.test(cleanHost)) return null;

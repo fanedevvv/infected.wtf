@@ -171,6 +171,17 @@ model ProfileLike {
   @@map("profile_likes")
 }
 
+model DynamicBadge {
+  id            Int      @id @default(autoincrement())
+  badgeKey      String   @unique(map: "uniq_dynamic_badge_key") @map("badge_key") @db.VarChar(64)
+  label         String   @db.VarChar(80)
+  color         String?  @db.VarChar(7)
+  discordRoleId String?  @unique(map: "uniq_dynamic_badge_role") @map("discord_role_id") @db.VarChar(20)
+  createdAt     DateTime @default(now()) @map("created_at") @db.DateTime(0)
+
+  @@map("dynamic_badges")
+}
+
 model Integration {
   id                   Int       @id @default(autoincrement())
   userId               Int       @map("user_id")

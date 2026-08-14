@@ -4,6 +4,12 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { showToast } from "@/lib/toast";
 import { SteamIcon, RobloxIcon, MinecraftIcon, ServerIcon, ValorantIcon, TwitchIcon, SpotifyIcon } from "@/components/IntegrationIcons";
+import { PLATFORM_COLOR, PLATFORM_ICON, PLATFORM_PLACEHOLDER } from "@/lib/social-platforms";
+
+const SOCIAL_TYPES = ["instagram", "twitter", "youtube", "tiktok", "website"] as const;
+type SocialType = (typeof SOCIAL_TYPES)[number];
+const SOCIAL_LABEL: Record<SocialType, string> = { instagram: "Instagram", twitter: "Twitter / X", youtube: "YouTube", tiktok: "TikTok", website: "Website" };
+type SocialLink = { id: number; platform: string; url: string };
 
 const GAME_TYPES = ["steam", "roblox", "minecraft", "mcserver", "valorant", "twitch", "spotify"] as const;
 type GameType = (typeof GAME_TYPES)[number];
@@ -59,10 +65,12 @@ const GearIcon = () => (
 
 export default function IntegrationsContent({
   initialIntegration,
+  initialSocialLinks,
   error,
   connected,
 }: {
   initialIntegration: Integration;
+  initialSocialLinks: SocialLink[];
   error?: string;
   connected?: string;
 }) {
@@ -74,6 +82,77 @@ export default function IntegrationsContent({
   const [serverError, setServerError] = useState("");
   const [serverSaving, setServerSaving] = useState(false);
   const [gameRows, setGameRows] = useState<GameRow[]>([]);
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>(initialSocialLinks);
+  const [socialModal, setSocialModal] = useState<SocialType | null>(null);
+  const [socialUrlInput, setSocialUrlInput] = useState("");
+  const [socialError, setSocialError] = useState("");
+  const [socialSaving, setSocialSaving] = useState(false);
+
+  function openSocialModal(platform: SocialType) {
+    const existing = socialLinks.find((l) => l.platform === platform);
+    setSocialModal(platform);
+    setSocialUrlInput(existing?.url || "");
+    setSocialError("");
+  }
+
+  async function saveSocialLink() {
+    if (!socialModal) return;
+    let url = socialUrlInput.trim();
+    if (!url) { setSocialError("Please enter a URL or username."); return; }
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      if (url.startsWith("@")) url = url.slice(1);
+      url = "https://" + url;
+    }
+    setSocialSaving(true);
+    setSocialError("");
+    try {
+      const existing = socialLinks.find((l) => l.platform === socialModal);
+      if (existing) {
+        const res = await fetch(`/api/links/${existing.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url }),
+        });
+        const j = await res.json();
+        if (j.success) {
+          setSocialLinks((links) => links.map((l) => (l.id === existing.id ? { ...l, url } : l)));
+          setSocialModal(null);
+          showToast("Link updated!", "success");
+        } else setSocialError(j.error || "Failed to update link.");
+      } else {
+        const res = await fetch("/api/links", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ platform: socialModal, url }),
+        });
+        const j = await res.json();
+        if (j.success) {
+          setSocialLinks((links) => [...links, { id: j.link.id, platform: j.link.platform, url: j.link.url }]);
+          setSocialModal(null);
+          showToast("Link added!", "success");
+        } else setSocialError(j.error || "Failed to add link.");
+      }
+    } catch {
+      setSocialError("Network error. Please try again.");
+    } finally {
+      setSocialSaving(false);
+    }
+  }
+
+  async function deleteSocialLink(platform: SocialType) {
+    const existing = socialLinks.find((l) => l.platform === platform);
+    if (!existing) return;
+    try {
+      const res = await fetch(`/api/links/${existing.id}`, { method: "DELETE" });
+      const j = await res.json();
+      if (j.success) {
+        setSocialLinks((links) => links.filter((l) => l.id !== existing.id));
+        showToast("Link removed.", "success");
+      } else showToast(j.error || "Error", "error");
+    } catch {
+      showToast("Network error", "error");
+    }
+  }
 
   useEffect(() => {
     for (const type of GAME_TYPES) {
@@ -349,39 +428,84 @@ export default function IntegrationsContent({
           )}
         </div>
 
-        <div className="int-card" style={{ ["--int-color" as string]: "#1db954" }}>
-          <div className="int-card-header">
-            <div className="int-card-icon" style={{ background: "rgba(29,185,84,.15)", border: "1px solid rgba(29,185,84,.2)", color: "#1db954" }}>
-              <SpotifyIcon size={22} />
-            </div>
-            <div>
-              <div className="int-card-title">Spotify</div>
-              <div className="int-card-subtitle">Now playing &amp; recent tracks</div>
-            </div>
-          </div>
-          <div className="int-status connected"><div className="int-status-dot" />Available now</div>
-          <p className="int-card-desc">Connect Spotify to show what you are listening to directly on your profile.</p>
-          <div className="int-card-footer">
-            <Link href="/api/integrations/spotify/connect" className="int-btn" style={{ background: "linear-gradient(135deg,#1db954,#169c46)", color: "#fff" }}>
-              <SpotifyIcon size={16} /> Connect Spotify
-            </Link>
-          </div>
-        </div>
+        {SOCIAL_TYPES.map((platform) => {
+          const link = socialLinks.find((l) => l.platform === platform);
+          const color = PLATFORM_COLOR[platform];
+          return (
+            <div className="int-card" key={platform} style={{ ["--int-color" as string]: color }}>
+              <div className="int-card-header">
+                <div className="int-card-icon" style={{ background: `${color}22`, border: `1px solid ${color}44`, color }}>
+                  {PLATFORM_ICON[platform]}
+                </div>
+                <div>
+                  <div className="int-card-title">{SOCIAL_LABEL[platform]}</div>
+                  <div className="int-card-subtitle">Link shown on your profile</div>
+                </div>
+              </div>
 
-        <div className="int-card" style={{ ["--int-color" as string]: "#66c0f4", opacity: 0.55, pointerEvents: "none" }}>
-          <div className="int-card-header">
-            <div className="int-card-icon" style={{ background: "rgba(102,192,244,.1)", border: "1px solid rgba(102,192,244,.2)" }}>
-              <svg viewBox="0 0 24 24" fill="#66c0f4" width="22" height="22"><path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.605 0 11.979 0z" /></svg>
+              {link ? (
+                <>
+                  <div className="int-status connected"><div className="int-status-dot" />Connected</div>
+                  <div className="discord-preview">
+                    <div className="discord-preview-avatar" style={{ background: `${color}22`, color }}>{PLATFORM_ICON[platform]}</div>
+                    <div className="discord-preview-info">
+                      <div className="discord-preview-name" style={{ wordBreak: "break-all" }}>{link.url}</div>
+                    </div>
+                  </div>
+                  <div className="int-card-footer-row">
+                    <button className="int-btn int-btn-outline" onClick={() => openSocialModal(platform)}>Edit</button>
+                    <button className="int-btn int-btn-danger" onClick={() => deleteSocialLink(platform)}>Remove</button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="int-status disconnected"><div className="int-status-dot" />Not connected</div>
+                  <p className="int-card-desc">Add your {SOCIAL_LABEL[platform]} link to show it on your profile.</p>
+                  <div className="int-card-footer">
+                    <button className="int-btn int-btn-primary" onClick={() => openSocialModal(platform)} style={{ background: `linear-gradient(135deg, ${color}, ${color}cc)`, color: "#fff" }}>
+                      {PLATFORM_ICON[platform]} Connect {SOCIAL_LABEL[platform]}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
-            <div>
-              <div className="int-card-title">Steam</div>
-              <div className="int-card-subtitle">Gaming · Coming soon</div>
-            </div>
-          </div>
-          <p className="int-card-desc">Display your Steam profile, recent games, and playtime on your public biolink.</p>
-          <div className="int-card-footer">
-            <button className="int-btn" style={{ background: "rgba(255,255,255,.06)", color: "rgba(255,255,255,.3)", cursor: "not-allowed" }}>Coming Soon</button>
-          </div>
+          );
+        })}
+      </div>
+
+      <div id="link-modal" className={socialModal ? "open" : ""} role="dialog" aria-modal="true" onClick={(e) => e.target === e.currentTarget && setSocialModal(null)}>
+        <div className="link-modal-box" style={{ ["--lm-color" as string]: socialModal ? PLATFORM_COLOR[socialModal] : "#6366f1", borderColor: `${socialModal ? PLATFORM_COLOR[socialModal] : "#6366f1"}30` }}>
+          <button className="link-modal-close" onClick={() => setSocialModal(null)}>×</button>
+          {socialModal && (
+            <>
+              <div className="link-modal-header">
+                <div className="link-modal-icon" style={{ background: `${PLATFORM_COLOR[socialModal]}20`, border: `1px solid ${PLATFORM_COLOR[socialModal]}35`, color: PLATFORM_COLOR[socialModal] }}>
+                  {PLATFORM_ICON[socialModal]}
+                </div>
+                <div>
+                  <p className="link-modal-title">Link {SOCIAL_LABEL[socialModal]}</p>
+                  <p className="link-modal-sub">Enter your {SOCIAL_LABEL[socialModal]} profile link or username.</p>
+                </div>
+              </div>
+              <label className="link-modal-label" htmlFor="lm-social-url-input">Username / URL</label>
+              <input
+                id="lm-social-url-input"
+                type="text"
+                className="link-modal-input"
+                placeholder={PLATFORM_PLACEHOLDER[socialModal]}
+                autoComplete="off"
+                value={socialUrlInput}
+                onChange={(e) => setSocialUrlInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && saveSocialLink()}
+                style={{ ["--lm-color" as string]: `${PLATFORM_COLOR[socialModal]}80` }}
+              />
+              {socialError && <div className="link-modal-err">{socialError}</div>}
+              <button className="link-modal-btn" disabled={socialSaving} onClick={saveSocialLink}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12" /></svg>
+                {socialSaving ? "Saving..." : "Save"}
+              </button>
+            </>
+          )}
         </div>
       </div>
 

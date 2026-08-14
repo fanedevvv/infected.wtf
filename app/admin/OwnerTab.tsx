@@ -8,6 +8,7 @@ import { SHOP_EFFECTS } from "@/lib/shop";
 
 type Bundle = { id: number; name: string; price: number; priceType: "euro" | "tokens"; badges: string[]; effects: string[]; premiumDays: number };
 type RedeemCode = { id: number; code: string; tokens: number; maxUses: number; usesCount: number; expiresAt: string | null; active: boolean };
+type DynamicBadge = { badgeKey: string; label: string; color: string };
 
 const MANAGEABLE_BADGES = ["verified", "champion", "known", "rich", "trapstar", "the_killer", "crew", "billionaire", "content_creator", "designer"];
 
@@ -22,9 +23,20 @@ interface Props {
   toggleX2: () => void;
   router: ReturnType<typeof useRouter>;
   showConfirmFn: (title: string, text: string, btnLabel: string, cb: () => void) => void;
+  dynamicBadges: DynamicBadge[];
+  newBadgeName: string;
+  setNewBadgeName: (v: string) => void;
+  newBadgeColor: string;
+  setNewBadgeColor: (v: string) => void;
+  creatingBadge: boolean;
+  createBadge: () => void;
+  deleteBadge: (badgeKey: string, label: string) => void;
 }
 
-export default function OwnerTab({ bundles, redeemCodes, whitelistEnabled, x2Enabled, wlLoading, x2Loading, toggleWhitelist, toggleX2, router, showConfirmFn }: Props) {
+export default function OwnerTab({
+  bundles, redeemCodes, whitelistEnabled, x2Enabled, wlLoading, x2Loading, toggleWhitelist, toggleX2, router, showConfirmFn,
+  dynamicBadges, newBadgeName, setNewBadgeName, newBadgeColor, setNewBadgeColor, creatingBadge, createBadge, deleteBadge,
+}: Props) {
   // ── Infected Mail ──
   const [mailTitle, setMailTitle] = useState("");
   const [mailBody, setMailBody] = useState("");
@@ -449,6 +461,62 @@ export default function OwnerTab({ bundles, redeemCodes, whitelistEnabled, x2Ena
                     </div>
                   );
                 })}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* ── Grades (Discord role-backed badges) ── */}
+      <div className="dash-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(88,101,242,.3)", background: "linear-gradient(160deg,rgba(88,101,242,.05) 0%,rgba(88,101,242,.02) 100%)" }}>
+        <div className="dash-card-header" style={{ borderBottom: "1px solid rgba(255,255,255,.06)", paddingBottom: "1rem", marginBottom: "1.4rem" }}>
+          <span className="dash-card-title" style={{ display: "flex", alignItems: "center", gap: ".6rem" }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#5865F2" strokeWidth="2" width="18" height="18"><circle cx="12" cy="8" r="5" /><path d="M20 21a8 8 0 1 0-16 0" /></svg>
+            <span style={{ color: "#5865F2" }}>Grades</span>
+            <span style={{ fontSize: ".65rem", padding: ".2rem .55rem", background: "rgba(88,101,242,.15)", border: "1px solid rgba(88,101,242,.4)", borderRadius: 99, color: "#5865F2", fontWeight: 700, letterSpacing: ".05em" }}>OWNER</span>
+          </span>
+          <span style={{ fontSize: ".78rem", color: "rgba(255,255,255,.35)" }}>Creating a grade here also creates a matching Discord role — granting/revoking it on a user syncs to their linked Discord account, and roles created directly on Discord show up here automatically.</span>
+        </div>
+
+        <div style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.07)", borderRadius: 12, padding: "1.2rem", marginBottom: "1.4rem" }}>
+          <div style={{ fontSize: ".75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "rgba(255,255,255,.45)", marginBottom: "1rem" }}>Create New Grade</div>
+          <div style={{ display: "flex", gap: ".85rem", alignItems: "flex-end", flexWrap: "wrap" }}>
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <label style={{ fontSize: ".72rem", color: "rgba(255,255,255,.45)", fontWeight: 600, display: "block", marginBottom: ".35rem" }}>NAME</label>
+              <input type="text" value={newBadgeName} onChange={(e) => setNewBadgeName(e.target.value)} placeholder="e.g. Legend" maxLength={80}
+                onKeyDown={(e) => { if (e.key === "Enter") createBadge(); }}
+                style={{ width: "100%", padding: ".6rem .85rem", background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 8, color: "#fff", fontSize: ".85rem", outline: "none", boxSizing: "border-box" }} />
+            </div>
+            <div>
+              <label style={{ fontSize: ".72rem", color: "rgba(255,255,255,.45)", fontWeight: 600, display: "block", marginBottom: ".35rem" }}>COLOR</label>
+              <input type="color" value={newBadgeColor} onChange={(e) => setNewBadgeColor(e.target.value)}
+                style={{ width: 48, height: 38, padding: 2, background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 8, cursor: "pointer" }} />
+            </div>
+            <button onClick={createBadge} disabled={creatingBadge || !newBadgeName.trim()} style={{ opacity: creatingBadge || !newBadgeName.trim() ? .6 : 1, display: "inline-flex", alignItems: "center", gap: ".5rem", padding: ".6rem 1.2rem", background: "linear-gradient(135deg,#5865F2,#4752c4)", border: "none", borderRadius: 8, color: "#fff", fontSize: ".85rem", fontWeight: 700, cursor: "pointer" }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg> Create Grade
+            </button>
+          </div>
+        </div>
+
+        <div>
+          {dynamicBadges.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "1.5rem", color: "rgba(255,255,255,.3)", fontSize: ".82rem" }}>No dynamic grades yet — create one above, or create a role on the Discord server.</div>
+          ) : (
+            <>
+              <div style={{ fontSize: ".72rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "rgba(255,255,255,.35)", marginBottom: ".75rem" }}>{dynamicBadges.length} grade(s)</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: ".65rem" }}>
+                {dynamicBadges.map((b) => (
+                  <div key={b.badgeKey} style={{ display: "flex", alignItems: "center", gap: "1rem", padding: ".85rem 1rem", background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.07)", borderRadius: 10, flexWrap: "wrap" }}>
+                    <div style={{ width: 26, height: 26, borderRadius: 6, background: b.color + "22", border: `1px solid ${b.color}44`, display: "flex", alignItems: "center", justifyContent: "center", color: b.color, flexShrink: 0 }}>
+                      <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><circle cx="12" cy="12" r="8" /></svg>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 120, fontWeight: 700, fontSize: ".88rem", color: b.color }}>{b.label}</div>
+                    <button onClick={() => deleteBadge(b.badgeKey, b.label)} title="Delete grade + Discord role"
+                      style={{ display: "inline-flex", alignItems: "center", gap: ".4rem", padding: ".45rem .75rem", background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 8, color: "#ef4444", fontSize: ".78rem", fontWeight: 600, cursor: "pointer" }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="12" height="12"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /></svg>
+                    </button>
+                  </div>
+                ))}
               </div>
             </>
           )}

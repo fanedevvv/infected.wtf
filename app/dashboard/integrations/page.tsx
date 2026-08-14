@@ -10,10 +10,12 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
 
   const params = await searchParams;
   const integration = await prisma.integration.findUnique({ where: { userId_type: { userId: user.id, type: "discord" } } });
+  const socialLinks = await prisma.socialLink.findMany({ where: { userId: user.id }, orderBy: { displayOrder: "asc" } });
 
   return (
     <>
       <IntegrationsContent
+        initialSocialLinks={socialLinks.map((l) => ({ id: l.id, platform: l.platform, url: l.url }))}
         initialIntegration={
           integration
             ? {

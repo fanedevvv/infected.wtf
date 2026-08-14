@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
-import { revokeInfectedRole } from "@/lib/discord";
+import { revokeInfectedRole, syncDiscordBadgeRole } from "@/lib/discord";
+import { parseStringArray, serializeStringArray } from "@/lib/json-array";
 
 export async function GET() {
   let user;
@@ -26,7 +27,10 @@ export async function DELETE() {
 
   const row = await prisma.integration.findUnique({ where: { userId_type: { userId: user.id, type: "discord" } } });
   if (row) {
-    if (row.discordUserId) await revokeInfectedRole(row.discordUserId);
+    if (row.discordUserId) {
+      await revokeInfectedRole(row.discordUserId);
+      await syncDiscordBadgeRole(user.id, "discord", false);
+    }
     if (row.discordServerInvite) {
       await prisma.integration.update({
         where: { id: row.id },
@@ -44,9 +48,9 @@ export async function DELETE() {
   }
 
   const profile = await prisma.profile.findFirst({ where: { userId: user.id , isPrimary: true } });
-  const badges = new Set((profile?.badges as string[] | null) ?? []);
+  const badges = new Set(parseStringArray(profile?.badges));
   badges.delete("discord");
-  await prisma.profile.updateMany({ where: { userId: user.id , isPrimary: true }, data: { badges: Array.from(badges) } });
+  await prisma.profile.updateMany({ where: { userId: user.id , isPrimary: true }, data: { badges: serializeStringArray(Array.from(badges)) } });
 
   return NextResponse.json({ success: true });
 }

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-helpers";
-import { exchangeDiscordCode, getDiscordUser, grantInfectedRole } from "@/lib/discord";
+import { exchangeDiscordCode, getDiscordUser, grantInfectedRole, syncDiscordBadgeRole } from "@/lib/discord";
+import { parseStringArray, serializeStringArray } from "@/lib/json-array";
 
 export async function GET(req: NextRequest) {
   const siteUrl = process.env.SITE_URL || "";
@@ -46,13 +47,14 @@ export async function GET(req: NextRequest) {
     });
 
     const profile = await prisma.profile.findFirst({ where: { userId: user.id , isPrimary: true } });
-    const badges = new Set((profile?.badges as string[] | null) ?? []);
+    const badges = new Set(parseStringArray(profile?.badges));
     if (!badges.has("discord")) {
       badges.add("discord");
-      await prisma.profile.updateMany({ where: { userId: user.id , isPrimary: true }, data: { badges: Array.from(badges) } });
+      await prisma.profile.updateMany({ where: { userId: user.id , isPrimary: true }, data: { badges: serializeStringArray(Array.from(badges)) } });
     }
 
     await grantInfectedRole(discordUser.id);
+    await syncDiscordBadgeRole(user.id, "discord", true);
 
     const res = NextResponse.redirect(`${siteUrl}/dashboard?page=integrations&connected=1`);
     res.cookies.delete("discord_oauth_state");

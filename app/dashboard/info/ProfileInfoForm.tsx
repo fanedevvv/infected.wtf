@@ -543,13 +543,13 @@ export default function ProfileInfoForm(props: Props) {
           </div>
 
           <div className="upload-cards-grid">
-            {[1, 2, 3].map((slot) => {
+            {[1].map((slot) => {
               const trackPath = musicTracks[slot - 1];
               return (
                 <div className="upload-card" key={slot}>
                   <div className="upload-card-header">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
-                    <div><div className="upload-card-title">Track {slot}</div><div className="upload-card-sub">Playlist slot {slot}</div></div>
+                    <div><div className="upload-card-title">Profile Track</div><div className="upload-card-sub">Plays on your profile</div></div>
                     {trackPath && <button type="button" className="upload-clear-btn" onClick={() => deleteMusicTrack(slot)} title="Remove track">✕</button>}
                   </div>
                   <div className="upload-zone" style={{ cursor: "pointer" }} onClick={() => musicInputRefs[slot - 1].current?.click()}>

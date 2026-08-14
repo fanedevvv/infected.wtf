@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/auth-helpers";
 import { getActiveProfileId } from "@/lib/active-profile";
 import { SHOP_BADGES, SHOP_EFFECTS } from "@/lib/shop";
 import { DECORATIONS, getCustomDecorationMeta, normalizeDecorationId } from "@/lib/decorations";
+import { parseStringArray, serializeStringArray } from "@/lib/json-array";
 
 export async function GET() {
   let user;
@@ -14,7 +15,7 @@ export async function GET() {
   }
   const activeProfileId = await getActiveProfileId(user.id);
   const profile = await prisma.profile.findUnique({ where: { id: activeProfileId } });
-  const owned = new Set((profile?.badges as string[] | null) ?? []);
+  const owned = new Set(parseStringArray(profile?.badges));
   const purchasedEffects = new Set((profile?.purchasedEffects as string[] | null) ?? []);
   const activeEffects = (profile?.activeEffects as Record<string, string> | null) ?? {};
   const bundles = await prisma.bundle.findMany({ orderBy: { createdAt: "desc" } });
@@ -30,7 +31,7 @@ export async function GET() {
       name: b.name,
       price: Number(b.price),
       priceType: b.priceType,
-      badges: (b.badges as string[] | null) ?? [],
+      badges: parseStringArray(b.badges),
       effects: (b.effects as string[] | null) ?? [],
       premiumDays: b.premiumDays,
       owned: purchasedBundles.includes(b.id),
@@ -60,14 +61,14 @@ export async function POST(req: NextRequest) {
     const id = String(body.badgeId || body.itemId || "");
     const item = SHOP_BADGES[id];
     if (!item) return NextResponse.json({ error: "Invalid item." }, { status: 400 });
-    const owned = new Set((profile.badges as string[] | null) ?? []);
+    const owned = new Set(parseStringArray(profile.badges));
     if (owned.has(id)) return NextResponse.json({ error: "You already own this badge." }, { status: 400 });
     if (user.tokens < item.price) return NextResponse.json({ error: "Not enough tokens." }, { status: 400 });
 
     owned.add(id);
     await prisma.$transaction([
       prisma.user.update({ where: { id: user.id }, data: { tokens: { decrement: item.price }, tokensSpent: { increment: item.price } } }),
-      prisma.profile.updateMany({ where: { id: activeProfileId }, data: { badges: Array.from(owned) } }),
+      prisma.profile.updateMany({ where: { id: activeProfileId }, data: { badges: serializeStringArray(Array.from(owned)) } }),
     ]);
     return NextResponse.json({ success: true, message: "Badge purchased successfully!", tokens: user.tokens - item.price, badge_id: id });
   }
@@ -143,14 +144,14 @@ export async function POST(req: NextRequest) {
     if (!target) return NextResponse.json({ error: "User not found." }, { status: 400 });
     if (target.banned) return NextResponse.json({ error: "Cannot gift to a banned user." }, { status: 400 });
 
-    const targetOwned = new Set((target.profiles[0]?.badges as string[] | null) ?? []);
+    const targetOwned = new Set(parseStringArray(target.profiles[0]?.badges));
     if (targetOwned.has(id)) return NextResponse.json({ error: `@${target.username} already owns the ${item.name} badge.` }, { status: 400 });
     if (user.tokens < item.price) return NextResponse.json({ error: "Not enough tokens." }, { status: 400 });
 
     targetOwned.add(id);
     await prisma.$transaction([
       prisma.user.update({ where: { id: user.id }, data: { tokens: { decrement: item.price }, tokensSpent: { increment: item.price } } }),
-      prisma.profile.updateMany({ where: { userId: targetId , isPrimary: true }, data: { badges: Array.from(targetOwned) } }),
+      prisma.profile.updateMany({ where: { userId: targetId , isPrimary: true }, data: { badges: serializeStringArray(Array.from(targetOwned)) } }),
       prisma.notification.create({
         data: { userId: targetId, type: "gift", title: "You received a gift! 🎁", body: `@${senderName} gifted you the ${item.name} badge.`, icon: "gift", link: "/dashboard?page=badges" },
       }),

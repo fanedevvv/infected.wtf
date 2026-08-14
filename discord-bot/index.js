@@ -18,12 +18,58 @@ const {
   DISCORD_ROLE_VERIFIED,
   DISCORD_LOG_CHANNEL_ID,
   API_KEY,
+  SITE_URL,
   PORT,
   DB_HOST,
   DB_USER,
   DB_PASS,
   DB_NAME,
 } = process.env;
+
+// badge id (as used in profiles.badges on the site) -> Discord role id, read from env.
+// Populated by scripts/create-badge-roles.js.
+const BADGE_ROLE_MAP = {
+  verified: DISCORD_ROLE_VERIFIED,
+  champion: process.env.DISCORD_ROLE_CHAMPION,
+  hall_of_fame: process.env.DISCORD_ROLE_HALL_OF_FAME,
+  fresh: process.env.DISCORD_ROLE_FRESH,
+  lover: process.env.DISCORD_ROLE_LOVER,
+  known: process.env.DISCORD_ROLE_KNOWN,
+  rich: process.env.DISCORD_ROLE_RICH,
+  trapstar: process.env.DISCORD_ROLE_TRAPSTAR,
+  the_killer: process.env.DISCORD_ROLE_THE_KILLER,
+  crew: process.env.DISCORD_ROLE_CREW,
+  billionaire: process.env.DISCORD_ROLE_BILLIONAIRE,
+  content_creator: process.env.DISCORD_ROLE_CONTENT_CREATOR,
+  designer: process.env.DISCORD_ROLE_DESIGNER,
+  owner: process.env.DISCORD_ROLE_OWNER,
+  admin: process.env.DISCORD_ROLE_ADMIN,
+  discord: process.env.DISCORD_ROLE_DISCORD,
+  og: process.env.DISCORD_ROLE_OG,
+  views_master: process.env.DISCORD_ROLE_VIEWS_MASTER,
+  promoter: process.env.DISCORD_ROLE_PROMOTER,
+  promoter_elite: process.env.DISCORD_ROLE_PROMOTER_ELITE,
+};
+
+// Role ids that already map to a hardcoded site badge — new-role/member-role sync should ignore these,
+// they're managed exclusively through the site's own grant/revoke + BADGE_ROLE_MAP flow.
+const KNOWN_ROLE_IDS = new Set([DISCORD_ROLE_INFECTED, DISCORD_ROLE_PREMIUM, ...Object.values(BADGE_ROLE_MAP)].filter(Boolean));
+
+async function callSite(action, body) {
+  if (!SITE_URL) return null;
+  try {
+    const res = await fetch(`${SITE_URL.replace(/\/$/, '')}/api/internal_badge`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
+      body: JSON.stringify({ action, ...body }),
+      signal: AbortSignal.timeout(4000),
+    });
+    return await res.json().catch(() => null);
+  } catch (e) {
+    console.error(`[bot] callSite(${action}) failed:`, e.message);
+    return null;
+  }
+}
 
 for (const [name, val] of Object.entries({ DISCORD_BOT_TOKEN, DISCORD_GUILD_ID, API_KEY })) {
   if (!val) {
@@ -113,6 +159,52 @@ client.on('guildBanRemove', async (ban) => {
     }
   } catch (e) {
     console.error('[bot] guildBanRemove sync failed:', e.message);
+  }
+});
+
+// ── Dynamic grade sync: Discord role <-> site badge ─────────────────────────
+// A role created on Discord (that isn't one of our hardcoded BADGE_ROLE_MAP roles) becomes
+// a badge on the site automatically; deleting the role removes the badge. Members gaining or
+// losing such a role get the matching badge granted/revoked on their linked site account.
+function dynamicBadgeKey(roleId) {
+  return `dc_${roleId}`;
+}
+
+client.on('roleCreate', async (role) => {
+  try {
+    if (role.managed || role.id === role.guild.id || KNOWN_ROLE_IDS.has(role.id)) return;
+    const hex = typeof role.hexColor === 'string' && role.hexColor !== '#000000' ? role.hexColor : null;
+    const result = await callSite('register_discord_role', { role_id: role.id, role_name: role.name, role_color: hex });
+    if (result?.success) console.log(`[bot] Registered new role "${role.name}" as site badge ${dynamicBadgeKey(role.id)}`);
+  } catch (e) {
+    console.error('[bot] roleCreate sync failed:', e.message);
+  }
+});
+
+client.on('roleDelete', async (role) => {
+  try {
+    if (KNOWN_ROLE_IDS.has(role.id)) return;
+    await callSite('unregister_discord_role', { role_id: role.id });
+    console.log(`[bot] Unregistered site badge for deleted role "${role.name}"`);
+  } catch (e) {
+    console.error('[bot] roleDelete sync failed:', e.message);
+  }
+});
+
+client.on('guildMemberUpdate', async (oldMember, newMember) => {
+  try {
+    const before = oldMember.roles.cache;
+    const after = newMember.roles.cache;
+    const added = after.filter((r) => !before.has(r.id) && !KNOWN_ROLE_IDS.has(r.id) && !r.managed);
+    const removed = before.filter((r) => !after.has(r.id) && !KNOWN_ROLE_IDS.has(r.id) && !r.managed);
+    for (const role of added.values()) {
+      await callSite('grant_badge', { discord_id: newMember.id, badge_id: dynamicBadgeKey(role.id) });
+    }
+    for (const role of removed.values()) {
+      await callSite('revoke_badge', { discord_id: newMember.id, badge_id: dynamicBadgeKey(role.id) });
+    }
+  } catch (e) {
+    console.error('[bot] guildMemberUpdate badge sync failed:', e.message);
   }
 });
 
@@ -221,6 +313,52 @@ roleEndpoint('/assign-premium-role', DISCORD_ROLE_PREMIUM, true);
 roleEndpoint('/remove-premium-role', DISCORD_ROLE_PREMIUM, false);
 roleEndpoint('/assign-verified-role', DISCORD_ROLE_VERIFIED, true);
 roleEndpoint('/remove-verified-role', DISCORD_ROLE_VERIFIED, false);
+
+// POST /badge-role { discord_id, badge_id, grant } — generic sync for site "grades" (profile badges) -> Discord roles
+app.post('/badge-role', async (req, res) => {
+  const id = requireDiscordId(req, res, 'body');
+  if (!id) return;
+  const badgeId = String(req.body.badge_id || '');
+  const grant = !!req.body.grant;
+  // Explicit role_id (dynamic/DB-backed badges) takes priority over the hardcoded BADGE_ROLE_MAP lookup.
+  const roleId = req.body.role_id ? String(req.body.role_id) : BADGE_ROLE_MAP[badgeId];
+  if (!roleId) {
+    return res.status(400).json({ success: false, error: `No Discord role configured for badge '${badgeId}'` });
+  }
+  try {
+    await setRole(id, roleId, grant);
+    res.json({ success: true, message: `Role for badge '${badgeId}' ${grant ? 'assigned' : 'removed'}.` });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// POST /create-role { name, color } — creates a new guild role (used when a badge is created from the site)
+app.post('/create-role', async (req, res) => {
+  const name = String(req.body.name || '').trim().slice(0, 90);
+  const color = req.body.color ? String(req.body.color) : undefined;
+  if (!name) return res.status(400).json({ success: false, error: 'Missing role name' });
+  try {
+    const guild = await getGuild();
+    const role = await guild.roles.create({ name, color, hoist: false, mentionable: false, reason: 'Badge created from infected.wtf admin panel' });
+    res.json({ success: true, role_id: role.id });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// POST /delete-role { role_id } — removes a guild role (used when a dynamic badge is deleted from the site)
+app.post('/delete-role', async (req, res) => {
+  const roleId = String(req.body.role_id || '');
+  if (!/^\d{17,20}$/.test(roleId)) return res.status(400).json({ success: false, error: 'Invalid role_id' });
+  try {
+    const guild = await getGuild();
+    await guild.roles.delete(roleId, 'Badge deleted from infected.wtf admin panel');
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
 
 // POST /ban { discord_id, reason }
 app.post('/ban', async (req, res) => {

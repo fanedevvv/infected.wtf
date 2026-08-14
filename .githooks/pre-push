@@ -1,0 +1,24 @@
+#!/bin/sh
+# Posts one Discord embed per commit being pushed. Never blocks the push (always exits 0).
+# Enable with: git config core.hooksPath .githooks
+
+repo_root=$(git rev-parse --show-toplevel)
+zero="0000000000000000000000000000000000000000"
+
+while read local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "$zero" ] && continue
+
+  if [ "$remote_sha" = "$zero" ]; then
+    range="$local_sha"
+  else
+    range="$remote_sha..$local_sha"
+  fi
+
+  git rev-list --reverse "$range" 2>/dev/null | while read sha; do
+    title=$(git log -1 --pretty=%s "$sha")
+    body=$(git log -1 --pretty=%b "$sha")
+    node "$repo_root/scripts/notify-discord-push.js" "$title" "$body" || true
+  done
+done
+
+exit 0

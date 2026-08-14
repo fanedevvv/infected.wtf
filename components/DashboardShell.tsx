@@ -41,12 +41,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const [accountsOpen, setAccountsOpen] = useState(false);
   const [pages, setPages] = useState<PageInfo[]>([]);
   const [activeProfileId, setActiveProfileId] = useState<number | null>(null);
-  const [maxPages, setMaxPages] = useState(1);
-  const [pageSwitcherOpen, setPageSwitcherOpen] = useState(false);
-  const [createPageOpen, setCreatePageOpen] = useState(false);
   const userWrapRef = useRef<HTMLDivElement>(null);
   const bellWrapRef = useRef<HTMLDivElement>(null);
-  const pageSwitchRef = useRef<HTMLDivElement>(null);
 
   function loadMe() {
     fetch("/api/me").then((r) => r.json()).then((d) => {
@@ -54,7 +50,6 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       setProfile(d.profile);
       setPages(d.pages || []);
       setActiveProfileId(d.activeProfileId ?? null);
-      setMaxPages(d.maxPages ?? 1);
     });
   }
 
@@ -64,18 +59,6 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     const interval = setInterval(loadNotifs, 60000);
     return () => clearInterval(interval);
   }, []);
-
-  async function switchPage(id: number) {
-    setPageSwitcherOpen(false);
-    await fetch("/api/pages", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ profileId: id }),
-    });
-    loadMe();
-    router.push("/dashboard");
-    router.refresh();
-  }
 
   async function loadNotifs() {
     const res = await fetch("/api/notifications");
@@ -89,7 +72,6 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     function onClick(e: MouseEvent) {
       if (userWrapRef.current && !userWrapRef.current.contains(e.target as Node)) setUserMenuOpen(false);
       if (bellWrapRef.current && !bellWrapRef.current.contains(e.target as Node)) setNotifOpen(false);
-      if (pageSwitchRef.current && !pageSwitchRef.current.contains(e.target as Node)) setPageSwitcherOpen(false);
     }
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
@@ -233,55 +215,25 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           </div>
 
           {pages.length > 0 && (
-            <div className="page-switch-wrap" ref={pageSwitchRef}>
-              <button className="page-switch-btn" onClick={() => setPageSwitcherOpen((o) => !o)}>
-                {(() => {
-                  const active = pages.find((p) => p.id === activeProfileId) || pages[0];
-                  return (
-                    <>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={active.avatar ? `/${active.avatar}` : "/assets/img/default-avatar.png"}
-                        onError={(e) => { (e.target as HTMLImageElement).src = "/assets/img/default-avatar.png"; }}
-                        className="page-switch-avatar"
-                        alt=""
-                      />
-                      <div className="page-switch-info">
-                        <span className="page-switch-name">{active.displayName || active.slug}</span>
-                        <span className="page-switch-slug">infected.wtf/{active.slug}</span>
-                      </div>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" style={{ marginLeft: "auto", opacity: .6 }}>
-                        <polyline points="6 9 12 15 18 9" />
-                      </svg>
-                    </>
-                  );
-                })()}
-              </button>
-              {pageSwitcherOpen && (
-                <div className="page-switch-menu">
-                  {pages.map((p) => (
-                    <button key={p.id} className={`page-switch-item ${p.id === activeProfileId ? "active" : ""}`} onClick={() => switchPage(p.id)}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={p.avatar ? `/${p.avatar}` : "/assets/img/default-avatar.png"}
-                        onError={(e) => { (e.target as HTMLImageElement).src = "/assets/img/default-avatar.png"; }}
-                        className="page-switch-avatar"
-                        alt=""
-                      />
-                      <div className="page-switch-info">
-                        <span className="page-switch-name">{p.displayName || p.slug}</span>
-                        <span className="page-switch-slug">/{p.slug}{p.isPrimary ? " · Primary" : ""}</span>
-                      </div>
-                    </button>
-                  ))}
-                  <button
-                    className="page-switch-add"
-                    onClick={() => { setPageSwitcherOpen(false); setCreatePageOpen(true); }}
-                  >
-                    + New page {pages.length >= maxPages ? "(upgrade)" : `(${pages.length}/${maxPages})`}
-                  </button>
-                </div>
-              )}
+            <div className="page-switch-wrap">
+              {(() => {
+                const active = pages.find((p) => p.id === activeProfileId) || pages[0];
+                return (
+                  <div className="page-switch-btn" style={{ cursor: "default" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={active.avatar ? `/${active.avatar}` : "/assets/img/default-avatar.png"}
+                      onError={(e) => { (e.target as HTMLImageElement).src = "/assets/img/default-avatar.png"; }}
+                      className="page-switch-avatar"
+                      alt=""
+                    />
+                    <div className="page-switch-info">
+                      <span className="page-switch-name">{active.displayName || active.slug}</span>
+                      <span className="page-switch-slug">infected.wtf/{active.slug}</span>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
@@ -368,69 +320,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         <ManageAccountsModal currentUsername={me?.username || ""} currentAvatar={profile?.avatar || null} onClose={() => setAccountsOpen(false)} />
       )}
 
-      {createPageOpen && (
-        <CreatePageModal
-          onClose={() => setCreatePageOpen(false)}
-          onCreated={(id) => { setCreatePageOpen(false); switchPage(id); }}
-        />
-      )}
-
       <ToastContainer />
     </>
-  );
-}
-
-function CreatePageModal({ onClose, onCreated }: { onClose: () => void; onCreated: (profileId: number) => void }) {
-  const [slug, setSlug] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-
-  async function create() {
-    const clean = slug.trim().toLowerCase();
-    if (!clean) { setError("Enter a slug."); return; }
-    setBusy(true);
-    setError("");
-    try {
-      const res = await fetch("/api/pages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug: clean }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        onCreated(data.page.id);
-      } else {
-        setError(data.error || "Failed to create page.");
-      }
-    } catch {
-      setError("Network error.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <div onClick={(e) => e.target === e.currentTarget && onClose()} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
-      <div style={{ background: "#13131a", border: "1px solid rgba(255,255,255,.1)", borderRadius: 16, padding: "1.5rem", width: "min(400px,95vw)", position: "relative" }}>
-        <button onClick={onClose} style={{ position: "absolute", top: ".9rem", right: ".9rem", background: "rgba(255,255,255,.06)", border: "none", color: "#aaa", width: 28, height: 28, borderRadius: "50%", cursor: "pointer" }}>✕</button>
-        <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "#fff" }}>Create a new page</div>
-        <div style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.1rem" }}>Each page has its own link, layout and effects.</div>
-
-        <label style={{ fontSize: ".75rem", color: "var(--text-muted)", display: "block", marginBottom: ".3rem" }}>infected.wtf/</label>
-        <input
-          className="form-control"
-          placeholder="my-new-page"
-          value={slug}
-          onChange={(e) => setSlug(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && create()}
-          autoFocus
-        />
-        {error && <div style={{ color: "#ff8080", fontSize: ".8rem", marginTop: ".5rem" }}>{error}</div>}
-        <button onClick={create} disabled={busy} className="btn btn-primary btn-full" style={{ marginTop: "1rem" }}>
-          {busy ? "Creating…" : "Create Page"}
-        </button>
-      </div>
-    </div>
   );
 }
 

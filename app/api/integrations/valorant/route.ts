@@ -32,8 +32,8 @@ export async function POST(req: NextRequest) {
   const result = { riotId, tagLine, region };
   await prisma.integration.upsert({
     where: { userId_type: { userId: user.id, type: "valorant" } },
-    create: { userId: user.id, type: "valorant", visible: true, data: result },
-    update: { visible: true, data: result },
+    create: { userId: user.id, type: "valorant", visible: true, data: JSON.stringify(result) },
+    update: { visible: true, data: JSON.stringify(result) },
   });
 
   return NextResponse.json({ success: true, data: result });

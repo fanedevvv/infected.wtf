@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-helpers";
+import { parseJsonObject } from "@/lib/json-array";
 
 function xmlTag(xml: string, tag: string): string {
   const m = xml.match(new RegExp(`<${tag}><!\\[CDATA\\[(.*?)\\]\\]></${tag}>`)) || xml.match(new RegExp(`<${tag}>(.*?)</${tag}>`));
@@ -50,13 +51,14 @@ export async function GET(req: NextRequest) {
   }
 
   const steamRows = await prisma.integration.findMany({ where: { type: "steam" } });
-  const existing = steamRows.find((row) => (row.data as { steamId64?: string } | null)?.steamId64 === steamId64);
+  const existing = steamRows.find((row) => parseJsonObject<{ steamId64?: string }>(row.data)?.steamId64 === steamId64);
   if (existing && existing.userId !== user.id) return fail("already_linked");
 
+  const steamData = JSON.stringify({ steamId64, personaName, avatarUrl, profileUrl: `https://steamcommunity.com/profiles/${steamId64}` });
   await prisma.integration.upsert({
     where: { userId_type: { userId: user.id, type: "steam" } },
-    create: { userId: user.id, type: "steam", visible: true, data: { steamId64, personaName, avatarUrl, profileUrl: `https://steamcommunity.com/profiles/${steamId64}` } },
-    update: { visible: true, data: { steamId64, personaName, avatarUrl, profileUrl: `https://steamcommunity.com/profiles/${steamId64}` } },
+    create: { userId: user.id, type: "steam", visible: true, data: steamData },
+    update: { visible: true, data: steamData },
   });
 
   return NextResponse.redirect(`${siteUrl}/dashboard?page=integrations&connected=steam`);

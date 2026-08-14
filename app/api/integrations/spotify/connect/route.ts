@@ -20,7 +20,7 @@ export async function GET() {
     response_type: "code",
     redirect_uri: redirectUri,
     state,
-    scope: "user-read-currently-playing user-read-playback-state user-read-recently-played",
+    scope: "user-read-currently-playing user-read-playback-state user-read-recently-played user-top-read",
   });
 
   const res = NextResponse.redirect(`https://accounts.spotify.com/authorize?${params.toString()}`);
