@@ -20,6 +20,7 @@ type AdminUser = {
 type Bundle = { id: number; name: string; price: number; priceType: "euro" | "tokens"; badges: string[]; effects: string[]; premiumDays: number };
 type RedeemCode = { id: number; code: string; tokens: number; maxUses: number; usesCount: number; expiresAt: string | null; active: boolean };
 type DynamicBadge = { badgeKey: string; label: string; color: string };
+type SiteDomain = { id: number; hostname: string; status: string; errorMessage: string | null; isDefault: boolean; tier: string };
 
 interface Props {
   iAmOwner: boolean;
@@ -34,6 +35,7 @@ interface Props {
   bundles: Bundle[];
   redeemCodes: RedeemCode[];
   dynamicBadges: DynamicBadge[];
+  siteDomains: SiteDomain[];
   users: AdminUser[];
   page: number;
   totalPages: number;
@@ -118,6 +120,98 @@ export default function AdminClient(props: Props) {
         if (json.success) {
           showToast(json.message || "Badge deleted", "success");
           setDynamicBadges((prev) => prev.filter((b) => b.badgeKey !== badgeKey));
+        } else {
+          showToast(json.error || "Error", "error");
+        }
+      } catch {
+        showToast("Network error", "error");
+      }
+    });
+  }
+
+  const [siteDomains, setSiteDomains] = useState(props.siteDomains);
+  const [newDomainHost, setNewDomainHost] = useState("");
+  const [newDomainTier, setNewDomainTier] = useState<"free" | "premium">("free");
+  const [addingDomain, setAddingDomain] = useState(false);
+  const [domainBusyId, setDomainBusyId] = useState<number | null>(null);
+
+  async function addDomain() {
+    const hostname = newDomainHost.trim().toLowerCase();
+    if (!hostname || addingDomain) return;
+    setAddingDomain(true);
+    try {
+      const res = await fetch("/api/admin_action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "add_domain", hostname, tier: newDomainTier }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast(json.message || "Domain added", "success");
+        setSiteDomains((prev) => [{ id: json.domain_id, hostname, status: json.status || "pending", errorMessage: null, isDefault: false, tier: newDomainTier }, ...prev]);
+        setNewDomainHost("");
+      } else {
+        showToast(json.error || "Error", "error");
+      }
+    } catch {
+      showToast("Network error", "error");
+    } finally {
+      setAddingDomain(false);
+    }
+  }
+
+  async function setDomainTier(id: number, tier: "free" | "premium") {
+    setDomainBusyId(id);
+    try {
+      const res = await fetch("/api/admin_action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "set_domain_tier", domain_id: id, tier }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setSiteDomains((prev) => prev.map((d) => (d.id === id ? { ...d, tier } : d)));
+        showToast(json.message || "Updated", "success");
+      } else {
+        showToast(json.error || "Error", "error");
+      }
+    } catch {
+      showToast("Network error", "error");
+    } finally {
+      setDomainBusyId(null);
+    }
+  }
+
+  async function recheckDomain(id: number) {
+    setDomainBusyId(id);
+    try {
+      const res = await fetch("/api/admin_action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "recheck_domain", domain_id: id }),
+      });
+      const json = await res.json();
+      showToast(json.message || (json.success ? "Done" : "Error"), json.success ? "success" : "error");
+      if (json.status) setSiteDomains((prev) => prev.map((d) => (d.id === id ? { ...d, status: json.status, errorMessage: json.success && json.status === "active" ? null : d.errorMessage } : d)));
+    } catch {
+      showToast("Network error", "error");
+    } finally {
+      setDomainBusyId(null);
+    }
+  }
+
+  function deleteDomain(id: number, hostname: string) {
+    showConfirm(`Delete "${hostname}"`, `This removes the nginx config and SSL cert for this domain. This can't be undone.`, "Delete", async () => {
+      try {
+        const res = await fetch("/api/admin_action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "delete_domain", domain_id: id }),
+        });
+        const json = await res.json();
+        if (json.success) {
+          showToast(json.message || "Domain deleted", "success");
+          setSiteDomains((prev) => prev.filter((d) => d.id !== id));
         } else {
           showToast(json.error || "Error", "error");
         }
@@ -488,6 +582,17 @@ export default function AdminClient(props: Props) {
           creatingBadge={creatingBadge}
           createBadge={createBadge}
           deleteBadge={deleteBadge}
+          siteDomains={siteDomains}
+          newDomainHost={newDomainHost}
+          setNewDomainHost={setNewDomainHost}
+          newDomainTier={newDomainTier}
+          setNewDomainTier={setNewDomainTier}
+          addingDomain={addingDomain}
+          addDomain={addDomain}
+          domainBusyId={domainBusyId}
+          recheckDomain={recheckDomain}
+          deleteDomain={deleteDomain}
+          setDomainTier={setDomainTier}
         />
       )}
 

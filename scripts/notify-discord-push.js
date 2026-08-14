@@ -1,8 +1,7 @@
 #!/usr/bin/env node
-// Posts a commit embed to Discord. Called from the pre-push git hook (see .githooks/pre-push).
-// Title = commit subject line. Description = commit body (the "- bullet" lines written at commit
-// time), followed by the actual list of changed files for that commit (same info as the editor's
-// Source Control > Changes panel), so the embed always shows what was really touched.
+// Posts ONE Discord embed per push (not per commit). Called from the pre-push git hook
+// (see .githooks/pre-push) with the full list of commit titles being pushed and the combined
+// file diff for the whole push.
 
 const path = require("node:path");
 
@@ -15,24 +14,33 @@ try {
 
 const CHANNEL_ID = "1536633324368298114";
 const EMBED_COLOR = 0x39ff14;
+const MAX_FILE_LINES = 8;
+const MAX_TITLE_LINES = 6;
 
-const STATUS_LABEL = { A: "added", D: "deleted", M: "modified", R: "renamed", C: "copied", T: "type changed" };
+const STATUS_LABEL = { A: "A", D: "D", M: "M", R: "R", C: "C", T: "T" };
 
 function formatChangedFiles(raw) {
   const lines = (raw || "").split("\n").map((l) => l.trim()).filter(Boolean);
   if (lines.length === 0) return "";
   const formatted = lines.map((line) => {
     const parts = line.split("\t");
-    const code = parts[0][0];
-    const label = STATUS_LABEL[code] || code;
-    const filePath = code === "R" || code === "C" ? `${parts[1]} → ${parts[2]}` : parts[1];
-    return `${label[0].toUpperCase()} ${filePath}`;
+    const code = STATUS_LABEL[parts[0][0]] || parts[0][0];
+    const filePath = parts[0][0] === "R" || parts[0][0] === "C" ? `${parts[1]} → ${parts[2]}` : parts[1];
+    return `${code} ${filePath}`;
   });
-  const MAX_LINES = 25;
-  const shown = formatted.slice(0, MAX_LINES);
+  const shown = formatted.slice(0, MAX_FILE_LINES);
   let block = shown.join("\n");
-  if (formatted.length > MAX_LINES) block += `\n… and ${formatted.length - MAX_LINES} more file(s)`;
+  if (formatted.length > MAX_FILE_LINES) block += `\n+${formatted.length - MAX_FILE_LINES} more`;
   return "```\n" + block + "\n```";
+}
+
+function formatTitles(raw) {
+  const lines = (raw || "").split("\n").map((l) => l.trim()).filter(Boolean);
+  if (lines.length === 0) return { headline: "(no commit title)", extra: "" };
+  if (lines.length === 1) return { headline: lines[0], extra: "" };
+  const shown = lines.slice(0, MAX_TITLE_LINES).map((t) => `- ${t}`);
+  if (lines.length > MAX_TITLE_LINES) shown.push(`- +${lines.length - MAX_TITLE_LINES} more commit(s)`);
+  return { headline: `${lines.length} commits pushed`, extra: shown.join("\n") };
 }
 
 async function main() {
@@ -42,14 +50,13 @@ async function main() {
     return;
   }
 
-  const title = (process.argv[2] || "(no commit title)").slice(0, 256);
-  const body = (process.argv[3] || "").trim();
-  const filesBlock = formatChangedFiles(process.argv[4]);
+  const { headline, extra } = formatTitles(process.argv[2]);
+  const filesBlock = formatChangedFiles(process.argv[3]);
 
   const descParts = [];
-  if (body) descParts.push(body);
-  if (filesBlock) descParts.push(`**Files changed:**\n${filesBlock}`);
-  const description = (descParts.join("\n\n") || "_No description._").slice(0, 4000);
+  if (extra) descParts.push(extra);
+  if (filesBlock) descParts.push(filesBlock);
+  const description = (descParts.join("\n") || "_No changes._").slice(0, 4000);
 
   const res = await fetch(`https://discord.com/api/v10/channels/${CHANNEL_ID}/messages`, {
     method: "POST",
@@ -57,7 +64,7 @@ async function main() {
     body: JSON.stringify({
       embeds: [
         {
-          title,
+          title: headline.slice(0, 256),
           description,
           color: EMBED_COLOR,
           footer: { text: "infected dev" },
@@ -70,7 +77,7 @@ async function main() {
   if (!res.ok) {
     console.error("[discord-notify] failed to post:", res.status, await res.text().catch(() => ""));
   } else {
-    console.log("[discord-notify] posted commit embed to Discord");
+    console.log("[discord-notify] posted push embed to Discord");
   }
 }
 

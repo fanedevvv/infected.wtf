@@ -46,6 +46,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const allBundles = iAmOwner ? await prisma.bundle.findMany({ orderBy: { createdAt: "desc" } }) : [];
   const allRedeemCodes = iAmOwner ? await prisma.redeemCode.findMany({ orderBy: { createdAt: "desc" } }) : [];
   const allDynamicBadges = iAmOwner ? await prisma.dynamicBadge.findMany({ orderBy: { createdAt: "desc" } }) : [];
+  const allDomains = iAmOwner ? await prisma.siteDomain.findMany({ orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }] }) : [];
 
   const perPage = 10;
   const page = Math.max(1, parseInt(params.page || "1") || 1);
@@ -125,6 +126,13 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         badgeKey: d.badgeKey,
         label: d.label,
         color: d.color || "#5865F2",
+      }))}
+      siteDomains={allDomains.map((d) => ({
+        id: d.id,
+        hostname: d.hostname,
+        status: d.status,
+        errorMessage: d.errorMessage,
+        isDefault: d.isDefault,
       }))}
       users={users}
       page={clampedPage}

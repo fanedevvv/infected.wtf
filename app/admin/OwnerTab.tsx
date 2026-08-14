@@ -9,6 +9,7 @@ import { SHOP_EFFECTS } from "@/lib/shop";
 type Bundle = { id: number; name: string; price: number; priceType: "euro" | "tokens"; badges: string[]; effects: string[]; premiumDays: number };
 type RedeemCode = { id: number; code: string; tokens: number; maxUses: number; usesCount: number; expiresAt: string | null; active: boolean };
 type DynamicBadge = { badgeKey: string; label: string; color: string };
+type SiteDomain = { id: number; hostname: string; status: string; errorMessage: string | null; isDefault: boolean; tier: string };
 
 const MANAGEABLE_BADGES = ["verified", "champion", "known", "rich", "trapstar", "the_killer", "crew", "billionaire", "content_creator", "designer"];
 
@@ -31,11 +32,23 @@ interface Props {
   creatingBadge: boolean;
   createBadge: () => void;
   deleteBadge: (badgeKey: string, label: string) => void;
+  siteDomains: SiteDomain[];
+  newDomainHost: string;
+  setNewDomainHost: (v: string) => void;
+  newDomainTier: "free" | "premium";
+  setNewDomainTier: (v: "free" | "premium") => void;
+  addingDomain: boolean;
+  addDomain: () => void;
+  domainBusyId: number | null;
+  recheckDomain: (id: number) => void;
+  deleteDomain: (id: number, hostname: string) => void;
+  setDomainTier: (id: number, tier: "free" | "premium") => void;
 }
 
 export default function OwnerTab({
   bundles, redeemCodes, whitelistEnabled, x2Enabled, wlLoading, x2Loading, toggleWhitelist, toggleX2, router, showConfirmFn,
   dynamicBadges, newBadgeName, setNewBadgeName, newBadgeColor, setNewBadgeColor, creatingBadge, createBadge, deleteBadge,
+  siteDomains, newDomainHost, setNewDomainHost, newDomainTier, setNewDomainTier, addingDomain, addDomain, domainBusyId, recheckDomain, deleteDomain, setDomainTier,
 }: Props) {
   // ── Infected Mail ──
   const [mailTitle, setMailTitle] = useState("");
@@ -519,6 +532,92 @@ export default function OwnerTab({
                 ))}
               </div>
             </>
+          )}
+        </div>
+      </div>
+
+      {/* ── Domains ── */}
+      <div className="dash-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(57,255,20,.3)", background: "linear-gradient(160deg,rgba(57,255,20,.05) 0%,rgba(57,255,20,.02) 100%)" }}>
+        <div className="dash-card-header" style={{ borderBottom: "1px solid rgba(255,255,255,.06)", paddingBottom: "1rem", marginBottom: "1.4rem" }}>
+          <span className="dash-card-title" style={{ display: "flex", alignItems: "center", gap: ".6rem" }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#39ff14" strokeWidth="2" width="18" height="18"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
+            <span style={{ color: "#39ff14" }}>Domains</span>
+            <span style={{ fontSize: ".65rem", padding: ".2rem .55rem", background: "rgba(57,255,20,.15)", border: "1px solid rgba(57,255,20,.4)", borderRadius: 99, color: "#39ff14", fontWeight: 700, letterSpacing: ".05em" }}>OWNER</span>
+          </span>
+          <span style={{ fontSize: ".78rem", color: "rgba(255,255,255,.35)" }}>Add a domain you own — DNS is checked automatically, and once it points here, SSL is provisioned and the domain goes live for users to pick.</span>
+        </div>
+
+        <div style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.07)", borderRadius: 12, padding: "1.2rem", marginBottom: "1.4rem" }}>
+          <div style={{ fontSize: ".75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "rgba(255,255,255,.45)", marginBottom: "1rem" }}>Add Domain</div>
+          <div style={{ display: "flex", gap: ".85rem", alignItems: "flex-end", flexWrap: "wrap" }}>
+            <div style={{ flex: 1, minWidth: 220 }}>
+              <label style={{ fontSize: ".72rem", color: "rgba(255,255,255,.45)", fontWeight: 600, display: "block", marginBottom: ".35rem" }}>HOSTNAME</label>
+              <input type="text" value={newDomainHost} onChange={(e) => setNewDomainHost(e.target.value)} placeholder="e.g. infected.gg" maxLength={253}
+                onKeyDown={(e) => { if (e.key === "Enter") addDomain(); }}
+                style={{ width: "100%", padding: ".6rem .85rem", background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 8, color: "#fff", fontSize: ".85rem", outline: "none", boxSizing: "border-box" }} />
+              <div style={{ fontSize: ".7rem", color: "rgba(255,255,255,.3)", marginTop: ".35rem" }}>Point an A record at this server before adding, or add now and hit &quot;Recheck&quot; once DNS propagates.</div>
+            </div>
+            <div>
+              <label style={{ fontSize: ".72rem", color: "rgba(255,255,255,.45)", fontWeight: 600, display: "block", marginBottom: ".35rem" }}>TIER</label>
+              <div style={{ display: "flex", gap: ".4rem" }}>
+                <button type="button" onClick={() => setNewDomainTier("free")}
+                  style={{ padding: ".6rem .9rem", borderRadius: 8, fontSize: ".8rem", fontWeight: 700, cursor: "pointer", border: `1px solid ${newDomainTier === "free" ? "rgba(57,255,20,.5)" : "rgba(255,255,255,.1)"}`, background: newDomainTier === "free" ? "rgba(57,255,20,.12)" : "rgba(255,255,255,.05)", color: newDomainTier === "free" ? "#39ff14" : "rgba(255,255,255,.6)" }}>
+                  Free
+                </button>
+                <button type="button" onClick={() => setNewDomainTier("premium")}
+                  style={{ padding: ".6rem .9rem", borderRadius: 8, fontSize: ".8rem", fontWeight: 700, cursor: "pointer", border: `1px solid ${newDomainTier === "premium" ? "rgba(251,191,36,.5)" : "rgba(255,255,255,.1)"}`, background: newDomainTier === "premium" ? "rgba(251,191,36,.12)" : "rgba(255,255,255,.05)", color: newDomainTier === "premium" ? "#fbbf24" : "rgba(255,255,255,.6)" }}>
+                  Premium
+                </button>
+              </div>
+            </div>
+            <button onClick={addDomain} disabled={addingDomain || !newDomainHost.trim()} style={{ opacity: addingDomain || !newDomainHost.trim() ? .6 : 1, display: "inline-flex", alignItems: "center", gap: ".5rem", padding: ".6rem 1.2rem", background: "linear-gradient(135deg,#39ff14,#28c40d)", border: "none", borderRadius: 8, color: "#04140a", fontSize: ".85rem", fontWeight: 700, cursor: "pointer" }}>
+              {addingDomain ? "Adding…" : "Add Domain"}
+            </button>
+          </div>
+        </div>
+
+        <div>
+          {siteDomains.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "1.5rem", color: "rgba(255,255,255,.3)", fontSize: ".82rem" }}>No domains yet — add one above.</div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: ".65rem" }}>
+              {siteDomains.map((d) => {
+                const statusPill: [string, string] = d.status === "active" ? ["Live", "#34d399"] : d.status === "failed" ? ["Failed", "#ff8080"] : ["Pending DNS", "#fbbf24"];
+                return (
+                  <div key={d.id} style={{ display: "flex", alignItems: "center", gap: "1rem", padding: ".85rem 1rem", background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.07)", borderRadius: 10, flexWrap: "wrap" }}>
+                    <div style={{ flex: 1, minWidth: 160 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: ".5rem" }}>
+                        <span style={{ fontWeight: 700, fontSize: ".9rem", color: "#fff" }}>{d.hostname}</span>
+                        <span style={{ background: `${statusPill[1]}1a`, border: `1px solid ${statusPill[1]}66`, borderRadius: 6, padding: ".1rem .45rem", color: statusPill[1], fontWeight: 600, fontSize: ".68rem" }}>{statusPill[0]}</span>
+                        {d.isDefault && <span style={{ background: "rgba(57,255,20,.1)", border: "1px solid rgba(57,255,20,.35)", borderRadius: 6, padding: ".1rem .45rem", color: "#39ff14", fontWeight: 600, fontSize: ".68rem" }}>Default</span>}
+                        {!d.isDefault && (
+                          <button onClick={() => setDomainTier(d.id, d.tier === "premium" ? "free" : "premium")} disabled={domainBusyId === d.id}
+                            style={{ background: d.tier === "premium" ? "rgba(251,191,36,.1)" : "rgba(255,255,255,.06)", border: `1px solid ${d.tier === "premium" ? "rgba(251,191,36,.35)" : "rgba(255,255,255,.15)"}`, borderRadius: 6, padding: ".1rem .45rem", color: d.tier === "premium" ? "#fbbf24" : "rgba(255,255,255,.5)", fontWeight: 600, fontSize: ".68rem", cursor: "pointer" }}
+                            title="Click to toggle free/premium">
+                            {d.tier === "premium" ? "★ Premium" : "Free"}
+                          </button>
+                        )}
+                      </div>
+                      {d.errorMessage && <div style={{ fontSize: ".72rem", color: "rgba(255,255,255,.4)", marginTop: ".25rem", maxWidth: 500 }}>{d.errorMessage}</div>}
+                    </div>
+                    {!d.isDefault && (
+                      <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexShrink: 0 }}>
+                        {d.status !== "active" && (
+                          <button onClick={() => recheckDomain(d.id)} disabled={domainBusyId === d.id} title="Recheck DNS and retry"
+                            style={{ display: "inline-flex", alignItems: "center", gap: ".4rem", padding: ".45rem .75rem", background: "rgba(251,191,36,.08)", border: "1px solid rgba(251,191,36,.2)", borderRadius: 8, color: "#fbbf24", fontSize: ".78rem", fontWeight: 600, cursor: "pointer" }}>
+                            {domainBusyId === d.id ? "…" : "Recheck"}
+                          </button>
+                        )}
+                        <button onClick={() => deleteDomain(d.id, d.hostname)} title="Delete"
+                          style={{ display: "inline-flex", alignItems: "center", gap: ".4rem", padding: ".45rem .75rem", background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 8, color: "#ef4444", fontSize: ".78rem", fontWeight: 600, cursor: "pointer" }}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="12" height="12"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /></svg>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
       </div>

@@ -22,6 +22,14 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   const user = profile.user;
   if (user.banned) notFound();
 
+  const requestHost = (await headers()).get("host")?.split(":")[0].toLowerCase() || "";
+  const isPrimaryHost = !requestHost || requestHost === "infected.wtf" || requestHost === "www.infected.wtf" || requestHost === "localhost";
+  if (!isPrimaryHost) {
+    const domain = await prisma.siteDomain.findUnique({ where: { hostname: requestHost } });
+    const allowed = domain ? await prisma.profileDomain.findUnique({ where: { profileId_domainId: { profileId: profile.id, domainId: domain.id } } }) : null;
+    if (!allowed) notFound();
+  }
+
   const viewer = await getCurrentUser();
   const isOwner = viewer?.id === user.id;
 

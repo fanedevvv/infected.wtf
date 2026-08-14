@@ -108,6 +108,7 @@ model Profile {
   activeDecoration String?   @map("active_decoration") @db.VarChar(30)
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "profiles_ibfk_1")
   viewsLogs        ViewsLog[]
+  profileDomains   ProfileDomain[]
 
   @@index([userId], map: "idx_profile_user")
   @@map("profiles")
@@ -180,6 +181,34 @@ model DynamicBadge {
   createdAt     DateTime @default(now()) @map("created_at") @db.DateTime(0)
 
   @@map("dynamic_badges")
+}
+
+model SiteDomain {
+  id            Int             @id @default(autoincrement())
+  hostname      String          @unique(map: "uniq_site_domain_hostname") @db.VarChar(255)
+  status        String          @default("pending") @db.VarChar(20) // pending | active | failed
+  tier          String          @default("free") @db.VarChar(10) // free | premium
+  isDefault     Boolean         @default(false) @map("is_default")
+  errorMessage  String?         @map("error_message") @db.VarChar(500)
+  addedBy       Int?            @map("added_by")
+  verifiedAt    DateTime?       @map("verified_at") @db.DateTime(0)
+  createdAt     DateTime        @default(now()) @map("created_at") @db.DateTime(0)
+  profileDomains ProfileDomain[]
+
+  @@map("site_domains")
+}
+
+model ProfileDomain {
+  id        Int        @id @default(autoincrement())
+  profileId Int        @map("profile_id")
+  domainId  Int        @map("domain_id")
+  createdAt DateTime   @default(now()) @map("created_at") @db.DateTime(0)
+  profile   Profile    @relation(fields: [profileId], references: [id], onDelete: Cascade, map: "fk_profile_domain_profile")
+  domain    SiteDomain @relation(fields: [domainId], references: [id], onDelete: Cascade, map: "fk_profile_domain_domain")
+
+  @@unique([profileId, domainId], map: "uniq_profile_domain")
+  @@index([domainId], map: "idx_profile_domain_domain")
+  @@map("profile_domains")
 }
 
 model Integration {

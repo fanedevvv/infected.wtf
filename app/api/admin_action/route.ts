@@ -5,6 +5,7 @@ import { SHOP_EFFECTS } from "@/lib/shop";
 import { DECORATIONS } from "@/lib/decorations";
 import { syncDiscordBadgeRole, createDynamicBadge, deleteDynamicBadge } from "@/lib/discord";
 import { parseStringArray, serializeStringArray } from "@/lib/json-array";
+import { isValidHostname, checkDnsPointsToServer, provisionDomain, deprovisionDomain } from "@/lib/domains";
 
 function ok(message = "Done", extra: Record<string, unknown> = {}) {
   return NextResponse.json({ success: true, message, ...extra });
@@ -179,6 +180,76 @@ export async function POST(req: NextRequest) {
     const removed = await deleteDynamicBadge(badgeKey);
     if (!removed) return err("Badge not found.");
     return ok("Badge and its Discord role deleted.");
+  }
+
+  // ── Site domains (multi-domain pool) ──
+  if (action === "add_domain") {
+    if (!actorIsOwner) return err("Only owners can add domains.", 403);
+    const hostname = String(input.hostname || "").trim().toLowerCase();
+    const tier = input.tier === "premium" ? "premium" : "free";
+    if (!isValidHostname(hostname)) return err("Invalid domain — enter a plain hostname like example.com.");
+    const existing = await prisma.siteDomain.findUnique({ where: { hostname } });
+    if (existing) return err("This domain is already in the pool.");
+
+    const domain = await prisma.siteDomain.create({ data: { hostname, status: "pending", tier, addedBy: actor.id } });
+
+    const dnsCheck = await checkDnsPointsToServer(hostname);
+    if (!dnsCheck.ok) {
+      await prisma.siteDomain.update({ where: { id: domain.id }, data: { errorMessage: dnsCheck.message } });
+      return ok(`Domain added, but DNS isn't ready yet: ${dnsCheck.message}`, { domain_id: domain.id, status: "pending" });
+    }
+
+    const result = await provisionDomain(hostname);
+    if (result.success) {
+      await prisma.siteDomain.update({ where: { id: domain.id }, data: { status: "active", verifiedAt: new Date(), errorMessage: null } });
+      return ok(`Domain '${hostname}' is live with SSL.`, { domain_id: domain.id, status: "active" });
+    }
+    await prisma.siteDomain.update({ where: { id: domain.id }, data: { status: "failed", errorMessage: result.message } });
+    return ok(`Domain added, DNS is correct, but provisioning failed: ${result.message}`, { domain_id: domain.id, status: "failed" });
+  }
+
+  if (action === "recheck_domain") {
+    if (!actorIsOwner) return err("Only owners can manage domains.", 403);
+    const domainId = Number(input.domain_id || 0);
+    const domain = await prisma.siteDomain.findUnique({ where: { id: domainId } });
+    if (!domain) return err("Domain not found.");
+    if (domain.status === "active") return ok("Domain is already active.", { status: "active" });
+
+    const dnsCheck = await checkDnsPointsToServer(domain.hostname);
+    if (!dnsCheck.ok) {
+      await prisma.siteDomain.update({ where: { id: domain.id }, data: { status: "pending", errorMessage: dnsCheck.message } });
+      return ok(`DNS still not ready: ${dnsCheck.message}`, { status: "pending" });
+    }
+
+    const result = await provisionDomain(domain.hostname);
+    if (result.success) {
+      await prisma.siteDomain.update({ where: { id: domain.id }, data: { status: "active", verifiedAt: new Date(), errorMessage: null } });
+      return ok(`Domain '${domain.hostname}' is now live with SSL.`, { status: "active" });
+    }
+    await prisma.siteDomain.update({ where: { id: domain.id }, data: { status: "failed", errorMessage: result.message } });
+    return ok(`Provisioning failed: ${result.message}`, { status: "failed" });
+  }
+
+  if (action === "delete_domain") {
+    if (!actorIsOwner) return err("Only owners can manage domains.", 403);
+    const domainId = Number(input.domain_id || 0);
+    const domain = await prisma.siteDomain.findUnique({ where: { id: domainId } });
+    if (!domain) return err("Domain not found.");
+    if (domain.isDefault) return err("Can't remove the default domain.");
+    await deprovisionDomain(domain.hostname);
+    await prisma.siteDomain.delete({ where: { id: domain.id } });
+    return ok(`Domain '${domain.hostname}' removed.`);
+  }
+
+  if (action === "set_domain_tier") {
+    if (!actorIsOwner) return err("Only owners can manage domains.", 403);
+    const domainId = Number(input.domain_id || 0);
+    const tier = input.tier === "premium" ? "premium" : "free";
+    const domain = await prisma.siteDomain.findUnique({ where: { id: domainId } });
+    if (!domain) return err("Domain not found.");
+    if (domain.isDefault && tier === "premium") return err("The default domain must stay free.");
+    await prisma.siteDomain.update({ where: { id: domain.id }, data: { tier } });
+    return ok(`Domain '${domain.hostname}' set to ${tier}.`, { tier });
   }
 
   if (action === "apply_bundle") {

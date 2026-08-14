@@ -1,17 +1,33 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
-import LinksManager from "./LinksManager";
+import { getActiveProfileId } from "@/lib/active-profile";
+import DomainPicker from "./DomainPicker";
 
 export default async function LinksPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const links = await prisma.socialLink.findMany({ where: { userId: user.id }, orderBy: { displayOrder: "asc" } });
+  const activeProfileId = await getActiveProfileId(user.id);
+  const profile = await prisma.profile.findUnique({ where: { id: activeProfileId }, select: { slug: true } });
+  const isPremium = !!(user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date()));
+
+  const [domains, selected] = await Promise.all([
+    prisma.siteDomain.findMany({
+      where: { status: "active" },
+      orderBy: [{ isDefault: "desc" }, { tier: "asc" }, { hostname: "asc" }],
+      select: { id: true, hostname: true, isDefault: true, tier: true },
+    }),
+    prisma.profileDomain.findMany({ where: { profileId: activeProfileId }, select: { domainId: true } }),
+  ]);
 
   return (
-    <LinksManager
-      initialLinks={links.map((l) => ({ id: l.id, platform: l.platform, url: l.url }))}
+    <DomainPicker
+      slug={profile?.slug || ""}
+      domains={domains}
+      initialSelected={selected.map((s) => s.domainId)}
+      max={3}
+      isPremium={isPremium}
     />
   );
 }
