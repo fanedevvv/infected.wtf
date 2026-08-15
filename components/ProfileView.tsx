@@ -232,7 +232,7 @@ export default function ProfileView(p: ProfileViewProps) {
         ? { backgroundImage: `url(/${p.backgroundValue})`, backgroundSize: "cover", backgroundPosition: "center" }
         : { background: p.backgroundColor };
 
-  const PREMIUM_LAYOUTS = ["wide", "aurora", "cinematic"];
+  const PREMIUM_LAYOUTS = ["aurora", "cinematic", "dossier"];
   const effectiveLayout = PREMIUM_LAYOUTS.includes(p.layoutTemplate) && !p.isPremium ? "classic" : p.layoutTemplate;
 
   const paletteVars = {

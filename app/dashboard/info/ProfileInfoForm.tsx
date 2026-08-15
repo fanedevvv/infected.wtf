@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { showToast } from "@/lib/toast";
 
 const FONTS = ["Syne", "Outfit", "Space Mono", "Rajdhani", "Orbitron", "Bebas Neue", "Exo 2", "Josefin Sans"];
-const LAYOUT_TEMPLATES = ["classic", "minimal", "compact", "split", "frame", "stacked", "outline", "mono", "wide", "aurora", "cinematic"] as const;
-const PREMIUM_LAYOUT_TEMPLATES = ["wide", "aurora", "cinematic"] as const;
+const LAYOUT_TEMPLATES = ["classic", "editorial", "terminal", "banner", "compact", "aurora", "cinematic", "dossier"] as const;
+const PREMIUM_LAYOUT_TEMPLATES = ["aurora", "cinematic", "dossier"] as const;
 
 type Props = {
   tab: string;
@@ -713,17 +713,14 @@ export default function ProfileInfoForm(props: Props) {
           <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>Choose your profile layout</p>
           <div className="template-card-grid">
             {[
-              { id: "classic", label: "Classic", premium: false, desc: "Avatar and name perfectly centered.", features: ["Centered design", "Mobile optimized", "Clean & minimal"] },
-              { id: "minimal", label: "Minimal", premium: false, desc: "No card background — content floats directly on your page.", features: ["No background panel", "Lightweight look", "Mobile optimized"] },
-              { id: "compact", label: "Compact", premium: false, desc: "A tighter layout with denser spacing and smaller chrome.", features: ["Smaller spacing", "Denser content", "Fast to scan"] },
-              { id: "split", label: "Split", premium: false, desc: "A left-leaning composition for a more editorial profile feel.", features: ["Left aligned text", "Broader card", "Modern profile feel"] },
-              { id: "frame", label: "Frame", premium: false, desc: "A bold accent-colored double border around your card.", features: ["Accent-colored frame", "Extra padding", "Statement look"] },
-              { id: "stacked", label: "Stacked", premium: false, desc: "A taller banner with your avatar overlapping dramatically.", features: ["Bigger banner", "Overlapping avatar", "Bold entrance"] },
-              { id: "outline", label: "Outline", premium: false, desc: "A crisp accent-colored outline, no blur — fast and simple.", features: ["Accent outline border", "No blur or shadow", "Lightweight"] },
-              { id: "mono", label: "Mono", premium: false, desc: "Flat, solid, high-contrast card with zero frills.", features: ["Solid flat background", "No gradients", "Fastest to load"] },
-              { id: "wide", label: "Wide", premium: true, desc: "A wider card with room for multi-column content.", features: ["1040px wide card", "3-column integrations", "Premium exclusive"] },
-              { id: "aurora", label: "Aurora", premium: true, desc: "A glowing ambient halo in your accent color surrounds the card.", features: ["Ambient glow halo", "Heavy glass blur", "Premium exclusive"] },
-              { id: "cinematic", label: "Cinematic", premium: true, desc: "A dramatic full-bleed hero banner with a cinematic gradient fade.", features: ["280px hero banner", "Gradient fade overlay", "Premium exclusive"] },
+              { id: "classic", label: "Classic", premium: false, desc: "Avatar and name perfectly centered — the clean baseline.", features: ["Centered design", "Mobile optimized", "Clean & minimal"] },
+              { id: "editorial", label: "Editorial", premium: false, desc: "A two-column layout — your identity pinned left, everything else flows right.", features: ["Left identity column", "Left-aligned content", "Magazine-style feel"] },
+              { id: "terminal", label: "Terminal", premium: false, desc: "A monospace hacker console with a blinking cursor and sharp corners.", features: ["Monospace font", "No blur, sharp edges", "Left-aligned console feel"] },
+              { id: "banner", label: "Banner", premium: false, desc: "A tall hero banner with your avatar overlapping dramatically.", features: ["240px hero banner", "Overlapping avatar", "Bold entrance"] },
+              { id: "compact", label: "Compact", premium: false, desc: "A tight, dense little card — fits more above the fold.", features: ["Smaller everything", "Denser spacing", "Fast to scan"] },
+              { id: "aurora", label: "Aurora", premium: true, desc: "An oversized centered avatar wrapped in a glowing ambient halo.", features: ["Oversized avatar", "Ambient glow halo", "Premium exclusive"] },
+              { id: "cinematic", label: "Cinematic", premium: true, desc: "A full-bleed hero banner with your avatar and name pinned bottom-left.", features: ["270px hero banner", "Avatar+name side-by-side", "Premium exclusive"] },
+              { id: "dossier", label: "Dossier", premium: true, desc: "A wide identity-card layout with corner brackets and a big photo column.", features: ["1100px wide 2-column card", "Corner bracket accents", "Premium exclusive"] },
             ].map((t) => {
               const locked = t.premium && !props.isPremium;
               return (
@@ -731,8 +728,10 @@ export default function ProfileInfoForm(props: Props) {
                   <div className="template-card-preview">
                     <div className={`template-card-preview-inner tpl-${t.id}`}>
                       <span className="tpl-dot" />
-                      <span className="tpl-line" />
-                      <span className="tpl-line short" />
+                      <span className="tpl-lines">
+                        <span className="tpl-line" />
+                        <span className="tpl-line short" />
+                      </span>
                     </div>
                   </div>
                   <div className="template-card-name">{t.label}</div>

@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
         avatarRing: profile.avatarRing === "premium" ? "normal" : profile.avatarRing,
         particleEffect: profile.particleEffect,
         cursorTrail: profile.cursorTrail,
-        layoutTemplate: profile.layoutTemplate === "wide" ? "wide" : profile.layoutTemplate,
+        layoutTemplate: profile.layoutTemplate,
         playlistStyle: profile.playlistStyle,
       },
     });

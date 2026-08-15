@@ -27,8 +27,8 @@ async function deleteFile(relPath: string | null | undefined) {
 
 const ALLOWED_FONTS = ["Syne", "Outfit", "Space Mono", "Rajdhani", "Orbitron", "Bebas Neue", "Exo 2", "Josefin Sans"];
 const ALLOWED_TEXT_EFFECTS = ["none", "glow", "rainbow", "shake", "glitch", "scramble", "shine", "typewriter", "flip"];
-const ALLOWED_LAYOUTS = ["classic", "minimal", "compact", "split", "frame", "stacked", "outline", "mono", "wide", "aurora", "cinematic"];
-const PREMIUM_LAYOUTS = ["wide", "aurora", "cinematic"];
+const ALLOWED_LAYOUTS = ["classic", "editorial", "terminal", "banner", "compact", "aurora", "cinematic", "dossier"];
+const PREMIUM_LAYOUTS = ["aurora", "cinematic", "dossier"];
 
 export async function POST(req: NextRequest) {
   let user;
