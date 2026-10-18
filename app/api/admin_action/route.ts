@@ -6,6 +6,8 @@ import { DECORATIONS } from "@/lib/decorations";
 import { syncDiscordBadgeRole, createDynamicBadge, deleteDynamicBadge } from "@/lib/discord";
 import { parseStringArray, serializeStringArray } from "@/lib/json-array";
 import { isValidHostname, checkDnsPointsToServer, provisionDomain, deprovisionDomain } from "@/lib/domains";
+import { getEmailTemplateById, updateEmailTemplate, applyTemplateVariables } from "@/lib/email-templates";
+import { getTransport } from "@/lib/mail";
 
 function ok(message = "Done", extra: Record<string, unknown> = {}) {
   return NextResponse.json({ success: true, message, ...extra });
@@ -110,6 +112,37 @@ export async function POST(req: NextRequest) {
   const targetId = Number(input.target_id || 0);
 
   // ── Actions that don't need a target user ──
+  if (action === "update_email_template") {
+    if (!actorIsOwner) return err("Only owners can edit email templates.", 403);
+    const templateId = Number(input.template_id || 0);
+    const subject = String(input.subject || "").trim();
+    const bodyHtml = String(input.body_html || "");
+    if (!templateId || !subject || !bodyHtml) return err("Subject and body are required.");
+    const updated = await updateEmailTemplate(templateId, { subject, bodyHtml });
+    if (!updated) return err("Template not found.", 404);
+    return ok("Email template saved.", { template: updated });
+  }
+
+  if (action === "send_test_email") {
+    if (!actorIsOwner) return err("Only owners can send test emails.", 403);
+    const templateId = Number(input.template_id || 0);
+    const recipient = String(input.recipient || "").trim();
+    const variables = (input.variables && typeof input.variables === "object" ? input.variables : {}) as Record<string, string>;
+    if (!templateId || !recipient) return err("Template and recipient are required.");
+    const template = await getEmailTemplateById(templateId);
+    if (!template) return err("Template not found.", 404);
+    const transport = getTransport();
+    if (!transport) return err("SMTP is not configured on this server.", 500);
+    const subject = applyTemplateVariables(template.subject, variables);
+    const html = applyTemplateVariables(template.bodyHtml, variables);
+    try {
+      await transport.sendMail({ from: process.env.SMTP_FROM, to: recipient, subject: `[TEST] ${subject}`, html });
+    } catch (e) {
+      return err(`Send failed: ${e instanceof Error ? e.message : "unknown error"}`, 500);
+    }
+    return ok(`Test email sent to ${recipient}.`);
+  }
+
   if (action === "toggle_whitelist") {
     if (!actorIsOwner) return err("Only owners can toggle the whitelist.", 403);
     let settings = await prisma.siteSettings.findFirst();

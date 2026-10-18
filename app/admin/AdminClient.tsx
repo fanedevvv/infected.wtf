@@ -21,6 +21,7 @@ type Bundle = { id: number; name: string; price: number; priceType: "euro" | "to
 type RedeemCode = { id: number; code: string; tokens: number; maxUses: number; usesCount: number; expiresAt: string | null; active: boolean };
 type DynamicBadge = { badgeKey: string; label: string; color: string };
 type SiteDomain = { id: number; hostname: string; status: string; errorMessage: string | null; isDefault: boolean; tier: string };
+type EmailTemplate = { id: number; templateKey: string; subject: string; bodyHtml: string; availableVariables: string[]; updatedAt: string };
 
 interface Props {
   iAmOwner: boolean;
@@ -36,6 +37,7 @@ interface Props {
   redeemCodes: RedeemCode[];
   dynamicBadges: DynamicBadge[];
   siteDomains: SiteDomain[];
+  emailTemplates: EmailTemplate[];
   users: AdminUser[];
   page: number;
   totalPages: number;
@@ -583,6 +585,7 @@ export default function AdminClient(props: Props) {
           createBadge={createBadge}
           deleteBadge={deleteBadge}
           siteDomains={siteDomains}
+          emailTemplates={props.emailTemplates}
           newDomainHost={newDomainHost}
           setNewDomainHost={setNewDomainHost}
           newDomainTier={newDomainTier}

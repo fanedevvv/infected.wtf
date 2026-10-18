@@ -3301,3 +3301,7 @@ body:has(.unsaved-bar.visible) .toast-container { bottom: calc(1.5rem + 58px); }
 @media (max-width:600px) {
   .ls { padding-top:5.5rem; padding-left:1.25rem; padding-right:1.25rem; }
 }
+
+/* React Bits <BlobCursor /> as the landing-page cursor */
+.site-cursor { position:fixed; inset:0; z-index:10000; pointer-events:none; }
+html.has-blob-cursor, html.has-blob-cursor * { cursor:none !important; }

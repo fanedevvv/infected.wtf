@@ -5,11 +5,13 @@ import type { useRouter } from "next/navigation";
 import { showToast } from "@/lib/toast";
 import { ALL_BADGES } from "@/lib/badge-defs";
 import { SHOP_EFFECTS } from "@/lib/shop";
+import EmailTemplatesManagement from "./EmailTemplatesManagement";
 
 type Bundle = { id: number; name: string; price: number; priceType: "euro" | "tokens"; badges: string[]; effects: string[]; premiumDays: number };
 type RedeemCode = { id: number; code: string; tokens: number; maxUses: number; usesCount: number; expiresAt: string | null; active: boolean };
 type DynamicBadge = { badgeKey: string; label: string; color: string };
 type SiteDomain = { id: number; hostname: string; status: string; errorMessage: string | null; isDefault: boolean; tier: string };
+type EmailTemplate = { id: number; templateKey: string; subject: string; bodyHtml: string; availableVariables: string[]; updatedAt: string };
 
 const MANAGEABLE_BADGES = ["verified", "champion", "known", "rich", "trapstar", "the_killer", "crew", "billionaire", "content_creator", "designer"];
 
@@ -43,12 +45,14 @@ interface Props {
   recheckDomain: (id: number) => void;
   deleteDomain: (id: number, hostname: string) => void;
   setDomainTier: (id: number, tier: "free" | "premium") => void;
+  emailTemplates: EmailTemplate[];
 }
 
 export default function OwnerTab({
   bundles, redeemCodes, whitelistEnabled, x2Enabled, wlLoading, x2Loading, toggleWhitelist, toggleX2, router, showConfirmFn,
   dynamicBadges, newBadgeName, setNewBadgeName, newBadgeColor, setNewBadgeColor, creatingBadge, createBadge, deleteBadge,
   siteDomains, newDomainHost, setNewDomainHost, newDomainTier, setNewDomainTier, addingDomain, addDomain, domainBusyId, recheckDomain, deleteDomain, setDomainTier,
+  emailTemplates,
 }: Props) {
   // ── Infected Mail ──
   const [mailTitle, setMailTitle] = useState("");
@@ -641,6 +645,8 @@ export default function OwnerTab({
           </div>
         </div>
       )}
+
+      <EmailTemplatesManagement emailTemplates={emailTemplates} />
 
       {/* ── Whitelist / Maintenance ── */}
       <div className="dash-card" style={{ marginBottom: "1.5rem", borderColor: whitelistEnabled ? "rgba(255,100,100,.3)" : "rgba(255,255,255,.07)", transition: "border-color .3s" }}>

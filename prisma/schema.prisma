@@ -431,3 +431,15 @@ model Bundle {
 
   @@map("bundles")
 }
+
+model EmailTemplate {
+  id                 Int      @id @default(autoincrement())
+  templateKey        String   @unique @map("template_key") @db.VarChar(50)
+  subject            String   @db.VarChar(255)
+  bodyHtml           String   @map("body_html") @db.LongText
+  availableVariables String?  @map("available_variables") @db.LongText
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("email_templates")
+}

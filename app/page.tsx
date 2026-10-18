@@ -8,6 +8,7 @@ import CookieBanner from "@/components/CookieBanner";
 import Parallax from "@/components/Parallax";
 import ScrollReveal from "@/components/ScrollReveal";
 import SmoothScroll from "@/components/SmoothScroll";
+import SiteCursor from "@/components/SiteCursor";
 import PlatformStrip from "@/components/PlatformStrip";
 import CTAWithVerticalMarquee from "@/components/ui/cta-with-text-marquee";
 import PixelCard from "@/components/ui/PixelCard";
@@ -173,6 +174,7 @@ export default async function Home() {
       <Parallax />
       <ScrollReveal />
       <SmoothScroll />
+      <SiteCursor />
       <CookieBanner initialConsent={await getCookieConsent()} />
     </div>
   );

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { parseStringArray } from "@/lib/json-array";
+import { getAllEmailTemplates } from "@/lib/email-templates";
 import AdminClient from "./AdminClient";
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ page?: string; q?: string }> }) {
@@ -47,6 +48,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const allRedeemCodes = iAmOwner ? await prisma.redeemCode.findMany({ orderBy: { createdAt: "desc" } }) : [];
   const allDynamicBadges = iAmOwner ? await prisma.dynamicBadge.findMany({ orderBy: { createdAt: "desc" } }) : [];
   const allDomains = iAmOwner ? await prisma.siteDomain.findMany({ orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }] }) : [];
+  const allEmailTemplates = iAmOwner ? await getAllEmailTemplates() : [];
 
   const perPage = 10;
   const page = Math.max(1, parseInt(params.page || "1") || 1);
@@ -133,6 +135,14 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         status: d.status,
         errorMessage: d.errorMessage,
         isDefault: d.isDefault,
+      }))}
+      emailTemplates={allEmailTemplates.map((t) => ({
+        id: t.id,
+        templateKey: t.templateKey,
+        subject: t.subject,
+        bodyHtml: t.bodyHtml,
+        availableVariables: t.availableVariables,
+        updatedAt: t.updatedAt.toISOString(),
       }))}
       users={users}
       page={clampedPage}
