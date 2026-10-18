@@ -210,7 +210,7 @@ export default function EmailTemplatesManagement({ emailTemplates }: { emailTemp
                 <iframe
                   title="Email preview"
                   srcDoc={previewHtml}
-                  sandbox=""
+                  sandbox="allow-same-origin"
                   style={{ width: "100%", height: 480, border: "1px solid rgba(255,255,255,.08)", borderTop: "none", borderRadius: "0 0 8px 8px", background: "#fff" }}
                 />
               </div>

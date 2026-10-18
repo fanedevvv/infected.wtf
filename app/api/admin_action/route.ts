@@ -136,7 +136,9 @@ export async function POST(req: NextRequest) {
     const subject = applyTemplateVariables(template.subject, variables);
     const html = applyTemplateVariables(template.bodyHtml, variables);
     try {
-      await transport.sendMail({ from: process.env.SMTP_FROM, to: recipient, subject: `[TEST] ${subject}`, html });
+      // No "[TEST]" prefix on purpose — it's exactly what a real send looks
+      // like, and bracketed test-markers are a classic spam-filter trigger.
+      await transport.sendMail({ from: process.env.SMTP_FROM, to: recipient, subject, html });
     } catch (e) {
       return err(`Send failed: ${e instanceof Error ? e.message : "unknown error"}`, 500);
     }
