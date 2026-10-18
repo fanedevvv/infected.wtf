@@ -15,7 +15,7 @@ export type BadgeDef = {
 export const ALL_BADGES: Record<string, BadgeDef> = {
   owner: { id: "owner", name: "Owner", desc: "The site owner.", color: "#fbbf24", auto: false, adminOnly: true },
   admin: { id: "admin", name: "Admin", desc: "Platform administrator.", color: "#39ff14", auto: false, adminOnly: true },
-  premium: { id: "premium", name: "Premium", desc: "Active Premium subscriber — supports the platform.", color: "#ffd700", auto: true, adminOnly: false },
+  premium: { id: "premium", name: "Infected Plus", desc: "Active Infected Plus subscriber — supports the platform.", color: "#ffd700", auto: true, adminOnly: false },
   og: { id: "og", name: "OG", desc: "Awarded to one of the first 1,000 users on the platform.", color: "#a78bfa", auto: true, adminOnly: false },
   views_master: { id: "views_master", name: "Views Master", desc: "Your profile is in the top 3 most viewed on the site.", color: "#38bdf8", auto: true, adminOnly: false },
   verified: { id: "verified", name: "Verified", desc: "This account has been verified by the team.", color: "#34d399", auto: false, adminOnly: false },

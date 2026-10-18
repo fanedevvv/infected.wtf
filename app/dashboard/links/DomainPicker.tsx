@@ -31,7 +31,7 @@ function DomainCard({
   return (
     <div className={`domain-card ${isActive ? "active" : ""} ${locked ? "locked" : ""}`}>
       {domain.tier === "premium" && (
-        <span className="domain-card-badge"><StarIcon /> Premium</span>
+        <span className="domain-card-badge"><StarIcon /> Infected Plus</span>
       )}
       <div className="domain-card-icon"><LinkIcon /></div>
       <div>
@@ -44,8 +44,8 @@ function DomainCard({
           <CheckIcon /> Active
         </button>
       ) : locked ? (
-        <button className="domain-card-btn domain-card-btn-locked" disabled title="Available on Premium">
-          <LockIcon /> Premium
+        <button className="domain-card-btn domain-card-btn-locked" disabled title="Available on Infected Plus">
+          <LockIcon /> Infected Plus
         </button>
       ) : isActive ? (
         <div style={{ display: "flex", gap: ".4rem", width: "100%" }}>
@@ -144,8 +144,8 @@ export default function DomainPicker({ slug, domains, initialSelected, max, isPr
       {premiumDomains.length > 0 && (
         <div className="dash-card">
           <div className="dash-card-header">
-            <span className="dash-card-title"><StarIcon /> Premium Domains</span>
-            <span style={{ fontSize: ".78rem", color: "rgba(255,255,255,.4)" }}>Exclusive domains for premium users</span>
+            <span className="dash-card-title"><StarIcon /> Infected Plus Domains</span>
+            <span style={{ fontSize: ".78rem", color: "rgba(255,255,255,.4)" }}>Exclusive domains for Infected Plus users</span>
           </div>
           <div className="domain-grid">
             {premiumDomains.map((d) => (

@@ -87,8 +87,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       views: profile?.views ?? 0,
       links: u._count.socialLinks,
       badges: parseStringArray(profile?.badges),
-      effects: (profile?.purchasedEffects as string[] | null) ?? [],
-      decorations: (profile?.decorationsOwned as string[] | null) ?? [],
+      effects: parseStringArray(profile?.purchasedEffects),
+      decorations: parseStringArray(profile?.decorationsOwned),
       avatar: profile?.avatar ? `/${profile.avatar}` : "/assets/img/default-avatar.png",
     };
   });
@@ -110,7 +110,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         price: Number(b.price),
         priceType: b.priceType as "euro" | "tokens",
         badges: parseStringArray(b.badges),
-        effects: (b.effects as string[] | null) ?? [],
+        effects: parseStringArray(b.effects),
         premiumDays: b.premiumDays,
       }))}
       redeemCodes={allRedeemCodes.map((r) => ({

@@ -92,8 +92,11 @@ export async function POST(req: NextRequest) {
   const ua = req.headers.get("user-agent") || "";
   const { device, browser } = parseDevice(ua);
   const knownDevice = await prisma.loginHistory.findFirst({ where: { userId: user.id, ipHash, deviceType: device } });
+  // IPv4 -> "first-octet.*.*.*"; IPv6 (contains ':', no dots) -> "first-group::*".
+  // Whatever shape, keep it within ip_display's VARCHAR(20).
+  const isIpv6 = ip.includes(":") && !ip.includes(".");
   const octets = ip.split(".");
-  const ipDisplay = `${octets[0] || "***"}.*.*.*`;
+  const ipDisplay = (isIpv6 ? `${ip.split(":")[0] || "***"}::*` : `${octets[0] || "***"}.*.*.*`).slice(0, 20);
   await prisma.loginHistory.create({ data: { userId: user.id, ipHash, ipDisplay, deviceType: device, browser } });
 
   if (!knownDevice && user.loginNotify) {

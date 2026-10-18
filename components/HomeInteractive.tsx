@@ -3,9 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useScrolled } from "./useScrolled";
 
 export function FloatingNavbar({ children }: { children: React.ReactNode }) {
-  return <nav className="navbar">{children}</nav>;
+  const scrolled = useScrolled();
+  return <nav className={`navbar navbar-public${scrolled ? " is-scrolled" : ""}`}>{children}</nav>;
 }
 
 export function HomeNavLinks({ user }: { user?: { username: string } | null }) {
@@ -29,17 +31,20 @@ export function HomeNavLinks({ user }: { user?: { username: string } | null }) {
         <Link href="/partners">Partners</Link>
         <a href="https://discord.gg/kPx9zWzWez" target="_blank" rel="noreferrer">Discord</a>
         <a href="#pricing">Pricing</a>
+      </div>
+
+      <div className="navbar-actions">
         {user ? (
           <Link href="/dashboard" className="btn btn-primary btn-sm">Dashboard</Link>
         ) : (
           <>
             <Link href="/login" className="btn btn-secondary btn-sm">Login</Link>
-            <Link href="/register" className="btn btn-primary btn-sm">Register</Link>
+            <Link href="/register" className="btn btn-primary btn-sm navbar-signup">Get started<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg></Link>
           </>
         )}
       </div>
 
-      <div ref={wrapRef} style={{ position: "static" }}>
+      <div ref={wrapRef} className="navbar-burger-wrap">
         <button className="navbar-burger" onClick={() => setOpen((o) => !o)} aria-label="Toggle menu" aria-expanded={open}>
           {open ? (
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" width="18" height="18">
@@ -80,7 +85,7 @@ export function ClaimUsername() {
   }
   return (
     <div className="hero-claim">
-      <span className="hero-claim-prefix">@</span>
+      <span className="hero-claim-prefix">infected.wtf/</span>
       <input
         value={val}
         onChange={(e) => setVal(e.target.value)}
@@ -89,14 +94,14 @@ export function ClaimUsername() {
         maxLength={30}
         autoComplete="off"
       />
-      <button className="hero-claim-btn" onClick={claim}>Claim</button>
+      <button className="hero-claim-btn" onClick={claim}>Claim it. <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg></button>
     </div>
   );
 }
 
 const FAQS: [string, string][] = [
   ["What is INFECTED.WTF?", "INFECTED.WTF is a modern bio link platform built for creators and communities. One link that holds everything — your socials, your story, your brand."],
-  ["Is INFECTED.WTF free?", "Yes, completely free. No credit card required. Create your profile in seconds and start sharing it right away. You can start for free and upgrade to Premium anytime"],
+  ["Is INFECTED.WTF free?", "Yes, completely free. No credit card required. Create your profile in seconds and start sharing it right away. You can start for free and upgrade to Infected Plus anytime."],
   ["How fast is setup?", "Under 2 minutes. Pick a username, add your links, upload an avatar — and you're live."],
   ["Can I customize my profile?", "Absolutely. You can change fonts, background, accent colors, add visual effects, music, and even upload a custom cursor."],
   ["What links can I add?", "Any platform — Instagram, Discord, Steam, Spotify, TikTok, YouTube, GitHub, your own website, and many more."],
@@ -106,11 +111,17 @@ const FAQS: [string, string][] = [
 export function Faq() {
   const [open, setOpen] = useState<number | null>(null);
   return (
-    <section className="faq-section fade-in">
-      <div className="faq-heading">Frequently Asked Questions</div>
+    <section className="ls ls--last">
+      <header className="ls-head" data-reveal>
+        <div className="ls-label">FAQ.</div>
+        <h2>Frequently asked questions.</h2>
+        <p>Can&apos;t find what you&apos;re looking for? Ask us on Discord.</p>
+      </header>
+      <div className="faq-list" data-reveal>
       {FAQS.map(([q, a], i) => (
         <div key={i} className={`faq-item ${open === i ? "open" : ""}`}>
           <div className="faq-q" onClick={() => setOpen(open === i ? null : i)}>
+            <span className="faq-num">{String(i + 1).padStart(2, "0")}</span>
             <span>{q}</span>
             <div className="faq-toggle">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="12" height="12"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
@@ -119,6 +130,7 @@ export function Faq() {
           <div className="faq-a">{a}</div>
         </div>
       ))}
+      </div>
     </section>
   );
 }

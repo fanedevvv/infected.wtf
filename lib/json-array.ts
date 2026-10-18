@@ -14,6 +14,21 @@ export function serializeStringArray(arr: string[]): string {
   return JSON.stringify(arr);
 }
 
+/** Same idea, but for a LongText column holding a JSON array of numbers (e.g. User.purchasedBundles). */
+export function parseNumberArray(raw: string | null | undefined): number[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((v): v is number => typeof v === "number") : [];
+  } catch {
+    return [];
+  }
+}
+
+export function serializeNumberArray(arr: number[]): string {
+  return JSON.stringify(arr);
+}
+
 /** Same idea, but for object-shaped LongText columns (e.g. Integration.data). */
 export function parseJsonObject<T = Record<string, unknown>>(raw: string | null | undefined): T | null {
   if (!raw) return null;

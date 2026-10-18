@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useScrolled } from "./useScrolled";
 
 export default function PublicNavbar({ user, active }: { user?: { username: string } | null; active?: "leaderboard" }) {
   const [open, setOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
+  const scrolled = useScrolled();
   const close = () => setOpen(false);
 
   useEffect(() => {
@@ -17,10 +19,8 @@ export default function PublicNavbar({ user, active }: { user?: { username: stri
   }, []);
 
   return (
-    <nav className="navbar" ref={navRef}>
+    <nav className={`navbar navbar-public${scrolled ? " is-scrolled" : ""}`} ref={navRef}>
       <Link href="/" className="navbar-brand" onClick={close}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/assets/img/logo-icon.png" alt="" className="brand-logo-icon" />
         <span>INFECTED.WTF</span>
       </Link>
 
@@ -32,14 +32,20 @@ export default function PublicNavbar({ user, active }: { user?: { username: stri
         <Link href="/partners">Partners</Link>
         <a href="https://discord.gg/kPx9zWzWez" target="_blank" rel="noreferrer">Discord</a>
         <Link href="/#pricing">Pricing</Link>
+
+      </div>
+
+
+      <div className="navbar-actions">
         {user ? (
           <Link href="/dashboard" className="btn btn-primary btn-sm">Dashboard</Link>
         ) : (
           <>
             <Link href="/login" className="btn btn-secondary btn-sm">Login</Link>
-            <Link href="/register" className="btn btn-primary btn-sm">Register</Link>
+            <Link href="/register" className="btn btn-primary btn-sm navbar-signup">Get started<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="13" height="13"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg></Link>
           </>
         )}
+
       </div>
 
       <button className="navbar-burger" onClick={() => setOpen((o) => !o)} aria-label="Toggle menu" aria-expanded={open}>

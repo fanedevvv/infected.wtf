@@ -41,7 +41,7 @@ export default async function ConfirmActionResultPage({
           ) : isRelogin ? (
             <>
               <div className="ci success">
-                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#39ff14" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="7 12 10.5 15.5 17 9" /></svg>
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="7 12 10.5 15.5 17 9" /></svg>
               </div>
               <h1 className="confirm-title success-text">Identity Confirmed!</h1>
               <p className="confirm-desc">Identity confirmed. Redirecting to your dashboard…</p>
@@ -56,7 +56,7 @@ export default async function ConfirmActionResultPage({
           ) : (
             <>
               <div className="ci success">
-                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#39ff14" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="7 12 10.5 15.5 17 9" /></svg>
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="7 12 10.5 15.5 17 9" /></svg>
               </div>
               <h1 className="confirm-title success-text">{typeLabel} Confirmed!</h1>
               <p className="confirm-desc">
@@ -78,7 +78,7 @@ export default async function ConfirmActionResultPage({
         ) : status === "already" ? (
           <>
             <div className="ci success">
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#39ff14" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="7 12 10.5 15.5 17 9" /></svg>
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="7 12 10.5 15.5 17 9" /></svg>
             </div>
             <h1 className="confirm-title success-text">Already Confirmed</h1>
             <p className="confirm-desc">This action was already completed. No changes were made.</p>

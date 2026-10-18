@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { buildSessionCookie } from "@/lib/session";
+import { parseStringArray } from "@/lib/json-array";
 
 export async function GET(req: NextRequest) {
   const siteUrl = process.env.SITE_URL || "";
@@ -44,7 +45,7 @@ export async function GET(req: NextRequest) {
 
             const refCount = await prisma.referral.count({ where: { referrerId: referrer.id } });
             const referrerProfile = await prisma.profile.findFirst({ where: { userId: referrer.id , isPrimary: true } });
-            let badges = (referrerProfile?.badges as string[] | null) ?? [];
+            let badges = parseStringArray(referrerProfile?.badges);
             if (refCount >= 20) {
               badges = badges.filter((b) => b !== "promoter");
               if (!badges.includes("promoter_elite")) badges.push("promoter_elite");

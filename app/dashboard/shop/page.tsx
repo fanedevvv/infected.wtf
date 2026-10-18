@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getActiveProfileId } from "@/lib/active-profile";
 import { SHOP_BADGES, SHOP_EFFECTS } from "@/lib/shop";
 import ShopClient from "./ShopClient";
+import { parseStringArray, parseNumberArray } from "@/lib/json-array";
 
 export default async function ShopPage() {
   const user = await getCurrentUser();
@@ -14,9 +15,9 @@ export default async function ShopPage() {
   if (!profile) redirect("/dashboard");
 
   const isPremium = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date());
-  const ownedBadges = (profile.badges as string[] | null) ?? [];
-  const purchasedEffects = (profile.purchasedEffects as string[] | null) ?? [];
-  const purchasedBundleIds = (user.purchasedBundles as number[] | null) ?? [];
+  const ownedBadges = parseStringArray(profile.badges);
+  const purchasedEffects = parseStringArray(profile.purchasedEffects);
+  const purchasedBundleIds = parseNumberArray(user.purchasedBundles);
 
   const settings = await prisma.siteSettings.findFirst();
   const x2Active = !!settings?.x2TokensEnabled;
@@ -38,8 +39,8 @@ export default async function ShopPage() {
         name: b.name,
         price: Number(b.price),
         priceType: b.priceType,
-        badges: (b.badges as string[] | null) ?? [],
-        effects: (b.effects as string[] | null) ?? [],
+        badges: parseStringArray(b.badges),
+        effects: parseStringArray(b.effects),
         premiumDays: b.premiumDays,
         owned: purchasedBundleIds.includes(b.id),
       }))}

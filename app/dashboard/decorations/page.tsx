@@ -7,6 +7,7 @@ import { getActiveProfileId } from "@/lib/active-profile";
 import { getCustomDecorationMeta, normalizeDecorationId } from "@/lib/decorations";
 import { getDiscordDecorationNameById } from "@/lib/discord-decoration-names";
 import DecorationsClient from "./DecorationsClient";
+import { parseStringArray } from "@/lib/json-array";
 
 function listDecorationFiles(): string[] {
   const abs = path.join(process.cwd(), "public", "assets", "img", "decorations");
@@ -25,7 +26,7 @@ export default async function DecorationsPage() {
   const profile = await prisma.profile.findUnique({ where: { id: activeProfileId } });
   if (!profile) redirect("/dashboard");
 
-  const owned = (profile.decorationsOwned as string[] | null) ?? [];
+  const owned = parseStringArray(profile.decorationsOwned);
   const seen = new Set<string>();
   const catalog = listDecorationFiles()
     .map((file) => normalizeDecorationId(file.replace(/\.(png|webp|jpe?g|gif)$/i, "")))

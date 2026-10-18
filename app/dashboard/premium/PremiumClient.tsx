@@ -9,11 +9,11 @@ const PRO_FEATURES = [
   { title: "2× Profile View Tokens", desc: "Earn 5 tokens per profile view instead of 3." },
   { title: "2× Referral Tokens", desc: "Earn 20 tokens per referral instead of 10." },
   { title: "Wide Layout Template", desc: "Unlock the Wide profile layout template." },
-  { title: "Premium Avatar Ring", desc: "Exclusive animated ring around your avatar." },
+  { title: "Infected Plus Avatar Ring", desc: "Exclusive animated ring around your avatar." },
   { title: "Particle Background", desc: "Animated particles across your profile background." },
   { title: "Cursor Trail", desc: "A glowing trail follows visitors' cursor on your page." },
-  { title: "Premium Name Glow", desc: "Your display name gets a glowing premium highlight." },
-  { title: "Gift Premium to Friends", desc: "Send Premium time to other users using tokens." },
+  { title: "Infected Plus Name Glow", desc: "Your display name gets a glowing Plus highlight." },
+  { title: "Gift Infected Plus to Friends", desc: "Send Infected Plus time to other users using tokens." },
 ];
 
 export default function PremiumClient({
@@ -102,8 +102,8 @@ export default function PremiumClient({
     <>
       <div className="section-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
         <div>
-          <h2>Premium</h2>
-          <p>{isPremium ? `You have Premium${premiumExpiresAt ? ` until ${new Date(premiumExpiresAt).toLocaleDateString()}` : ""}.` : "Unlock exclusive perks across the platform"}</p>
+          <h2>Infected Plus</h2>
+          <p>{isPremium ? `You have Infected Plus${premiumExpiresAt ? ` until ${new Date(premiumExpiresAt).toLocaleDateString()}` : ""}.` : "Unlock exclusive perks across the platform"}</p>
         </div>
         <div className="shop-token-bal"><span>{tokenBal.toLocaleString()} tokens</span></div>
       </div>
@@ -111,7 +111,7 @@ export default function PremiumClient({
       <div className="premium-grid">
         <div className="dash-card">
           <div className="tpm-pill" style={{ marginBottom: ".5rem" }}>TOKENS</div>
-          <div className="tpm-title">Buy Premium with Tokens</div>
+          <div className="tpm-title">Buy Infected Plus with Tokens</div>
           <div className="tpm-sub" style={{ marginBottom: "1.25rem" }}>100 tokens per day</div>
 
           <div className="tpm-days-label">Number of days</div>
@@ -142,7 +142,7 @@ export default function PremiumClient({
             <div className={`tpm-bar-fill ${cost > tokenBal ? "danger" : ""}`} style={{ width: `${Math.min(100, (cost / Math.max(1, tokenBal)) * 100)}%` }} />
           </div>
           <button type="button" className="tpm-activate-btn" disabled={cost > tokenBal || activating} onClick={activatePremium}>
-            {activating ? "Activating…" : "Activate Premium"}
+            {activating ? "Activating…" : "Activate Infected Plus"}
           </button>
           {cost > tokenBal && <div className="tpm-not-enough" style={{ display: "block" }}>Not enough tokens.</div>}
         </div>
@@ -196,7 +196,7 @@ export default function PremiumClient({
 
       <div className="section-header" style={{ marginTop: "2rem" }}>
         <h2 style={{ fontSize: "1.15rem" }}>PRO Features</h2>
-        <p>Everything unlocked with an active Premium subscription</p>
+        <p>Everything unlocked with an active Infected Plus subscription</p>
       </div>
       <div className="pro-feature-grid">
         {PRO_FEATURES.map((f) => (

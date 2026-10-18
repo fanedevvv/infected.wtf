@@ -341,7 +341,7 @@ export default function ProfileView(p: ProfileViewProps) {
                         <path d="M2.5 9L7 3h10l4.5 6L12 21 2.5 9z" fill="rgba(255,215,0,.3)" stroke="#ffd700" strokeWidth="1.8" strokeLinejoin="round" />
                         <path d="M2.5 9h19M7 3l3 6h4l3-6" stroke="#ffd700" strokeWidth="1.4" strokeLinejoin="round" opacity=".85" />
                       </svg>
-                      <span className="badge-tooltip">Premium</span>
+                      <span className="badge-tooltip">Infected Plus</span>
                     </div>
                   ) : (
                     <div

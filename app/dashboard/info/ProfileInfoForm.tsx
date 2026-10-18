@@ -328,7 +328,7 @@ export default function ProfileInfoForm(props: Props) {
 
   async function selectLayoutTemplate(tpl: string) {
     if (PREMIUM_LAYOUT_TEMPLATES.includes(tpl as (typeof PREMIUM_LAYOUT_TEMPLATES)[number]) && !props.isPremium) {
-      showToast("This layout is a Premium feature.", "error");
+      showToast("This layout is an Infected Plus feature.", "error");
       return;
     }
     if (!LAYOUT_TEMPLATES.includes(tpl as (typeof LAYOUT_TEMPLATES)[number])) {
@@ -718,9 +718,9 @@ export default function ProfileInfoForm(props: Props) {
               { id: "terminal", label: "Terminal", premium: false, desc: "A monospace hacker console with a blinking cursor and sharp corners.", features: ["Monospace font", "No blur, sharp edges", "Left-aligned console feel"] },
               { id: "banner", label: "Banner", premium: false, desc: "A tall hero banner with your avatar overlapping dramatically.", features: ["240px hero banner", "Overlapping avatar", "Bold entrance"] },
               { id: "compact", label: "Compact", premium: false, desc: "A tight, dense little card — fits more above the fold.", features: ["Smaller everything", "Denser spacing", "Fast to scan"] },
-              { id: "aurora", label: "Aurora", premium: true, desc: "An oversized centered avatar wrapped in a glowing ambient halo.", features: ["Oversized avatar", "Ambient glow halo", "Premium exclusive"] },
-              { id: "cinematic", label: "Cinematic", premium: true, desc: "A full-bleed hero banner with your avatar and name pinned bottom-left.", features: ["270px hero banner", "Avatar+name side-by-side", "Premium exclusive"] },
-              { id: "dossier", label: "Dossier", premium: true, desc: "A wide identity-card layout with corner brackets and a big photo column.", features: ["1100px wide 2-column card", "Corner bracket accents", "Premium exclusive"] },
+              { id: "aurora", label: "Aurora", premium: true, desc: "An oversized centered avatar wrapped in a glowing ambient halo.", features: ["Oversized avatar", "Ambient glow halo", "Infected Plus exclusive"] },
+              { id: "cinematic", label: "Cinematic", premium: true, desc: "A full-bleed hero banner with your avatar and name pinned bottom-left.", features: ["270px hero banner", "Avatar+name side-by-side", "Infected Plus exclusive"] },
+              { id: "dossier", label: "Dossier", premium: true, desc: "A wide identity-card layout with corner brackets and a big photo column.", features: ["1100px wide 2-column card", "Corner bracket accents", "Infected Plus exclusive"] },
             ].map((t) => {
               const locked = t.premium && !props.isPremium;
               return (
@@ -746,7 +746,7 @@ export default function ProfileInfoForm(props: Props) {
                     disabled={locked}
                     onClick={() => selectLayoutTemplate(t.id)}
                   >
-                    {locked ? "🔒 Premium" : layoutTemplate === t.id ? "Selected" : "Select"}
+                    {locked ? "🔒 Infected Plus" : layoutTemplate === t.id ? "Selected" : "Select"}
                   </button>
                 </div>
               );

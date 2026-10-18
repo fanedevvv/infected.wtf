@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { parseStringArray } from "@/lib/json-array";
 
 export async function GET(req: NextRequest) {
   const apiKey = req.headers.get("x-api-key") || req.nextUrl.searchParams.get("key") || "";
@@ -18,7 +19,7 @@ export async function GET(req: NextRequest) {
         prisma.user.count({ where: { isPremium: true, banned: false, emailVerified: true, OR: [{ premiumExpiresAt: null }, { premiumExpiresAt: { gt: new Date() } }] } }),
         prisma.profile.findMany({ select: { badges: true } }),
       ]);
-      const verifiedCount = profiles.filter((p) => ((p.badges as string[] | null) ?? []).includes("verified")).length;
+      const verifiedCount = profiles.filter((p) => (parseStringArray(p.badges)).includes("verified")).length;
       return NextResponse.json({
         success: true,
         total_members: totalMembers,

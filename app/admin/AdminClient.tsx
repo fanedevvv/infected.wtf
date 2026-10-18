@@ -347,12 +347,12 @@ export default function AdminClient(props: Props) {
     if (!epUser) return;
     const days = parseInt(premiumDaysInput || "0");
     if (!days || days < 1) { showToast("Enter a valid number of days", "error"); return; }
-    const label = epUser.isPremium ? `Extend Premium by ${days} day(s)?` : `Grant Premium to @${epUser.username} for ${days} day(s)?`;
-    showConfirm("Set Premium", label, "Confirm", () => epCall("set_premium", { days }));
+    const label = epUser.isPremium ? `Extend Infected Plus by ${days} day(s)?` : `Grant Infected Plus to @${epUser.username} for ${days} day(s)?`;
+    showConfirm("Set Infected Plus", label, "Confirm", () => epCall("set_premium", { days }));
   }
   function epRevokePremium() {
     if (!epUser) return;
-    showConfirm("Revoke Premium", `Remove Premium from @${epUser.username}?`, "Revoke", () => epCall("set_premium", { days: 0 }));
+    showConfirm("Revoke Infected Plus", `Remove Infected Plus from @${epUser.username}?`, "Revoke", () => epCall("set_premium", { days: 0 }));
   }
   function epSetRole(role: string) {
     if (!epUser) return;
@@ -455,7 +455,7 @@ export default function AdminClient(props: Props) {
             <div className="stat-card">
               <div className="stat-icon" style={{ color: "#ffd700" }}><svg viewBox="0 0 24 24" fill="none" width="22" height="22"><path d="M2.5 9L7 3h10l4.5 6L12 21 2.5 9z" fill="rgba(255,215,0,.25)" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><path d="M2.5 9h19M7 3l3 6h4l3-6" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" opacity=".8" /></svg></div>
               <div className="stat-number" style={{ color: "#ffd700" }}>{props.stats.premiumCount.toLocaleString()}</div>
-              <div className="stat-label">Premium Subscribers</div>
+              <div className="stat-label">Infected Plus Subscribers</div>
             </div>
             <div className="stat-card">
               <div className="stat-icon" style={{ color: "#34d399" }}><svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" /></svg></div>
@@ -525,15 +525,15 @@ export default function AdminClient(props: Props) {
                     }
                     return (
                       <tr key={u.id} data-uid={u.id}>
-                        <td style={{ color: "rgba(255,255,255,.3)", fontSize: ".75rem", fontFamily: "'Space Mono',monospace" }}>#{u.id}</td>
+                        <td style={{ color: "rgba(255,255,255,.3)", fontSize: ".75rem", fontFamily: "var(--font-mono)" }}>#{u.id}</td>
                         <td><div className="user-info"><SafeImg src={u.avatar} className="user-avatar-sm" /><div className="user-name">@{u.username}</div></div></td>
                         <td style={{ color: "var(--text-muted)", fontSize: ".8rem" }}>—</td>
-                        <td style={{ color: "var(--text-muted)", fontSize: ".78rem", fontFamily: "'Space Mono',monospace", whiteSpace: "nowrap" }}>{new Date(u.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</td>
-                        <td style={{ fontFamily: "'Space Mono',monospace", fontSize: ".8rem" }}>{u.views.toLocaleString()}</td>
-                        <td style={{ fontFamily: "'Space Mono',monospace", fontSize: ".8rem" }}>{u.links}</td>
+                        <td style={{ color: "var(--text-muted)", fontSize: ".78rem", fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }}>{new Date(u.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</td>
+                        <td style={{ fontFamily: "var(--font-mono)", fontSize: ".8rem" }}>{u.views.toLocaleString()}</td>
+                        <td style={{ fontFamily: "var(--font-mono)", fontSize: ".8rem" }}>{u.links}</td>
                         <td>
                           {isActivePremium(u) ? (
-                            <span className="badge" style={{ background: "rgba(255,215,0,.15)", border: "1px solid rgba(255,215,0,.4)", color: "#ffd700", fontSize: ".68rem", padding: ".2rem .6rem", borderRadius: 20, fontWeight: 800, letterSpacing: ".04em" }}>PREMIUM</span>
+                            <span className="badge" style={{ background: "rgba(255,215,0,.15)", border: "1px solid rgba(255,215,0,.4)", color: "#ffd700", fontSize: ".68rem", padding: ".2rem .6rem", borderRadius: 20, fontWeight: 800, letterSpacing: ".04em" }}>INFECTED PLUS</span>
                           ) : (
                             <span className="badge badge-normal" style={{ fontSize: ".68rem", padding: ".2rem .6rem", borderRadius: 20, fontWeight: 700, letterSpacing: ".03em", opacity: .65 }}>FREE</span>
                           )}
@@ -815,7 +815,7 @@ export default function AdminClient(props: Props) {
 
                   <div className="ep-section">
                     <div className="ep-section-head">
-                      <div className="ep-section-ico" style={{ background: "rgba(57,255,20,.1)", color: "var(--accent)" }}>
+                      <div className="ep-section-ico" style={{ background: "rgba(124,58,237,.1)", color: "var(--accent)" }}>
                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z" /></svg>
                       </div>
                       <div>
@@ -826,8 +826,8 @@ export default function AdminClient(props: Props) {
                     </div>
                     <div style={{ display: "flex", gap: ".65rem", alignItems: "center", marginTop: ".25rem" }}>
                       <input type="number" min={0} max={999999} value={tokensInput} onChange={(e) => setTokensInput(e.target.value)} placeholder="Token amount"
-                        style={{ flex: 1, padding: ".52rem .85rem", fontSize: ".85rem", borderRadius: 10, background: "rgba(57,255,20,.04)", border: "1px solid rgba(57,255,20,.25)", color: "#fff", outline: "none" }} />
-                      <button onClick={epSetTokens} style={{ padding: ".52rem 1.1rem", borderRadius: 10, fontSize: ".82rem", fontWeight: 700, cursor: "pointer", border: "1px solid rgba(57,255,20,.35)", background: "rgba(57,255,20,.1)", color: "var(--accent)", whiteSpace: "nowrap" }}>Set tokens</button>
+                        style={{ flex: 1, padding: ".52rem .85rem", fontSize: ".85rem", borderRadius: 10, background: "rgba(124,58,237,.04)", border: "1px solid rgba(124,58,237,.25)", color: "#fff", outline: "none" }} />
+                      <button onClick={epSetTokens} style={{ padding: ".52rem 1.1rem", borderRadius: 10, fontSize: ".82rem", fontWeight: 700, cursor: "pointer", border: "1px solid rgba(124,58,237,.35)", background: "rgba(124,58,237,.1)", color: "var(--accent)", whiteSpace: "nowrap" }}>Set tokens</button>
                     </div>
                     <p style={{ fontSize: ".75rem", color: "rgba(255,255,255,.3)", marginTop: ".55rem" }}>Current balance: {(epUser.tokens ?? 0).toLocaleString()} tokens</p>
                   </div>
@@ -838,18 +838,18 @@ export default function AdminClient(props: Props) {
                         <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2L9.5 8.5H3l5.5 4L6 19l6-4 6 4-2.5-6.5L21 8.5h-6.5L12 2z" /></svg>
                       </div>
                       <div>
-                        <div className="ep-section-title">Set Premium</div>
-                        <div className="ep-section-sub">Grant or revoke Premium for this user</div>
+                        <div className="ep-section-title">Set Infected Plus</div>
+                        <div className="ep-section-sub">Grant or revoke Infected Plus for this user</div>
                       </div>
                       <span className="ep-owner-tag">Owner</span>
                     </div>
                     {isActivePremium(epUser) ? (
                       <div style={{ display: "flex", alignItems: "center", gap: ".6rem", padding: ".55rem .9rem", borderRadius: 10, marginBottom: ".85rem", fontSize: ".8rem", fontWeight: 600, background: "rgba(255,215,0,.08)", border: "1px solid rgba(255,215,0,.25)", color: "#ffd700" }}>
-                        <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2L9.5 8.5H3l5.5 4L6 19l6-4 6 4-2.5-6.5L21 8.5h-6.5L12 2z" /></svg> Premium active &nbsp;&middot;&nbsp; <span style={{ fontWeight: 500, color: "rgba(255,215,0,.7)" }}>{epUser.premiumExpiresAt ? `Expires ${new Date(epUser.premiumExpiresAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}` : "Lifetime"}</span>
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2L9.5 8.5H3l5.5 4L6 19l6-4 6 4-2.5-6.5L21 8.5h-6.5L12 2z" /></svg> Infected Plus active &nbsp;&middot;&nbsp; <span style={{ fontWeight: 500, color: "rgba(255,215,0,.7)" }}>{epUser.premiumExpiresAt ? `Expires ${new Date(epUser.premiumExpiresAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}` : "Lifetime"}</span>
                       </div>
                     ) : (
                       <div style={{ display: "flex", alignItems: "center", gap: ".6rem", padding: ".55rem .9rem", borderRadius: 10, marginBottom: ".85rem", fontSize: ".8rem", fontWeight: 600, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.1)", color: "rgba(255,255,255,.4)" }}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><circle cx="12" cy="12" r="10" /><line x1="8" y1="12" x2="16" y2="12" /></svg> No active Premium
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><circle cx="12" cy="12" r="10" /><line x1="8" y1="12" x2="16" y2="12" /></svg> No active Infected Plus
                       </div>
                     )}
                     <div>
@@ -858,7 +858,7 @@ export default function AdminClient(props: Props) {
                         <input type="number" min={1} max={3650} value={premiumDaysInput} onChange={(e) => setPremiumDaysInput(e.target.value)} placeholder="Days (e.g. 30)"
                           style={{ flex: 1, padding: ".52rem .85rem", fontSize: ".85rem", borderRadius: 10, background: "rgba(255,215,0,.04)", border: "1px solid rgba(255,215,0,.25)", color: "#fff", outline: "none", boxSizing: "border-box" }} />
                         <button onClick={epGrantPremium} style={{ padding: ".52rem 1.2rem", borderRadius: 10, fontSize: ".82rem", fontWeight: 800, cursor: "pointer", border: "1px solid rgba(255,215,0,.4)", background: "linear-gradient(135deg,rgba(255,185,0,.2),rgba(255,215,0,.12))", color: "#ffd700", whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", gap: ".4rem" }}>
-                          <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M12 2L9.5 8.5H3l5.5 4L6 19l6-4 6 4-2.5-6.5L21 8.5h-6.5L12 2z" /></svg> {isActivePremium(epUser) ? "Extend Premium" : "Grant Premium"}
+                          <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M12 2L9.5 8.5H3l5.5 4L6 19l6-4 6 4-2.5-6.5L21 8.5h-6.5L12 2z" /></svg> {isActivePremium(epUser) ? "Extend Infected Plus" : "Grant Infected Plus"}
                         </button>
                       </div>
                       <div style={{ display: "flex", gap: ".4rem", flexWrap: "wrap", marginBottom: ".3rem" }}>
@@ -871,7 +871,7 @@ export default function AdminClient(props: Props) {
                     {isActivePremium(epUser) && (
                       <div style={{ marginTop: ".6rem" }}>
                         <button onClick={epRevokePremium} style={{ display: "inline-flex", alignItems: "center", gap: ".5rem", padding: ".52rem 1.2rem", borderRadius: 10, fontSize: ".82rem", fontWeight: 700, cursor: "pointer", border: "1px solid rgba(239,68,68,.35)", background: "rgba(239,68,68,.1)", color: "#ff8080" }}>
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M18 6L6 18M6 6l12 12" /></svg> Revoke Premium
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M18 6L6 18M6 6l12 12" /></svg> Revoke Infected Plus
                         </button>
                       </div>
                     )}
@@ -880,7 +880,7 @@ export default function AdminClient(props: Props) {
                   {!epIsSelf && (
                     <div className="ep-section">
                       <div className="ep-section-head">
-                        <div className="ep-section-ico" style={{ background: "rgba(57,255,20,.1)", color: "var(--accent)" }}>
+                        <div className="ep-section-ico" style={{ background: "rgba(124,58,237,.1)", color: "var(--accent)" }}>
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                         </div>
                         <div>
@@ -895,7 +895,7 @@ export default function AdminClient(props: Props) {
                           const styleMap: Record<string, { bg: string; border: string; color: string }> = {
                             user: { bg: "rgba(255,255,255,.06)", border: "rgba(255,255,255,.15)", color: "rgba(255,255,255,.7)" },
                             mod: { bg: "rgba(168,85,247,.08)", border: "rgba(168,85,247,.35)", color: "#a855f7" },
-                            admin: { bg: "rgba(57,255,20,.08)", border: "rgba(57,255,20,.3)", color: "var(--accent)" },
+                            admin: { bg: "rgba(124,58,237,.08)", border: "rgba(124,58,237,.3)", color: "var(--accent)" },
                             owner: { bg: "rgba(251,191,36,.08)", border: "rgba(251,191,36,.35)", color: "#fbbf24" },
                           };
                           const s = styleMap[r];

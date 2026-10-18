@@ -75,7 +75,7 @@ function ThemeCard({ theme, onChange, tokens }: { theme: Theme; onChange: () => 
           {theme.owned ? (
             <button className="int-btn int-btn-manage" onClick={apply} disabled={busy}>Apply</button>
           ) : (
-            <button className="int-btn int-btn-primary" style={{ ["--int-color" as string]: "#39ff14" }} onClick={buy} disabled={busy || tokens < theme.price}>
+            <button className="int-btn int-btn-primary" style={{ ["--int-color" as string]: "#7c3aed" }} onClick={buy} disabled={busy || tokens < theme.price}>
               {busy ? "…" : `Buy — ${theme.price} tokens`}
             </button>
           )}

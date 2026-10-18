@@ -17,14 +17,14 @@ export default function ViewsChart({ labels, data }: { labels: string[]; data: n
     if (!window.Chart || !canvasRef.current) return;
     if (chartRef.current) chartRef.current.destroy();
 
-    const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#39ff14";
+    const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#7c3aed";
     function hexToRgb(hex: string) {
       const r = parseInt(hex.slice(1, 3), 16);
       const g = parseInt(hex.slice(3, 5), 16);
       const b = parseInt(hex.slice(5, 7), 16);
       return `${r},${g},${b}`;
     }
-    const rgb = accent.startsWith("#") ? hexToRgb(accent) : "57,255,20";
+    const rgb = accent.startsWith("#") ? hexToRgb(accent) : "124,58,237";
     const fillColor = `rgba(${rgb},0.12)`;
 
     const ctx = canvasRef.current.getContext("2d");

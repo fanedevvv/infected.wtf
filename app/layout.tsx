@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Syne, Outfit } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
+import { HALLOWEEN_CHECK } from "@/lib/seasonal";
 
-const syne = Syne({ variable: "--font-syne", subsets: ["latin"], weight: ["700", "800"] });
-const outfit = Outfit({ variable: "--font-outfit", subsets: ["latin"], weight: ["400", "500", "600"] });
+const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -21,12 +21,18 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${syne.variable} ${outfit.variable} h-full antialiased`}>
+    <html lang="en" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700&display=swap" />
+        {/* Runs before first paint: enable scroll reveal and switch on the seasonal theme. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var c=document.documentElement.classList;if(!matchMedia("(prefers-reduced-motion: reduce)").matches)c.add("js-reveal");if(${HALLOWEEN_CHECK})c.add("theme-halloween")})()`,
+          }}
+        />
       </head>
-      <body className="min-h-full bg-[var(--background)] text-[var(--foreground)]">{children}</body>
+      <body className="min-h-full bg-[var(--background)] text-[var(--foreground)]">
+        {children}
+      </body>
     </html>
   );
 }

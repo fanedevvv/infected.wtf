@@ -140,7 +140,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                   ) : (
                     notifs.map((n) => (
                       <div key={n.id} className={`notif-item ${!n.isRead ? "unread" : ""}`} onClick={() => openNotif(n.id)}>
-                        <div className="notif-item-icon" style={{ background: "rgba(57,255,20,.12)", color: "#39ff14" }}>
+                        <div className="notif-item-icon" style={{ background: "rgba(124,58,237,.12)", color: "#7c3aed" }}>
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -208,8 +208,6 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         <aside className={`sidebar ${sidebarOpen ? "sidebar-open" : ""}`} id="sidebar">
           <div className="sidebar-logo-wrap">
             <Link href="/dashboard" className="sidebar-logo">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/img/logo-icon.png" alt="" className="brand-logo-icon" />
               <span>INFECTED.WTF</span>
             </Link>
           </div>
@@ -258,7 +256,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             Daily Spin <span className="sidebar-new-badge">NEW</span>
           </SidebarLink>
           <SidebarLink href="/dashboard?page=decorations" active={activePage === "decorations"} icon="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2L12 16.6 5.7 21l2.3-7.2-6-4.6h7.6z">Decorations</SidebarLink>
-          <SidebarLink href="/dashboard?page=premium" active={activePage === "premium"} icon="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm2.07-7.75-.9.92C13.45 11.9 13 12.5 13 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z">Premium</SidebarLink>
+          <SidebarLink href="/dashboard?page=premium" active={activePage === "premium"} icon="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm2.07-7.75-.9.92C13.45 11.9 13 12.5 13 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z">Infected Plus</SidebarLink>
 
           <span className="sidebar-label">Profile</span>
           <SidebarLink href="/dashboard?page=info" active={activePage === "info"} icon="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z">Customize</SidebarLink>
@@ -413,8 +411,8 @@ function ManageAccountsModal({ currentUsername, currentAvatar, onClose }: { curr
         <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "#fff" }}>Manage Accounts</div>
         <div style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.1rem" }}>Switch between multiple accounts</div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: ".75rem", padding: ".65rem .75rem", background: "rgba(57,255,20,.06)", border: "1px solid rgba(57,255,20,.15)", borderRadius: 10, marginBottom: ".5rem" }}>
-          <div style={{ width: 38, height: 38, borderRadius: "50%", flexShrink: 0, overflow: "hidden", background: "rgba(57,255,20,.15)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: ".75rem", padding: ".65rem .75rem", background: "rgba(124,58,237,.06)", border: "1px solid rgba(124,58,237,.15)", borderRadius: 10, marginBottom: ".5rem" }}>
+          <div style={{ width: 38, height: 38, borderRadius: "50%", flexShrink: 0, overflow: "hidden", background: "rgba(124,58,237,.15)" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {currentAvatar && <img src={`/${currentAvatar}`} alt="" style={{ width: 38, height: 38, objectFit: "cover" }} />}
           </div>

@@ -34,7 +34,7 @@ function pct(val: number, total: number) {
   return total > 0 ? `${Math.round((val / total) * 100)}%` : "0%";
 }
 function hexToRgb(h: string) {
-  if (!h.startsWith("#")) return "57,255,20";
+  if (!h.startsWith("#")) return "124,58,237";
   return `${parseInt(h.slice(1, 3), 16)},${parseInt(h.slice(3, 5), 16)},${parseInt(h.slice(5, 7), 16)}`;
 }
 
@@ -97,8 +97,8 @@ export default function AnalyticsClient() {
 
   function initCharts() {
     if (!window.Chart || !viewsCanvasRef.current || !deviceCanvasRef.current || viewsChartRef.current) return;
-    const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#39ff14";
-    const accent2 = getComputedStyle(document.documentElement).getPropertyValue("--accent2").trim() || "#ff1a3c";
+    const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#7c3aed";
+    const accent2 = getComputedStyle(document.documentElement).getPropertyValue("--accent2").trim() || "#1e40af";
     const rgb = hexToRgb(accent);
 
     viewsChartRef.current = new window.Chart(viewsCanvasRef.current.getContext("2d"), {
@@ -414,7 +414,7 @@ export default function AnalyticsClient() {
               }
               return (
                 <div className="an-list-item" key={l.link_id}>
-                  <div className="an-list-icon" style={{ background: "rgba(57,255,20,.08)", borderColor: "rgba(57,255,20,.15)", color: "var(--accent)" }}>
+                  <div className="an-list-icon" style={{ background: "rgba(124,58,237,.08)", borderColor: "rgba(124,58,237,.15)", color: "var(--accent)" }}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="13" height="13"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
                   </div>
                   <div className="an-list-info">

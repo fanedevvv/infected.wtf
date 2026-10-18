@@ -153,8 +153,8 @@ export default function ShopClient(props: Props) {
   async function sendGift() {
     if (!gift || !giftTarget) return;
     if (gift.kind === "premium_money") {
-      window.location.href = `mailto:${ADMIN_EMAIL}?subject=Gift+Premium&body=I+want+to+gift+Premium+to+user+ID:+${giftTarget.id}+(@${giftTarget.username}).+My+user+ID:+${props.userId}`;
-      showToast("Opening email to complete the Premium gift...", "success");
+      window.location.href = `mailto:${ADMIN_EMAIL}?subject=Gift+Infected+Plus&body=I+want+to+gift+Infected+Plus+to+user+ID:+${giftTarget.id}+(@${giftTarget.username}).+My+user+ID:+${props.userId}`;
+      showToast("Opening email to complete the Infected Plus gift...", "success");
       closeGift();
       return;
     }
@@ -231,9 +231,9 @@ export default function ShopClient(props: Props) {
               <div style={{ fontSize: ".78rem", color: "rgba(255,255,255,.4)" }}>
                 {b.badges.length > 0 && <>{b.badges.length} badge{b.badges.length !== 1 ? "s" : ""}</>}
                 {b.effects.length > 0 && <>{b.badges.length > 0 ? " · " : ""}{b.effects.length} effect{b.effects.length !== 1 ? "s" : ""}</>}
-                {b.premiumDays > 0 && <>{(b.badges.length > 0 || b.effects.length > 0) ? " · " : ""}{b.premiumDays}d Premium</>}
+                {b.premiumDays > 0 && <>{(b.badges.length > 0 || b.effects.length > 0) ? " · " : ""}{b.premiumDays}d Infected Plus</>}
               </div>
-              <div style={{ fontFamily: "'Syne',sans-serif", fontSize: "1.4rem", fontWeight: 900, color: "#10b981" }}>
+              <div style={{ fontFamily: "var(--font-sans)", fontSize: "1.4rem", fontWeight: 900, color: "#10b981" }}>
                 {b.priceType === "tokens" ? <>{b.price.toLocaleString()} tokens</> : <>€{b.price}</>}
               </div>
               {ownedBundles.has(b.id) ? (
@@ -252,7 +252,7 @@ export default function ShopClient(props: Props) {
         </div>
       )}
 
-      {/* Premium */}
+      {/* Infected Plus */}
       <div id="premium" className="prem-section">
         <div className="shop-top-grid">
           <div>
@@ -261,7 +261,7 @@ export default function ShopClient(props: Props) {
                 <div>
                   <div className="prem-badge-pill">
                     <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M12 2L9.5 8.5H3l5.5 4L6 19l6-4 6 4-2.5-6.5L21 8.5h-6.5L12 2z" /></svg>
-                    PREMIUM
+                    INFECTED PLUS
                   </div>
                   <div className="prem-title">Unlock the full experience</div>
                   <div className="prem-sub">Everything you need to stand out on {SITE_NAME}.</div>
@@ -289,13 +289,13 @@ export default function ShopClient(props: Props) {
                 <>
                   <div className="prem-active-banner">
                     <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 2L9.5 8.5H3l5.5 4L6 19l6-4 6 4-2.5-6.5L21 8.5h-6.5L12 2z" /></svg>
-                    Premium is active{premiumExpiresAt ? ` — expires ${new Date(premiumExpiresAt).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}` : " (lifetime)"}.
+                    Infected Plus is active{premiumExpiresAt ? ` — expires ${new Date(premiumExpiresAt).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}` : " (lifetime)"}.
                     <button className="prem-token-buy" onClick={() => setTokenPremOpen(true)} style={{ marginLeft: "auto" }}>
                       <TokenIcon /> Extend with tokens
                     </button>
                   </div>
                   <div className="prem-gift-row">
-                    <span className="prem-gift-label"><GiftIcon size={13} /> Gift Premium:</span>
+                    <span className="prem-gift-label"><GiftIcon size={13} /> Gift Infected Plus:</span>
                     <button className="btn-gift-prem-money" onClick={() => setGift({ kind: "premium_money" })}>
                       <TokenIcon size={14} /> Gift for €7
                     </button>
@@ -311,22 +311,22 @@ export default function ShopClient(props: Props) {
                       <div className="prem-price-tag">€7</div>
                       <div className="prem-price-sub">lifetime · one-time</div>
                     </div>
-                    <a href={`mailto:${ADMIN_EMAIL}?subject=Premium+Purchase&body=User+ID:+${props.userId}`} className="btn-buy-premium">
+                    <a href={`mailto:${ADMIN_EMAIL}?subject=Infected+Plus+Purchase&body=User+ID:+${props.userId}`} className="btn-buy-premium">
                       <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 2L9.5 8.5H3l5.5 4L6 19l6-4 6 4-2.5-6.5L21 8.5h-6.5L12 2z" /></svg>
-                      Buy Premium — €7 <span style={{ fontSize: ".75rem", opacity: 0.75, fontWeight: 600, marginLeft: 4 }}>(lifetime)</span>
+                      Buy Infected Plus — €7 <span style={{ fontSize: ".75rem", opacity: 0.75, fontWeight: 600, marginLeft: 4 }}>(lifetime)</span>
                     </a>
                     <button className="prem-token-buy" onClick={() => setTokenPremOpen(true)}>
                       <TokenIcon size={15} /> Buy with tokens <span style={{ fontSize: ".75rem", opacity: 0.75, fontWeight: 600, marginLeft: 2 }}>(100/day)</span>
                     </button>
                   </div>
                   <div className="prem-gift-row">
-                    <span className="prem-gift-label"><GiftIcon size={13} /> Gift Premium:</span>
+                    <span className="prem-gift-label"><GiftIcon size={13} /> Gift Infected Plus:</span>
                     <button className="btn-gift-prem-money" onClick={() => setGift({ kind: "premium_money" })}>
                       <TokenIcon size={14} /> Gift for €7
                     </button>
-                    <button className="btn-gift-prem-tokens" style={{ opacity: 0.38, cursor: "not-allowed" }} title="Premium required to gift with tokens" onClick={() => showToast("Gifting Premium with tokens requires your own Premium subscription.", "error")}>
+                    <button className="btn-gift-prem-tokens" style={{ opacity: 0.38, cursor: "not-allowed" }} title="Infected Plus required to gift with tokens" onClick={() => showToast("Gifting Infected Plus with tokens requires your own Infected Plus subscription.", "error")}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>
-                      Gift with tokens (Premium only)
+                      Gift with tokens (Infected Plus only)
                     </button>
                   </div>
                 </>
@@ -381,7 +381,7 @@ export default function ShopClient(props: Props) {
             <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" style={{ color: "#ff9900" }}><path d="M7 2v11h3v9l7-12h-4l4-8z" /></svg>
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "'Syne',sans-serif", fontSize: "1rem", fontWeight: 900, color: "#ff9900" }}>X2 TOKENS EVENT — ACTIVE!</div>
+            <div style={{ fontFamily: "var(--font-sans)", fontSize: "1rem", fontWeight: 900, color: "#ff9900" }}>X2 TOKENS EVENT — ACTIVE!</div>
             <div style={{ fontSize: ".82rem", color: "rgba(255,255,255,.55)" }}>All token packs give <strong style={{ color: "#ffb900" }}>double tokens</strong> right now!</div>
           </div>
           <div style={{ background: "rgba(255,140,0,.18)", border: "1px solid rgba(255,140,0,.4)", borderRadius: 10, padding: ".4rem .9rem", fontWeight: 900, fontSize: ".9rem", color: "#ffaa00" }}>x2</div>
@@ -567,7 +567,7 @@ export default function ShopClient(props: Props) {
             <button className="gift-close-x" onClick={closeGift}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
             </button>
-            <div className="gift-modal-title"><GiftIcon size={16} /> Gift {gift.kind === "premium_tokens" ? "Premium" : gift.kind === "bundle" ? "Bundle" : gift.kind === "effect" ? "Effect" : "Badge"}</div>
+            <div className="gift-modal-title"><GiftIcon size={16} /> Gift {gift.kind === "premium_tokens" ? "Infected Plus" : gift.kind === "bundle" ? "Bundle" : gift.kind === "effect" ? "Effect" : "Badge"}</div>
             <div className="gift-modal-sub">Choose who to send this gift to</div>
 
             {gift.kind === "premium_tokens" ? (
@@ -634,8 +634,8 @@ export default function ShopClient(props: Props) {
             <button className="gift-close-x" onClick={closeGift}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
             </button>
-            <div className="gift-modal-title" style={{ color: "#34d399" }}><GiftIcon size={16} /> Gift Premium</div>
-            <div className="gift-modal-sub">Send Premium for €7 — we&apos;ll contact the recipient.</div>
+            <div className="gift-modal-title" style={{ color: "#34d399" }}><GiftIcon size={16} /> Gift Infected Plus</div>
+            <div className="gift-modal-sub">Send Infected Plus for €7 — we&apos;ll contact the recipient.</div>
 
             {giftTarget ? (
               <div className="gift-selected-user show">
@@ -703,7 +703,7 @@ export default function ShopClient(props: Props) {
         </div>
       )}
 
-      {/* Token Premium modal */}
+      {/* Token Infected Plus modal */}
       {tokenPremOpen && (
         <div className="tpm-overlay open" onClick={(e) => e.target === e.currentTarget && setTokenPremOpen(false)}>
           <div className="tpm-modal">
@@ -712,7 +712,7 @@ export default function ShopClient(props: Props) {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
               </button>
               <div className="tpm-pill">TOKENS</div>
-              <div className="tpm-title">Activate Premium</div>
+              <div className="tpm-title">Activate Infected Plus</div>
               <div className="tpm-sub">100 tokens per day</div>
             </div>
             <div className="tpm-body">
@@ -744,7 +744,7 @@ export default function ShopClient(props: Props) {
                 <div className={`tpm-bar-fill ${tokenPremDays * 100 > tokens ? "danger" : ""}`} style={{ width: `${Math.min(100, (tokenPremDays * 100 / Math.max(1, tokens)) * 100)}%` }} />
               </div>
               <button className="tpm-activate-btn" disabled={tokenPremDays * 100 > tokens} onClick={activatePremiumTokens}>
-                Activate Premium
+                Activate Infected Plus
               </button>
               {tokenPremDays * 100 > tokens && <div className="tpm-not-enough" style={{ display: "block" }}>Not enough tokens.</div>}
             </div>

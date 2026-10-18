@@ -4,11 +4,16 @@ const SITE_NAME = process.env.SITE_NAME || "INFECTED.WTF";
 
 function getTransport() {
   if (!process.env.SMTP_HOST) return null;
+  const hasAuth = Boolean(process.env.SMTP_USER);
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT || 587),
     secure: Number(process.env.SMTP_PORT) === 465,
-    auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined,
+    auth: hasAuth ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined,
+    // Local unauthenticated relay (Postfix on this box) presents a cert for
+    // its own hostname, not "localhost" — STARTTLS would otherwise fail
+    // hostname verification. Same pattern used by game.acsr.ro's mailer.
+    ...(hasAuth ? {} : { tls: { rejectUnauthorized: false } }),
   });
 }
 
@@ -69,8 +74,8 @@ function baseTemplate(opts: {
 export async function sendVerificationEmail(email: string, username: string, token: string) {
   const url = `${process.env.SITE_URL}/auth/verify-email?token=${token}`;
   const html = baseTemplate({
-    accent: "#39ff14",
-    accent2: "#ff1a3c",
+    accent: "#7c3aed",
+    accent2: "#1e40af",
     logo: SITE_NAME,
     heading: "Verify your email address",
     body: `Hey <strong style="color:#fff">${username}</strong>, you're one step away! Click the button below to verify your email and activate your account.`,
@@ -101,8 +106,8 @@ export async function sendPasswordResetEmail(email: string, username: string, to
 export async function sendReloginVerificationEmail(email: string, username: string, token: string) {
   const url = `${process.env.SITE_URL}/auth/confirm-action?token=${token}&type=relogin`;
   const html = baseTemplate({
-    accent: "#39ff14",
-    accent2: "#ff1a3c",
+    accent: "#7c3aed",
+    accent2: "#1e40af",
     logo: SITE_NAME,
     heading: `Welcome back, ${username}!`,
     body: `It's been a while since you last logged in to ${SITE_NAME}. For your security, please confirm it's you by clicking the button below.`,
@@ -145,8 +150,8 @@ export async function sendActionConfirmEmail(email: string, username: string, ty
   const label = ACTION_LABELS[type];
   const isDelete = type === "delete_account";
   const html = baseTemplate({
-    accent: isDelete ? "#ff4444" : "#39ff14",
-    accent2: isDelete ? "#ff8080" : "#ff1a3c",
+    accent: isDelete ? "#ff4444" : "#7c3aed",
+    accent2: isDelete ? "#ff8080" : "#1e40af",
     logo: SITE_NAME,
     heading: `Confirm ${label}`,
     body: `Hi ${username}, please confirm this ${label.toLowerCase()} request by clicking the button below.`,
@@ -161,8 +166,8 @@ export async function sendActionConfirmEmail(email: string, username: string, ty
 export async function sendEmailChangeVerification(email: string, username: string, newEmail: string, token: string) {
   const url = `${process.env.SITE_URL}/auth/confirm-action?token=${token}&type=email_change`;
   const html = baseTemplate({
-    accent: "#39ff14",
-    accent2: "#ff1a3c",
+    accent: "#7c3aed",
+    accent2: "#1e40af",
     logo: SITE_NAME,
     heading: "Confirm your new email",
     body: `Hi ${username}, please confirm changing your ${SITE_NAME} account email to <strong style="color:#fff">${newEmail}</strong> by clicking the button below.`,

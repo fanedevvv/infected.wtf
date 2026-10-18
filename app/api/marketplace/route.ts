@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { getActiveProfileId } from "@/lib/active-profile";
+import { parseNumberArray, serializeNumberArray } from "@/lib/json-array";
 
 const SNAPSHOT_FIELDS = [
   "accentColor", "backgroundColor", "nameColor", "bioColor", "overlayColor",
@@ -19,7 +20,7 @@ export async function GET(req: NextRequest) {
     include: { creator: { select: { username: true } } },
   });
 
-  const owned = new Set<number>((user?.purchasedThemes as number[] | null) ?? []);
+  const owned = new Set<number>(parseNumberArray(user?.purchasedThemes));
 
   return NextResponse.json({
     themes: themes.map((t) => ({
@@ -95,7 +96,7 @@ export async function POST(req: NextRequest) {
     if (!theme || !theme.active) return NextResponse.json({ success: false, error: "Theme not found." }, { status: 400 });
     if (theme.creatorId === user.id) return NextResponse.json({ success: false, error: "You already own your own theme." }, { status: 400 });
 
-    const owned = new Set<number>((user.purchasedThemes as number[] | null) ?? []);
+    const owned = new Set<number>(parseNumberArray(user.purchasedThemes));
     if (owned.has(themeId)) return NextResponse.json({ success: false, error: "You already own this theme." }, { status: 400 });
     if (user.tokens < theme.price) return NextResponse.json({ success: false, error: "Not enough tokens." }, { status: 400 });
 
@@ -105,7 +106,7 @@ export async function POST(req: NextRequest) {
     await prisma.$transaction([
       prisma.user.update({
         where: { id: user.id },
-        data: { tokens: { decrement: theme.price }, tokensSpent: { increment: theme.price }, purchasedThemes: Array.from(owned) },
+        data: { tokens: { decrement: theme.price }, tokensSpent: { increment: theme.price }, purchasedThemes: serializeNumberArray(Array.from(owned)) },
       }),
       prisma.user.update({ where: { id: theme.creatorId }, data: { tokens: { increment: creatorShare } } }),
       prisma.theme.update({ where: { id: theme.id }, data: { purchaseCount: { increment: 1 } } }),
@@ -129,7 +130,7 @@ export async function POST(req: NextRequest) {
     const theme = await prisma.theme.findUnique({ where: { id: themeId } });
     if (!theme) return NextResponse.json({ success: false, error: "Theme not found." }, { status: 400 });
 
-    const owned = new Set<number>((user.purchasedThemes as number[] | null) ?? []);
+    const owned = new Set<number>(parseNumberArray(user.purchasedThemes));
     if (theme.creatorId !== user.id && !owned.has(themeId)) {
       return NextResponse.json({ success: false, error: "You don't own this theme." }, { status: 400 });
     }

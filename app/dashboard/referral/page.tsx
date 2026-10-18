@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import CopyRefLinkButton from "./CopyRefLinkButton";
 import SafeImg from "@/components/SafeImg";
+import { parseStringArray } from "@/lib/json-array";
 
 const PER_PAGE = 10;
 
@@ -48,7 +49,7 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
   if (x2Active) tokensPerRef *= 2;
 
   const profile = await prisma.profile.findFirst({ where: { userId: user.id , isPrimary: true } });
-  let earnedBadges = (profile?.badges as string[] | null) ?? [];
+  let earnedBadges = parseStringArray(profile?.badges);
   let hasPromoter = earnedBadges.includes("promoter");
   let hasPromoterElite = earnedBadges.includes("promoter_elite");
 
@@ -72,7 +73,7 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
 
   const btnBase = "display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:38px;padding:0 .75rem;border-radius:10px;font-size:.82rem;font-weight:700;text-decoration:none;transition:all .2s;border:1px solid;";
   const btnNormal = btnBase + "background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1);color:rgba(255,255,255,.6);";
-  const btnActive = btnBase + "background:rgba(57,255,20,.12);border-color:rgba(57,255,20,.45);color:#39ff14;box-shadow:0 0 12px rgba(57,255,20,.2);";
+  const btnActive = btnBase + "background:rgba(124,58,237,.12);border-color:rgba(124,58,237,.45);color:#7c3aed;box-shadow:0 0 12px rgba(124,58,237,.2);";
   const btnDisabl = btnBase + "background:rgba(255,255,255,.02);border-color:rgba(255,255,255,.05);color:rgba(255,255,255,.2);pointer-events:none;";
 
   const pageNumbers: number[] = [];
@@ -148,7 +149,7 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
             <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" style={{ color: "#ff9900" }}><path d="M7 2v11h3v9l7-12h-4l4-8z" /></svg>
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "'Syne',sans-serif", fontSize: "1rem", fontWeight: 900, color: "#ff9900", letterSpacing: ".03em" }}>X2 TOKENS EVENT — ACTIVE!</div>
+            <div style={{ fontFamily: "var(--font-sans)", fontSize: "1rem", fontWeight: 900, color: "#ff9900", letterSpacing: ".03em" }}>X2 TOKENS EVENT — ACTIVE!</div>
             <div style={{ fontSize: ".82rem", color: "rgba(255,255,255,.55)", marginTop: ".2rem" }}>All referrals give <strong style={{ color: "#ffb900" }}>double tokens</strong> right now! You earn <strong style={{ color: "#ffb900" }}>+{tokensPerRef} tokens</strong> per invite.</div>
           </div>
           <div style={{ background: "rgba(255,140,0,.18)", border: "1px solid rgba(255,140,0,.4)", borderRadius: 10, padding: ".4rem .9rem", fontWeight: 900, fontSize: ".9rem", color: "#ffaa00", whiteSpace: "nowrap", letterSpacing: ".03em" }}>x2</div>
@@ -161,8 +162,8 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
             <svg viewBox="0 0 24 24" fill="none" width="20" height="20" style={{ color: "#ffd700" }}><path d="M2.5 9L7 3h10l4.5 6L12 21 2.5 9z" fill="rgba(255,215,0,.25)" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><path d="M2.5 9h19M7 3l3 6h4l3-6" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" opacity=".8" /></svg>
           </div>
           <div className="ref-premium-banner-text">
-            <div className="ref-premium-banner-title">Premium Referral Bonus Active</div>
-            <div className="ref-premium-banner-sub">As a Premium member you earn <strong style={{ color: "#ffd700" }}>+20 tokens</strong> per referral instead of the standard 10. Double the rewards!</div>
+            <div className="ref-premium-banner-title">Infected Plus Referral Bonus Active</div>
+            <div className="ref-premium-banner-sub">As an Infected Plus member you earn <strong style={{ color: "#ffd700" }}>+20 tokens</strong> per referral instead of the standard 10. Double the rewards!</div>
           </div>
           <div className="ref-premium-badge">+20 tokens</div>
         </div>
@@ -172,10 +173,10 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
             <svg viewBox="0 0 24 24" fill="none" width="20" height="20" style={{ color: "#ffd700" }}><path d="M2.5 9L7 3h10l4.5 6L12 21 2.5 9z" fill="rgba(255,215,0,.25)" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><path d="M2.5 9h19M7 3l3 6h4l3-6" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" opacity=".8" /></svg>
           </div>
           <div className="ref-upsell-text">
-            <div className="ref-upsell-title">Get Premium for double referral rewards</div>
-            <div className="ref-upsell-sub">Premium members earn <strong style={{ color: "rgba(255,215,0,.7)" }}>+20 tokens</strong> per referral instead of 10.</div>
+            <div className="ref-upsell-title">Get Infected Plus for double referral rewards</div>
+            <div className="ref-upsell-sub">Infected Plus members earn <strong style={{ color: "rgba(255,215,0,.7)" }}>+20 tokens</strong> per referral instead of 10.</div>
           </div>
-          <a href="/dashboard?page=shop" className="ref-upsell-link">Get Premium</a>
+          <a href="/dashboard?page=shop" className="ref-upsell-link">Get Infected Plus</a>
         </div>
       )}
 
@@ -204,7 +205,7 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
         </div>
         <p style={{ fontSize: ".75rem", color: "rgba(255,255,255,.25)", marginTop: ".75rem", lineHeight: 1.6 }}>
           Friends can use your code <strong style={{ color: "rgba(255,255,255,.5)" }}>{myCode}</strong> or your username <strong style={{ color: "rgba(255,255,255,.5)" }}>@{user.username}</strong> when registering.
-          You earn <strong style={{ color: isPremium ? "#ffd700" : "#5fefa5" }}>{isPremium ? "+20 tokens (Premium bonus!)" : "+10 tokens"}</strong> for each successful registration.
+          You earn <strong style={{ color: isPremium ? "#ffd700" : "#5fefa5" }}>{isPremium ? "+20 tokens (Infected Plus bonus!)" : "+10 tokens"}</strong> for each successful registration.
         </p>
       </div>
 

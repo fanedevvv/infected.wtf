@@ -255,7 +255,7 @@ export default function OwnerTab({
             <select value={mailRecipient} onChange={(e) => setMailRecipient(e.target.value)}
               style={{ width: "100%", padding: ".6rem .85rem", background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 8, color: "#fff", fontSize: ".85rem", outline: "none", boxSizing: "border-box", cursor: "pointer" }}>
               <option value="all">🌍 Everyone</option>
-              <option value="premium">⭐ Premium users</option>
+              <option value="premium">⭐ Infected Plus users</option>
               <option value="verified">✅ Verified users</option>
               <option value="content_creator">🎬 Content Creators</option>
             </select>
@@ -307,7 +307,7 @@ export default function OwnerTab({
               </select>
             </div>
             <div>
-              <label style={{ fontSize: ".72rem", color: "rgba(255,255,255,.45)", fontWeight: 600, display: "block", marginBottom: ".35rem" }}>PREMIUM DAYS (0 = none)</label>
+              <label style={{ fontSize: ".72rem", color: "rgba(255,255,255,.45)", fontWeight: 600, display: "block", marginBottom: ".35rem" }}>INFECTED PLUS DAYS (0 = none)</label>
               <input type="number" value={bPremiumDays} onChange={(e) => setBPremiumDays(e.target.value)} placeholder="0" min={0} max={9999}
                 style={{ width: "100%", padding: ".6rem .85rem", background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 8, color: "#fff", fontSize: ".85rem", outline: "none", boxSizing: "border-box" }} />
             </div>
@@ -368,7 +368,7 @@ export default function OwnerTab({
                         <div style={{ fontWeight: 700, fontSize: ".9rem", color: "#fff", marginBottom: ".25rem" }}>{bn.name}</div>
                         <div style={{ fontSize: ".75rem", color: "rgba(255,255,255,.45)", display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap" }}>
                           <span style={{ background: "rgba(16,185,129,.12)", border: "1px solid rgba(16,185,129,.3)", borderRadius: 6, padding: ".1rem .45rem", color: "#10b981", fontWeight: 700 }}>{priceStr}</span>
-                          {bn.premiumDays > 0 && <span style={{ background: "rgba(255,215,0,.1)", border: "1px solid rgba(255,215,0,.3)", borderRadius: 6, padding: ".1rem .45rem", color: "#ffd700", fontWeight: 600 }}>⭐ {bn.premiumDays}d Premium</span>}
+                          {bn.premiumDays > 0 && <span style={{ background: "rgba(255,215,0,.1)", border: "1px solid rgba(255,215,0,.3)", borderRadius: 6, padding: ".1rem .45rem", color: "#ffd700", fontWeight: 600 }}>⭐ {bn.premiumDays}d Infected Plus</span>}
                           {bn.badges.map((b) => <span key={b} style={{ background: "rgba(251,191,36,.08)", border: "1px solid rgba(251,191,36,.2)", borderRadius: 6, padding: ".1rem .45rem", color: "#fbbf24", fontSize: ".7rem" }}>🏅 {b}</span>)}
                           {bn.effects.map((e) => <span key={e} style={{ background: "rgba(99,102,241,.08)", border: "1px solid rgba(99,102,241,.2)", borderRadius: 6, padding: ".1rem .45rem", color: "#a5b4fc", fontSize: ".7rem" }}>✨ {e}</span>)}
                         </div>
@@ -449,7 +449,7 @@ export default function OwnerTab({
                   return (
                     <div key={rc.id} style={{ display: "flex", alignItems: "center", gap: "1rem", padding: ".85rem 1rem", background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.07)", borderRadius: 10, flexWrap: "wrap" }}>
                       <div style={{ flex: 1, minWidth: 180 }}>
-                        <div style={{ fontWeight: 700, fontSize: ".9rem", color: "#fff", marginBottom: ".25rem", fontFamily: "'Space Mono',monospace", letterSpacing: ".03em" }}>{rc.code}</div>
+                        <div style={{ fontWeight: 700, fontSize: ".9rem", color: "#fff", marginBottom: ".25rem", fontFamily: "var(--font-mono)", letterSpacing: ".03em" }}>{rc.code}</div>
                         <div style={{ fontSize: ".75rem", color: "rgba(255,255,255,.45)", display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap" }}>
                           <span style={{ background: "rgba(236,72,153,.12)", border: "1px solid rgba(236,72,153,.3)", borderRadius: 6, padding: ".1rem .45rem", color: "#ec4899", fontWeight: 700 }}>🪙 {rc.tokens.toLocaleString()} tokens</span>
                           <span style={{ background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 6, padding: ".1rem .45rem", color: "rgba(255,255,255,.6)" }}>{rc.usesCount}/{rc.maxUses} used</span>
@@ -537,12 +537,12 @@ export default function OwnerTab({
       </div>
 
       {/* ── Domains ── */}
-      <div className="dash-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(57,255,20,.3)", background: "linear-gradient(160deg,rgba(57,255,20,.05) 0%,rgba(57,255,20,.02) 100%)" }}>
+      <div className="dash-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(124,58,237,.3)", background: "linear-gradient(160deg,rgba(124,58,237,.05) 0%,rgba(124,58,237,.02) 100%)" }}>
         <div className="dash-card-header" style={{ borderBottom: "1px solid rgba(255,255,255,.06)", paddingBottom: "1rem", marginBottom: "1.4rem" }}>
           <span className="dash-card-title" style={{ display: "flex", alignItems: "center", gap: ".6rem" }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="#39ff14" strokeWidth="2" width="18" height="18"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
-            <span style={{ color: "#39ff14" }}>Domains</span>
-            <span style={{ fontSize: ".65rem", padding: ".2rem .55rem", background: "rgba(57,255,20,.15)", border: "1px solid rgba(57,255,20,.4)", borderRadius: 99, color: "#39ff14", fontWeight: 700, letterSpacing: ".05em" }}>OWNER</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2" width="18" height="18"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
+            <span style={{ color: "#7c3aed" }}>Domains</span>
+            <span style={{ fontSize: ".65rem", padding: ".2rem .55rem", background: "rgba(124,58,237,.15)", border: "1px solid rgba(124,58,237,.4)", borderRadius: 99, color: "#7c3aed", fontWeight: 700, letterSpacing: ".05em" }}>OWNER</span>
           </span>
           <span style={{ fontSize: ".78rem", color: "rgba(255,255,255,.35)" }}>Add a domain you own — DNS is checked automatically, and once it points here, SSL is provisioned and the domain goes live for users to pick.</span>
         </div>
@@ -561,16 +561,16 @@ export default function OwnerTab({
               <label style={{ fontSize: ".72rem", color: "rgba(255,255,255,.45)", fontWeight: 600, display: "block", marginBottom: ".35rem" }}>TIER</label>
               <div style={{ display: "flex", gap: ".4rem" }}>
                 <button type="button" onClick={() => setNewDomainTier("free")}
-                  style={{ padding: ".6rem .9rem", borderRadius: 8, fontSize: ".8rem", fontWeight: 700, cursor: "pointer", border: `1px solid ${newDomainTier === "free" ? "rgba(57,255,20,.5)" : "rgba(255,255,255,.1)"}`, background: newDomainTier === "free" ? "rgba(57,255,20,.12)" : "rgba(255,255,255,.05)", color: newDomainTier === "free" ? "#39ff14" : "rgba(255,255,255,.6)" }}>
+                  style={{ padding: ".6rem .9rem", borderRadius: 8, fontSize: ".8rem", fontWeight: 700, cursor: "pointer", border: `1px solid ${newDomainTier === "free" ? "rgba(124,58,237,.5)" : "rgba(255,255,255,.1)"}`, background: newDomainTier === "free" ? "rgba(124,58,237,.12)" : "rgba(255,255,255,.05)", color: newDomainTier === "free" ? "#7c3aed" : "rgba(255,255,255,.6)" }}>
                   Free
                 </button>
                 <button type="button" onClick={() => setNewDomainTier("premium")}
                   style={{ padding: ".6rem .9rem", borderRadius: 8, fontSize: ".8rem", fontWeight: 700, cursor: "pointer", border: `1px solid ${newDomainTier === "premium" ? "rgba(251,191,36,.5)" : "rgba(255,255,255,.1)"}`, background: newDomainTier === "premium" ? "rgba(251,191,36,.12)" : "rgba(255,255,255,.05)", color: newDomainTier === "premium" ? "#fbbf24" : "rgba(255,255,255,.6)" }}>
-                  Premium
+                  Infected Plus
                 </button>
               </div>
             </div>
-            <button onClick={addDomain} disabled={addingDomain || !newDomainHost.trim()} style={{ opacity: addingDomain || !newDomainHost.trim() ? .6 : 1, display: "inline-flex", alignItems: "center", gap: ".5rem", padding: ".6rem 1.2rem", background: "linear-gradient(135deg,#39ff14,#28c40d)", border: "none", borderRadius: 8, color: "#04140a", fontSize: ".85rem", fontWeight: 700, cursor: "pointer" }}>
+            <button onClick={addDomain} disabled={addingDomain || !newDomainHost.trim()} style={{ opacity: addingDomain || !newDomainHost.trim() ? .6 : 1, display: "inline-flex", alignItems: "center", gap: ".5rem", padding: ".6rem 1.2rem", background: "linear-gradient(135deg,#7c3aed,#28c40d)", border: "none", borderRadius: 8, color: "#04140a", fontSize: ".85rem", fontWeight: 700, cursor: "pointer" }}>
               {addingDomain ? "Adding…" : "Add Domain"}
             </button>
           </div>
@@ -589,12 +589,12 @@ export default function OwnerTab({
                       <div style={{ display: "flex", alignItems: "center", gap: ".5rem" }}>
                         <span style={{ fontWeight: 700, fontSize: ".9rem", color: "#fff" }}>{d.hostname}</span>
                         <span style={{ background: `${statusPill[1]}1a`, border: `1px solid ${statusPill[1]}66`, borderRadius: 6, padding: ".1rem .45rem", color: statusPill[1], fontWeight: 600, fontSize: ".68rem" }}>{statusPill[0]}</span>
-                        {d.isDefault && <span style={{ background: "rgba(57,255,20,.1)", border: "1px solid rgba(57,255,20,.35)", borderRadius: 6, padding: ".1rem .45rem", color: "#39ff14", fontWeight: 600, fontSize: ".68rem" }}>Default</span>}
+                        {d.isDefault && <span style={{ background: "rgba(124,58,237,.1)", border: "1px solid rgba(124,58,237,.35)", borderRadius: 6, padding: ".1rem .45rem", color: "#7c3aed", fontWeight: 600, fontSize: ".68rem" }}>Default</span>}
                         {!d.isDefault && (
                           <button onClick={() => setDomainTier(d.id, d.tier === "premium" ? "free" : "premium")} disabled={domainBusyId === d.id}
                             style={{ background: d.tier === "premium" ? "rgba(251,191,36,.1)" : "rgba(255,255,255,.06)", border: `1px solid ${d.tier === "premium" ? "rgba(251,191,36,.35)" : "rgba(255,255,255,.15)"}`, borderRadius: 6, padding: ".1rem .45rem", color: d.tier === "premium" ? "#fbbf24" : "rgba(255,255,255,.5)", fontWeight: 600, fontSize: ".68rem", cursor: "pointer" }}
                             title="Click to toggle free/premium">
-                            {d.tier === "premium" ? "★ Premium" : "Free"}
+                            {d.tier === "premium" ? "★ Infected Plus" : "Free"}
                           </button>
                         )}
                       </div>
@@ -625,7 +625,7 @@ export default function OwnerTab({
       {applyBundle && (
         <div style={{ display: "flex", position: "fixed", inset: 0, background: "rgba(0,0,0,.7)", backdropFilter: "blur(4px)", zIndex: 9999, alignItems: "center", justifyContent: "center" }} onClick={(e) => { if (e.target === e.currentTarget) setApplyBundle(null); }}>
           <div style={{ background: "#13131a", border: "1px solid rgba(16,185,129,.3)", borderRadius: 16, padding: "1.6rem", width: "min(420px,92vw)", boxShadow: "0 20px 60px rgba(0,0,0,.6)" }}>
-            <div style={{ fontSize: "1rem", fontWeight: 800, fontFamily: "'Syne',sans-serif", color: "#fff", marginBottom: ".35rem" }}>Apply Bundle</div>
+            <div style={{ fontSize: "1rem", fontWeight: 800, fontFamily: "var(--font-sans)", color: "#fff", marginBottom: ".35rem" }}>Apply Bundle</div>
             <div style={{ fontSize: ".8rem", color: "rgba(255,255,255,.45)", marginBottom: "1.2rem" }}>Applying: <strong style={{ color: "#10b981" }}>{applyBundle.name}</strong></div>
             <label style={{ fontSize: ".72rem", color: "rgba(255,255,255,.45)", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", display: "block", marginBottom: ".4rem" }}>USERNAME OR USER ID</label>
             <input type="text" value={applyTarget} onChange={(e) => setApplyTarget(e.target.value)} placeholder="@username or #1234"

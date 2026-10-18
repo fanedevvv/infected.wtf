@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
+import { parseStringArray } from "@/lib/json-array";
 
 export async function GET() {
   let user;
@@ -71,7 +72,7 @@ export async function POST(req: NextRequest) {
       targetIds = rows.map((r) => r.id);
     } else {
       const profiles = await prisma.profile.findMany({ select: { userId: true, badges: true } });
-      const withBadge = profiles.filter((p) => ((p.badges as string[] | null) ?? []).includes(recipient)).map((p) => p.userId);
+      const withBadge = profiles.filter((p) => (parseStringArray(p.badges)).includes(recipient)).map((p) => p.userId);
       if (withBadge.length > 0) {
         const rows = await prisma.user.findMany({ where: { id: { in: withBadge }, banned: false }, select: { id: true } });
         targetIds = rows.map((r) => r.id);

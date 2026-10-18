@@ -8,9 +8,9 @@ export const SPIN_PRIZES: SpinPrize[] = [
   { type: "tokens", amount: 25, label: "25 Tokens", weight: 25, color: "#60a5fa" },
   { type: "tokens", amount: 50, label: "50 Tokens", weight: 18, color: "#34d399" },
   { type: "tokens", amount: 100, label: "100 Tokens", weight: 12, color: "#a78bfa" },
-  { type: "premium_days", amount: 1, label: "1 Day Premium", weight: 8, color: "#fbbf24" },
+  { type: "premium_days", amount: 1, label: "1 Day Infected Plus", weight: 8, color: "#fbbf24" },
   { type: "tokens", amount: 250, label: "250 Tokens", weight: 4, color: "#f97316" },
-  { type: "premium_days", amount: 3, label: "3 Days Premium", weight: 2, color: "#facc15" },
+  { type: "premium_days", amount: 3, label: "3 Days Infected Plus", weight: 2, color: "#facc15" },
   { type: "badge", id: "verified", label: "Verified Badge", weight: 1, color: "#34d399" },
 ];
 

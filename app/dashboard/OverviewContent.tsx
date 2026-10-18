@@ -116,7 +116,7 @@ export default async function OverviewContent() {
             <div className="ov-label">Plan</div>
             {isPremium ? (
               <>
-                <div className="ov-value" style={{ color: "#ffd700" }}>Premium</div>
+                <div className="ov-value" style={{ color: "#ffd700" }}>Infected Plus</div>
                 {user.premiumExpiresAt && (
                   <div style={{ fontSize: ".7rem", color: "rgba(255,215,0,.5)", marginTop: 2 }}>
                     Expires {user.premiumExpiresAt.toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}

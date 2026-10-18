@@ -107,7 +107,7 @@ export default function SpinClient({
       <div className="section-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
         <div>
           <h2>Daily Spin</h2>
-          <p>Spin once every 24 hours for a chance at tokens, premium days, or a badge</p>
+          <p>Spin once every 24 hours for a chance at tokens, Infected Plus days, or a badge</p>
         </div>
         <div className="shop-token-bal"><span>{tokenBal.toLocaleString()} tokens</span></div>
       </div>

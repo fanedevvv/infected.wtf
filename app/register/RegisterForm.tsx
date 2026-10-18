@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Script from "next/script";
+import BackHome from "@/components/BackHome";
 
 const STRENGTH_LEVELS = [
   { label: "Too short", color: "#ff4444", width: 10 },
@@ -119,7 +120,7 @@ export default function RegisterForm({ initialRef, initialUsername }: { initialR
             <span className="modal-site">INFECTED.WTF</span>
             <div className="envelope-wrap">
               <div className="envelope-bg">
-                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#39ff14" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M22 7l-10 7L2 7" /></svg>
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M22 7l-10 7L2 7" /></svg>
               </div>
             </div>
             <h2 className="modal-title">Check your inbox</h2>
@@ -189,95 +190,98 @@ export default function RegisterForm({ initialRef, initialUsername }: { initialR
   const strength = password ? STRENGTH_LEVELS[Math.min(getStrength(password), STRENGTH_LEVELS.length - 1)] : null;
 
   return (
-    <div className="auth-page">
+    <div className="reg-page">
       <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer strategy="afterInteractive" />
-      <canvas id="particle-canvas" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }} />
-      <div className="auth-card fade-in" style={{ position: "relative", zIndex: 1 }}>
-        <div className="auth-logo">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/img/logo-icon.png" alt="" className="brand-logo-icon" />
-          <h1>INFECTED.WTF</h1>
-          <p>Create your free account</p>
-        </div>
+      <div className="reg-glow" aria-hidden="true" />
+      <BackHome />
 
+      <header className="reg-head fade-in">
+        <div className="reg-eyebrow">Create your account</div>
+        <h1>Reserve your <em>name</em> today.</h1>
+        <p>Claim your infected.wtf link before someone else does — it&apos;s free, forever.</p>
+      </header>
+
+      <div className="reg-card fade-in-d1">
         {error && <div className="alert alert-error">⚠ {error}</div>}
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Username</label>
-            <div className="username-input-wrap">
-              <span className="username-at">@</span>
+          <div className="reg-claim">
+            <label htmlFor="reg-username">Your link</label>
+            <div className="reg-claim-field">
+              <span className="reg-claim-prefix">infected.wtf/</span>
               <input
-                className="form-control username-field"
+                id="reg-username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 maxLength={30}
+                placeholder="yourname"
                 autoComplete="username"
+                autoFocus
               />
             </div>
-            <div className="username-preview">INFECTED.WTF/<span>{username || "username"}</span></div>
-          </div>
-          <div className="form-group">
-            <label>Email</label>
-            <input type="email" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
-          </div>
-          <div className="form-group">
-            <label>Password</label>
-            <input
-              type="password"
-              className="form-control"
-              placeholder="Min. 8 characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-            />
-            {strength && (
-              <div style={{ marginTop: 6 }}>
-                <div style={{ height: 4, borderRadius: 4, background: "rgba(255,255,255,.08)", overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: `${strength.width}%`, borderRadius: 4, background: strength.color, transition: "width .3s,background .3s" }} />
-                </div>
-                <div style={{ fontSize: ".72rem", marginTop: 4, fontWeight: 600, color: strength.color }}>{strength.label}</div>
-              </div>
-            )}
-          </div>
-          <div className="form-group">
-            <label>Confirm password</label>
-            <input type="password" className="form-control" placeholder="Repeat password" value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" />
-          </div>
-          <div className="form-group" style={{ marginBottom: ".85rem" }}>
-            <label>Referral Code <span style={{ color: "rgba(255,255,255,.3)", fontSize: ".7em", textTransform: "none", fontWeight: 400 }}>(optional)</span></label>
-            <input
-              className="form-control"
-              placeholder="Enter referral code or username"
-              value={referralCode}
-              onChange={(e) => setReferralCode(e.target.value)}
-              maxLength={20}
-              style={{ fontFamily: "'Space Mono',monospace" }}
-            />
           </div>
 
-          <div className={`terms-wrap ${shake ? "shake" : ""}`} onClick={() => setTerms((t) => !t)}>
-            <div className={`terms-box ${terms ? "checked" : ""}`}>
-              {terms && (
-                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="#000" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
+          <div className="reg-grid">
+            <div className="form-group">
+              <label htmlFor="reg-email">Email</label>
+              <input id="reg-email" type="email" className="form-control" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
+            </div>
+            <div className="form-group">
+              <label htmlFor="reg-ref">Referral code <span className="reg-optional">optional</span></label>
+              <input
+                id="reg-ref"
+                className="form-control"
+                placeholder="Code or username"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value)}
+                maxLength={20}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="reg-pass">Password</label>
+              <input
+                id="reg-pass"
+                type="password"
+                className="form-control"
+                placeholder="Min. 8 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+              {strength && (
+                <div className="reg-strength">
+                  <div className="reg-strength-bar"><span style={{ width: `${strength.width}%`, background: strength.color }} /></div>
+                  <span style={{ color: strength.color }}>{strength.label}</span>
+                </div>
               )}
             </div>
-            <div className="terms-text">
-              I AGREE TO THE <Link href="/terms" target="_blank" onClick={(e) => e.stopPropagation()}>TERMS OF SERVICE</Link> AND{" "}
-              <Link href="/privacy" target="_blank" onClick={(e) => e.stopPropagation()}>PRIVACY POLICY</Link>
+            <div className="form-group">
+              <label htmlFor="reg-confirm">Confirm password</label>
+              <input id="reg-confirm" type="password" className="form-control" placeholder="Repeat password" value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" />
             </div>
           </div>
 
-          <div className="turnstile-wrap">
-            <div className="cf-turnstile" data-sitekey="0x4AAAAAAEKAgQTphMVMpgMC" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired" data-theme="dark" />
+          <div className="reg-foot">
+            <div className={`terms-wrap ${shake ? "shake" : ""}`} onClick={() => setTerms((t) => !t)}>
+              <div className={`terms-box ${terms ? "checked" : ""}`}>
+                {terms && (
+                  <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
+                )}
+              </div>
+              <div className="reg-terms-text">
+                I agree to the <Link href="/terms" target="_blank" onClick={(e) => e.stopPropagation()}>Terms of Service</Link> and{" "}
+                <Link href="/privacy" target="_blank" onClick={(e) => e.stopPropagation()}>Privacy Policy</Link>
+              </div>
+            </div>
+            <div className="cf-turnstile" data-sitekey="0x4AAAAAAFZb0eaZ25joGga3" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired" data-theme="dark" />
           </div>
 
-          <button type="submit" disabled={loading || !terms} className="btn btn-primary btn-full">
-            {loading ? "Creating account…" : "Create account"}
+          <button type="submit" disabled={loading || !terms} className="reg-submit">
+            {loading ? "Creating account…" : <>Create account <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="15" height="15"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg></>}
           </button>
         </form>
 
-        <div className="auth-footer">Already have an account? <Link href="/login">Sign in</Link></div>
+        <div className="reg-signin">Already have an account? <Link href="/login">Sign in</Link></div>
       </div>
     </div>
   );

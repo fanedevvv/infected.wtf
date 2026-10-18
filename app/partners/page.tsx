@@ -30,7 +30,7 @@ export default async function PartnersPage() {
         </div>
 
         <div className="int-grid" style={{ marginBottom: "2.5rem" }}>
-          <div className="int-card" style={{ ["--int-color" as string]: "#39ff14" }}>
+          <div className="int-card" style={{ ["--int-color" as string]: "#7c3aed" }}>
             <div className="int-card-header">
               <div className="int-card-icon generic-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
@@ -40,7 +40,7 @@ export default async function PartnersPage() {
                 <div className="int-card-subtitle">Invite friends, earn tokens</div>
               </div>
             </div>
-            <p className="int-card-desc">Share your referral link. Every friend who signs up earns you <strong style={{ color: "#39ff14" }}>10 tokens</strong> — or <strong style={{ color: "#ffd700" }}>20 tokens</strong> if you&apos;re Premium. No cap on referrals.</p>
+            <p className="int-card-desc">Share your referral link. Every friend who signs up earns you <strong style={{ color: "#7c3aed" }}>10 tokens</strong> — or <strong style={{ color: "#ffd700" }}>20 tokens</strong> if you&apos;re Infected Plus. No cap on referrals.</p>
             <div className="int-card-footer">
               <Link href={user ? "/dashboard?page=referral" : "/register"} className="int-btn int-btn-primary">
                 {user ? "Open my referral page" : "Sign up to get your link"}

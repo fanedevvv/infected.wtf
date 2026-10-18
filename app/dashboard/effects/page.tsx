@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { getActiveProfileId } from "@/lib/active-profile";
 import EffectsClient from "./EffectsClient";
+import { parseStringArray, parseJsonObject } from "@/lib/json-array";
 
 export default async function EffectsPage({ section }: { section?: "full" | "bg" | "cursor" | "text" | "avatar" }) {
   const user = await getCurrentUser();
@@ -13,8 +14,8 @@ export default async function EffectsPage({ section }: { section?: "full" | "bg"
   if (!profile) redirect("/dashboard");
 
   const isPremium = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date());
-  const purchasedEffects = (profile.purchasedEffects as string[] | null) ?? [];
-  const activeEffects = (profile.activeEffects as Record<string, string> | null) ?? {};
+  const purchasedEffects = parseStringArray(profile.purchasedEffects);
+  const activeEffects = (parseJsonObject<Record<string, string>>(profile.activeEffects) ?? {});
 
   return (
     <EffectsClient

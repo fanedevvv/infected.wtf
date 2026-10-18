@@ -290,9 +290,9 @@ export async function POST(req: NextRequest) {
 
     if (bundleEffects.length > 0) {
       const profile = await prisma.profile.findFirst({ where: { userId: applyUserId , isPrimary: true }, select: { purchasedEffects: true } });
-      const owned = new Set((profile?.purchasedEffects as string[] | null) ?? []);
+      const owned = new Set(parseStringArray(profile?.purchasedEffects));
       for (const e of bundleEffects) { owned.add(e); applied.push(`effect:${e}`); }
-      await prisma.profile.updateMany({ where: { userId: applyUserId , isPrimary: true }, data: { purchasedEffects: Array.from(owned) } });
+      await prisma.profile.updateMany({ where: { userId: applyUserId , isPrimary: true }, data: { purchasedEffects: serializeStringArray(Array.from(owned)) } });
     }
 
     if (bundlePremium > 0) {
@@ -443,9 +443,9 @@ export async function POST(req: NextRequest) {
       if (!SHOP_EFFECTS[effectId]) return err("Invalid effect ID");
       const grant = action === "effect_grant";
       const profile = await prisma.profile.findFirst({ where: { userId: targetId, isPrimary: true }, select: { purchasedEffects: true } });
-      const owned = new Set((profile?.purchasedEffects as string[] | null) ?? []);
+      const owned = new Set(parseStringArray(profile?.purchasedEffects));
       if (grant) owned.add(effectId); else owned.delete(effectId);
-      await prisma.profile.updateMany({ where: { userId: targetId, isPrimary: true }, data: { purchasedEffects: Array.from(owned) } });
+      await prisma.profile.updateMany({ where: { userId: targetId, isPrimary: true }, data: { purchasedEffects: serializeStringArray(Array.from(owned)) } });
       if (grant) {
         await prisma.notification.create({
           data: { userId: targetId, type: "gift", title: "You received a new effect! ✨", body: `The '${SHOP_EFFECTS[effectId].name}' effect was granted to your profile by an admin.`, icon: "gift", link: "/dashboard?page=effects" },
@@ -461,9 +461,9 @@ export async function POST(req: NextRequest) {
       if (!DECORATIONS[decorationId]) return err("Invalid decoration ID");
       const grant = action === "decoration_grant";
       const profile = await prisma.profile.findFirst({ where: { userId: targetId, isPrimary: true }, select: { decorationsOwned: true } });
-      const owned = new Set((profile?.decorationsOwned as string[] | null) ?? []);
+      const owned = new Set(parseStringArray(profile?.decorationsOwned));
       if (grant) owned.add(decorationId); else owned.delete(decorationId);
-      await prisma.profile.updateMany({ where: { userId: targetId, isPrimary: true }, data: { decorationsOwned: Array.from(owned) } });
+      await prisma.profile.updateMany({ where: { userId: targetId, isPrimary: true }, data: { decorationsOwned: serializeStringArray(Array.from(owned)) } });
       if (grant) {
         await prisma.notification.create({
           data: { userId: targetId, type: "gift", title: "You received a new decoration! 🎉", body: `The '${DECORATIONS[decorationId].name}' decoration was granted to your profile by an admin.`, icon: "gift", link: "/dashboard?page=decorations" },
@@ -480,17 +480,17 @@ export async function POST(req: NextRequest) {
     }
 
     case "set_premium": {
-      if (!actorIsOwner) return err("Only owners can manage Premium", 403);
+      if (!actorIsOwner) return err("Only owners can manage Infected Plus", 403);
       const days = parseInt(input.days) || 0;
       if (days > 0) {
         const until = new Date(Date.now() + days * 86400000);
         await prisma.user.update({ where: { id: targetId }, data: { isPremium: true, premiumExpiresAt: until } });
         await syncDiscordPremiumRole(targetId, true);
-        return ok(`Premium granted to @${target.username} for ${days} day(s). Expires: ${until.toISOString().slice(0, 19).replace("T", " ")}.`, { premium: true, expires_at: until });
+        return ok(`Infected Plus granted to @${target.username} for ${days} day(s). Expires: ${until.toISOString().slice(0, 19).replace("T", " ")}.`, { premium: true, expires_at: until });
       } else {
         await prisma.user.update({ where: { id: targetId }, data: { isPremium: false, premiumExpiresAt: null } });
         await syncDiscordPremiumRole(targetId, false);
-        return ok(`Premium revoked from @${target.username}.`, { premium: false });
+        return ok(`Infected Plus revoked from @${target.username}.`, { premium: false });
       }
     }
 

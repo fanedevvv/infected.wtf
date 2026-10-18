@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
 import { destroySession } from "@/lib/session";
 import { getActiveProfileId } from "@/lib/active-profile";
-import { parseStringArray, serializeStringArray } from "@/lib/json-array";
+import { parseStringArray, serializeStringArray, parseJsonObject } from "@/lib/json-array";
 
 function ok(message = "OK") {
   return NextResponse.json({ success: true, message });
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
     if (!ALLOWED_LAYOUTS.includes(layoutTemplate)) layoutTemplate = "classic";
     const isPremium = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date());
     if (PREMIUM_LAYOUTS.includes(layoutTemplate) && !isPremium) {
-      return err("This layout is a Premium feature.");
+      return err("This layout is an Infected Plus feature.");
     }
     await prisma.profile.updateMany({ where: { id: activeProfileId }, data: { layoutTemplate } });
     return ok("Layout saved!");
@@ -181,7 +181,7 @@ export async function POST(req: NextRequest) {
     });
 
     const row = await prisma.profile.findFirst({ where: { id: activeProfileId }, select: { activeEffects: true } });
-    const active = { ...((row?.activeEffects as Record<string, string> | null) ?? {}) };
+    const active = { ...((parseJsonObject<Record<string, string>>(row?.activeEffects) ?? {})) };
     let changed = false;
     if (particle && active.bg) { delete active.bg; changed = true; }
     if (cursorTrail && active.cursor) { delete active.cursor; changed = true; }

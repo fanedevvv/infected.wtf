@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
   const count = await prisma.profile.count({ where: { userId: user.id } });
   if (count >= limit) {
     return NextResponse.json(
-      { success: false, error: premium ? `You can have at most ${limit} pages.` : "Upgrade to Premium to create additional pages." },
+      { success: false, error: premium ? `You can have at most ${limit} pages.` : "Upgrade to Infected Plus to create additional pages." },
       { status: 400 }
     );
   }

@@ -517,7 +517,7 @@ export default function EffectsClient(props: Props) {
             ) : (
               <div className="premium-ring-lock">
                 <svg viewBox="0 0 24 24" fill="none" width="16" height="16" style={{ color: "#fbbf24" }}><path d="M2.5 9L7 3h10l4.5 6L12 21 2.5 9z" fill="rgba(255,215,0,.35)" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><path d="M2.5 9h19M7 3l3 6h4l3-6" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" opacity=".8" /></svg>
-                <span>Premium Only</span>
+                <span>Infected Plus Only</span>
               </div>
             )}
           </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import BackHome from "@/components/BackHome";
 import { useRouter } from "next/navigation";
 
 export default function LoginForm({ verified }: { verified: boolean }) {
@@ -58,38 +59,39 @@ export default function LoginForm({ verified }: { verified: boolean }) {
 
   if (reloginEmail) {
     return (
-      <div className="auth-page">
-        <canvas id="particle-canvas" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }} />
-        <div className="auth-card fade-in" style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
-          <div className="auth-logo"><h1>Security check</h1></div>
-          <p style={{ color: "var(--text-muted)", fontSize: ".84rem", lineHeight: 1.65 }}>
-            You haven&apos;t logged in for over 30 days.<br />
-            We sent a verification link to<br />
-            <span style={{ color: "var(--accent)", fontWeight: 600 }}>{reloginEmail}</span><br />
-            Click it to access your account.
+      <div className="reg-page">
+        <div className="reg-glow" aria-hidden="true" />
+        <BackHome />
+        <header className="reg-head fade-in">
+          <div className="reg-eyebrow">Security check</div>
+          <h1>Check your <em>inbox</em>.</h1>
+          <p>
+            You haven&apos;t logged in for over 30 days. We sent a verification link to{" "}
+            <span style={{ color: "#c4b5fd", fontWeight: 600 }}>{reloginEmail}</span> — click it to access your account.
           </p>
-        </div>
+        </header>
       </div>
     );
   }
 
   return (
-    <div className="auth-page">
-      <canvas id="particle-canvas" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }} />
-      <div className="auth-card fade-in" style={{ position: "relative", zIndex: 1 }}>
-        <div className="auth-logo">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/img/logo-icon.png" alt="" className="brand-logo-icon" />
-          <h1>INFECTED.WTF</h1>
-          <p>Welcome back!</p>
-        </div>
+    <div className="reg-page">
+      <div className="reg-glow" aria-hidden="true" />
+      <BackHome />
 
+      <header className="reg-head fade-in">
+        <div className="reg-eyebrow">Welcome back</div>
+        <h1>Sign in to your <em>page</em>.</h1>
+        <p>Pick up right where you left off.</p>
+      </header>
+
+      <div className="reg-card reg-card--narrow fade-in-d1">
         {verified && <div className="alert alert-success">Email verified — you can log in now.</div>}
 
         {banInfo ? (
-          <div style={{ borderRadius: 12, border: "1px solid rgba(239,68,68,.3)", background: "rgba(239,68,68,.08)", padding: "14px 16px", marginBottom: "1.25rem" }}>
-            <strong style={{ color: "#ff8080", display: "block", marginBottom: 2 }}>Account suspended</strong>
-            <span style={{ fontSize: ".83rem", color: "rgba(255,255,255,.75)" }}>
+          <div className="login-ban">
+            <strong>Account suspended</strong>
+            <span>
               {banInfo.permanent
                 ? "This is a permanent ban. Contact an administrator to appeal."
                 : banInfo.daysLeft !== null && banInfo.daysLeft <= 1
@@ -101,36 +103,34 @@ export default function LoginForm({ verified }: { verified: boolean }) {
           <div className="alert alert-error">{error}</div>
         ) : null}
 
-        <form onSubmit={submit}>
+        <form onSubmit={submit} className="login-form">
           <div className="form-group">
-            <label>Username or Email</label>
-            <input className="form-control" value={login} onChange={(e) => setLogin(e.target.value)} autoComplete="username" />
+            <label htmlFor="login-id">Username or email</label>
+            <input id="login-id" className="form-control" placeholder="yourname or you@example.com" value={login} onChange={(e) => setLogin(e.target.value)} autoComplete="username" autoFocus />
           </div>
           <div className="form-group">
-            <label>Password</label>
-            <input type="password" className="form-control" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
-            <button
-              type="button"
-              onClick={() => setForgotOpen(true)}
-              style={{ background: "none", border: "none", padding: 0, marginTop: 6, fontSize: ".78rem", color: "rgba(255,255,255,.35)", cursor: "pointer", display: "block", textAlign: "right", width: "100%" }}
-            >
-              Forgot your password?
-            </button>
+            <div className="login-label-row">
+              <label htmlFor="login-pass">Password</label>
+              <button type="button" className="login-forgot" onClick={() => setForgotOpen(true)}>Forgot password?</button>
+            </div>
+            <input id="login-pass" type="password" className="form-control" placeholder="Your password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
           </div>
 
-          <label style={{ display: "flex", alignItems: "center", gap: ".6rem", marginBottom: "1.25rem", cursor: "pointer" }}>
-            <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
-            <span style={{ fontSize: ".875rem", color: "rgba(240,240,240,.6)" }}>Remember me for 30 days</span>
-          </label>
+          <div className="terms-wrap login-remember" onClick={() => setRemember((r) => !r)}>
+            <div className={`terms-box ${remember ? "checked" : ""}`}>
+              {remember && (
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
+              )}
+            </div>
+            <div className="reg-terms-text">Remember me for 30 days</div>
+          </div>
 
-          <button type="submit" disabled={loading} className="btn btn-primary btn-full">
-            {loading ? "Signing in…" : "Sign in"}
+          <button type="submit" disabled={loading} className="reg-submit">
+            {loading ? "Signing in…" : <>Sign in <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="15" height="15"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg></>}
           </button>
         </form>
 
-        <div className="auth-footer">
-          Don&apos;t have an account? <Link href="/register">Register</Link>
-        </div>
+        <div className="reg-signin">Don&apos;t have an account? <Link href="/register">Create one</Link></div>
       </div>
 
       {forgotOpen && <ForgotPasswordModal onClose={() => setForgotOpen(false)} />}
@@ -197,8 +197,8 @@ function ForgotPasswordModal({ onClose }: { onClose: () => void }) {
     <div onClick={(e) => e.target === e.currentTarget && onClose()} style={{ position: "fixed", inset: 0, zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem", background: "rgba(5,5,10,.88)", backdropFilter: "blur(10px)" }}>
       <div style={{ background: "rgba(10,10,22,.98)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 20, padding: "2.25rem 2rem", width: "100%", maxWidth: 400, textAlign: "center", position: "relative" }}>
         <button onClick={onClose} style={{ position: "absolute", top: ".9rem", right: ".9rem", background: "rgba(255,255,255,.07)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 8, width: 30, height: 30, color: "rgba(255,255,255,.45)", cursor: "pointer" }}>✕</button>
-        <div style={{ width: 54, height: 54, borderRadius: 16, background: "linear-gradient(135deg,rgba(255,26,60,.13),rgba(57,255,20,.13))", border: "1px solid rgba(57,255,20,.22)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.2rem" }}>
-          <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" width="26" height="26"><rect x="3" y="11" width="18" height="11" rx="2" stroke="#39ff14" /><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#39ff14" /></svg>
+        <div style={{ width: 54, height: 54, borderRadius: 16, background: "linear-gradient(135deg,rgba(30,64,175,.13),rgba(124,58,237,.13))", border: "1px solid rgba(124,58,237,.22)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.2rem" }}>
+          <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" width="26" height="26"><rect x="3" y="11" width="18" height="11" rx="2" stroke="#7c3aed" /><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#7c3aed" /></svg>
         </div>
         <h2 style={{ fontWeight: 800, marginBottom: ".4rem" }}>Reset Password</h2>
         <p style={{ color: "rgba(255,255,255,.38)", fontSize: ".82rem", marginBottom: "1.4rem" }}>
@@ -213,7 +213,7 @@ function ForgotPasswordModal({ onClose }: { onClose: () => void }) {
         <button
           onClick={submit}
           disabled={loading}
-          style={{ width: "100%", padding: ".8rem", background: "linear-gradient(135deg,#ff1a3c,#39ff14)", border: "none", borderRadius: 12, color: "#fff", fontWeight: 700, cursor: "pointer" }}
+          style={{ width: "100%", padding: ".8rem", background: "linear-gradient(135deg,#1e40af,#7c3aed)", border: "none", borderRadius: 12, color: "#fff", fontWeight: 700, cursor: "pointer" }}
         >
           {loading ? "Sending…" : "Send Reset Link"}
         </button>

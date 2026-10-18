@@ -22,7 +22,7 @@ const BADGE_LABELS: Record<string, string> = {
   promoter_elite: "Promoter Elite",
   owner: "Owner",
   admin: "Admin",
-  premium: "Premium",
+  premium: "Infected Plus",
   discord: "Discord",
   booster: "Server Booster",
 };

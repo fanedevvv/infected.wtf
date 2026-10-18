@@ -70,8 +70,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
     }
   }
 
-  const purchasedEffects = ((profile.purchasedEffects as string[] | null) ?? []) as string[];
-  const activeEffects = (profile.activeEffects as Record<string, string> | null) ?? {};
+  const purchasedEffects = (parseStringArray(profile.purchasedEffects)) as string[];
+  const activeEffects = (parseJsonObject<Record<string, string>>(profile.activeEffects) ?? {});
 
   let age: number | null = null;
   if (profile.birthDate) {
