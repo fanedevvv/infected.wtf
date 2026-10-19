@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 160">
+  <defs>
+    <radialGradient id="g-core" cx="42%" cy="38%" r="70%">
+      <stop offset="0%" stop-color="#d6c9ff"/>
+      <stop offset="35%" stop-color="#a78bfa"/>
+      <stop offset="70%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#1e3a8a"/>
+    </radialGradient>
+    <linearGradient id="g-filament" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#1e40af"/>
+    </linearGradient>
+    <linearGradient id="g-text" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="45%" stop-color="#d9d6e6"/>
+      <stop offset="100%" stop-color="#a6a3b8"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(10,10) scale(0.7)">
+    <g stroke="url(#g-filament)" stroke-width="4" stroke-linecap="round" fill="none">
+      <line x1="100" y1="100" x2="100" y2="22"/>
+      <line x1="100" y1="100" x2="146" y2="34"/>
+      <line x1="100" y1="100" x2="172" y2="76"/>
+      <line x1="100" y1="100" x2="180" y2="124"/>
+      <line x1="100" y1="100" x2="158" y2="168"/>
+      <line x1="100" y1="100" x2="116" y2="186"/>
+      <line x1="100" y1="100" x2="64" y2="182"/>
+      <line x1="100" y1="100" x2="28" y2="148"/>
+      <line x1="100" y1="100" x2="18" y2="100"/>
+      <line x1="100" y1="100" x2="30" y2="54"/>
+      <line x1="100" y1="100" x2="62" y2="24"/>
+    </g>
+    <circle cx="100" cy="100" r="48" fill="url(#g-core)"/>
+  </g>
+
+  <text x="178" y="107" font-family="Inter" font-weight="800" font-size="86" letter-spacing="-2.5">
+    <tspan fill="url(#g-text)">INFECTED</tspan><tspan fill="#a78bfa">.WTF</tspan>
+  </text>
+</svg>
