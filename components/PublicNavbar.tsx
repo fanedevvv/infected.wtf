@@ -21,7 +21,8 @@ export default function PublicNavbar({ user, active }: { user?: { username: stri
   return (
     <nav className={`navbar navbar-public${scrolled ? " is-scrolled" : ""}`} ref={navRef}>
       <Link href="/" className="navbar-brand" onClick={close}>
-        <span>INFECTED.WTF</span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/assets/img/logo-wordmark.svg" alt="INFECTED.WTF" className="brand-logo-img" />
       </Link>
 
       <div className="navbar-links">

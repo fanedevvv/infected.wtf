@@ -208,7 +208,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         <aside className={`sidebar ${sidebarOpen ? "sidebar-open" : ""}`} id="sidebar">
           <div className="sidebar-logo-wrap">
             <Link href="/dashboard" className="sidebar-logo">
-              <span>INFECTED.WTF</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/assets/img/logo-wordmark.svg" alt="INFECTED.WTF" className="brand-logo-img" />
             </Link>
           </div>
 

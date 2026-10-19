@@ -61,7 +61,8 @@ export default async function Home() {
 
       <FloatingNavbar>
         <Link href="/" className="navbar-brand">
-          <span>infected.wtf</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/img/logo-wordmark.svg" alt="INFECTED.WTF" className="brand-logo-img" />
         </Link>
         <HomeNavLinks user={user} />
       </FloatingNavbar>
