@@ -5,6 +5,9 @@ import PublicNavbar from "@/components/PublicNavbar";
 import LeaderboardTabs from "./LeaderboardTabs";
 import SafeImg from "@/components/SafeImg";
 import CookieBanner from "@/components/CookieBanner";
+import SiteFooter from "@/components/SiteFooter";
+import SmoothScroll from "@/components/SmoothScroll";
+import PatternWaves from "@/components/ui/PatternWaves";
 import { getCookieConsent } from "@/lib/cookie-consent";
 
 function isPremiumNow(isPremium: boolean, premiumExpiresAt: Date | null): boolean {
@@ -221,28 +224,27 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
   }
 
   return (
-    <>
+    <div className="lc-site lb-root">
+      <div className="lb-waves" aria-hidden="true">
+        <PatternWaves preset="silk" color="#a78bfa" backgroundColor="transparent" fade="edges" fadeSize={0.6} opacity={0.55} interactive cursorSize={50} cursorStrength={0.6} />
+      </div>
       <PublicNavbar user={currentUser} active="leaderboard" />
       <div className="lb-page">
-        <div className="lb-hero">
-          <div className="lb-hero-top">
-            <div className="lb-hero-left">
-              <div className="lb-hero-label">Hall of Fame</div>
-              <div className="lb-hero-title">Views Leaderboard</div>
-            </div>
-          </div>
+        <header className="lb-head">
+          <div className="lb-head-glow" aria-hidden="true" />
+          <div className="ls-label">Hall of fame.</div>
+          <h1>The most viewed pages <em>on infected.wtf.</em></h1>
+          <p>Updated live. Search any username to see where they stand.</p>
 
-          <div className="lb-controls">
-            <form className="lb-search-form" method="get" action="/leaderboard">
-              <div className="lb-search-wrap">
-                <svg className="lb-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-                <input type="text" name="q" className="lb-search-input" placeholder="Search username…" defaultValue={searchQuery} autoComplete="off" />
-              </div>
-              <button type="submit" className="lb-search-btn">Search</button>
-              {searchQuery && <a href="/leaderboard" className="lb-search-clear">✕</a>}
-            </form>
-          </div>
-        </div>
+          <form className="lb-search-form" method="get" action="/leaderboard">
+            <div className="lb-search-wrap">
+              <svg className="lb-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+              <input type="text" name="q" className="lb-search-input" placeholder="Search username…" defaultValue={searchQuery} autoComplete="off" />
+            </div>
+            {searchQuery && <a href="/leaderboard" className="lb-search-clear" aria-label="Clear search">✕</a>}
+            <button type="submit" className="lb-search-btn">Search.</button>
+          </form>
+        </header>
 
         {searchQuery && (
           <div className="lb-search-result">
@@ -259,7 +261,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                 <a href={`/${encodeURIComponent(searchResult.username)}`} className="btn btn-secondary btn-sm lb-search-link" target="_blank" rel="noreferrer">↗ Profile</a>
               </div>
             ) : (
-              <div className="lb-search-not-found">No user found for &quot;<strong>{searchQuery}</strong>&quot;</div>
+              <div className="lb-search-not-found">No user found for &quot;<strong>{searchQuery}</strong>&quot;.</div>
             )}
           </div>
         )}
@@ -281,7 +283,9 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
           badgeRegionName={badgeRegionName}
         />
       </div>
+      <SiteFooter />
+      <SmoothScroll />
       <CookieBanner initialConsent={await getCookieConsent()} />
-    </>
+    </div>
   );
 }

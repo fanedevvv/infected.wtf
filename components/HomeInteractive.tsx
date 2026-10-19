@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Faqs02 from "@/components/ui/faqs-02";
 import { useScrolled } from "./useScrolled";
 
 export function FloatingNavbar({ children }: { children: React.ReactNode }) {
@@ -30,7 +31,6 @@ export function HomeNavLinks({ user }: { user?: { username: string } | null }) {
         <Link href="/dashboard?page=shop">Shop</Link>
         <Link href="/partners">Partners</Link>
         <a href="https://discord.gg/kPx9zWzWez" target="_blank" rel="noreferrer">Discord</a>
-        <a href="#pricing">Pricing</a>
       </div>
 
       <div className="navbar-actions">
@@ -62,7 +62,6 @@ export function HomeNavLinks({ user }: { user?: { username: string } | null }) {
           <Link href="/dashboard?page=shop" onClick={close}>Shop</Link>
           <Link href="/partners" onClick={close}>Partners</Link>
           <a href="https://discord.gg/kPx9zWzWez" target="_blank" rel="noreferrer" onClick={close}>Discord</a>
-          <a href="#pricing" onClick={close}>Pricing</a>
           {user ? (
             <Link href="/dashboard" className="btn btn-primary btn-sm" onClick={close}>Dashboard</Link>
           ) : (
@@ -109,28 +108,18 @@ const FAQS: [string, string][] = [
 ];
 
 export function Faq() {
-  const [open, setOpen] = useState<number | null>(null);
   return (
-    <section className="ls ls--last">
-      <header className="ls-head" data-reveal>
-        <div className="ls-label">FAQ.</div>
-        <h2>Frequently asked questions.</h2>
-        <p>Can&apos;t find what you&apos;re looking for? Ask us on Discord.</p>
-      </header>
-      <div className="faq-list" data-reveal>
-      {FAQS.map(([q, a], i) => (
-        <div key={i} className={`faq-item ${open === i ? "open" : ""}`}>
-          <div className="faq-q" onClick={() => setOpen(open === i ? null : i)}>
-            <span className="faq-num">{String(i + 1).padStart(2, "0")}</span>
-            <span>{q}</span>
-            <div className="faq-toggle">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="12" height="12"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-            </div>
-          </div>
-          <div className="faq-a">{a}</div>
-        </div>
-      ))}
-      </div>
-    </section>
+    <Faqs02
+      className="faq-sec"
+      label="FAQ."
+      title="Frequently asked questions."
+      faqs={FAQS.map(([q, a]) => ({ q, a }))}
+      description={
+        <>
+          Can&apos;t find what you&apos;re looking for? Ask us on{" "}
+          <a href="https://discord.gg/kPx9zWzWez" target="_blank" rel="noreferrer" className="font-medium text-foreground underline-offset-4 hover:underline">Discord</a>.
+        </>
+      }
+    />
   );
 }

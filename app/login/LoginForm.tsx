@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import BackHome from "@/components/BackHome";
+import { AuthForm } from "@/components/ui/sign-in-1";
+import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
 export default function LoginForm({ verified }: { verified: boolean }) {
@@ -75,17 +77,23 @@ export default function LoginForm({ verified }: { verified: boolean }) {
   }
 
   return (
-    <div className="reg-page">
+    <div className="reg-page auth-shell-page">
       <div className="reg-glow" aria-hidden="true" />
-      <BackHome />
 
-      <header className="reg-head fade-in">
-        <div className="reg-eyebrow">Welcome back</div>
-        <h1>Sign in to your <em>page</em>.</h1>
-        <p>Pick up right where you left off.</p>
-      </header>
-
-      <div className="reg-card reg-card--narrow fade-in-d1">
+      <AuthForm
+        className="auth-shell"
+        logo={<span className="auth-wordmark">infected.wtf</span>}
+        title="Welcome back"
+        description="Sign in to manage your infected.wtf page."
+        secondaryActions={[{ label: "Create an account", onClick: () => router.push("/register") }]}
+        skipAction={{ label: "Back to home", onClick: () => router.push("/") }}
+        footerContent={
+          <>
+            By signing in, you agree to our <Link href="/terms" className="underline transition-colors hover:text-primary">Terms of Service</Link> and{" "}
+            <Link href="/privacy" className="underline transition-colors hover:text-primary">Privacy Policy</Link>.
+          </>
+        }
+      >
         {verified && <div className="alert alert-success">Email verified — you can log in now.</div>}
 
         {banInfo ? (
@@ -103,12 +111,12 @@ export default function LoginForm({ verified }: { verified: boolean }) {
           <div className="alert alert-error">{error}</div>
         ) : null}
 
-        <form onSubmit={submit} className="login-form">
-          <div className="form-group">
+        <form onSubmit={submit} className="auth-fields">
+          <div className="auth-field">
             <label htmlFor="login-id">Username or email</label>
             <input id="login-id" className="form-control" placeholder="yourname or you@example.com" value={login} onChange={(e) => setLogin(e.target.value)} autoComplete="username" autoFocus />
           </div>
-          <div className="form-group">
+          <div className="auth-field">
             <div className="login-label-row">
               <label htmlFor="login-pass">Password</label>
               <button type="button" className="login-forgot" onClick={() => setForgotOpen(true)}>Forgot password?</button>
@@ -125,13 +133,11 @@ export default function LoginForm({ verified }: { verified: boolean }) {
             <div className="reg-terms-text">Remember me for 30 days</div>
           </div>
 
-          <button type="submit" disabled={loading} className="reg-submit">
+          <Button type="submit" disabled={loading} className="auth-submit w-full gap-2 transition-transform hover:scale-[1.03]">
             {loading ? "Signing in…" : <>Sign in <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="15" height="15"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg></>}
-          </button>
+          </Button>
         </form>
-
-        <div className="reg-signin">Don&apos;t have an account? <Link href="/register">Create one</Link></div>
-      </div>
+      </AuthForm>
 
       {forgotOpen && <ForgotPasswordModal onClose={() => setForgotOpen(false)} />}
 

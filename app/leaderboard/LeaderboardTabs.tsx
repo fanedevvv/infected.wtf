@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SafeImg from "@/components/SafeImg";
+import SpotlightCard from "@/components/ui/SpotlightCard";
 
 type GlobalUser = { id: number; username: string; displayName: string; avatar: string; views: number; premium: boolean };
 type LocalUser = { id: number; username: string; displayName: string; avatar: string; localViews: number; regionName: string; premium: boolean };
@@ -30,6 +31,13 @@ function PremBadge() {
   );
 }
 
+// Spotlight colour + card border per podium place (gold / silver / bronze).
+const PODIUM_LIGHT: Record<string, { light: string; border: string }> = {
+  p1: { light: "#ffd700", border: "rgba(200,151,10,.4)" },
+  p2: { light: "#e4e4e7", border: "rgba(160,160,160,.28)" },
+  p3: { light: "#e0a26b", border: "rgba(122,79,46,.35)" },
+};
+
 function Podium({ users, metric }: { users: AnyUser[]; metric: Metric }) {
   const order: { rank: number; cls: string; user: AnyUser | undefined }[] = [
     { rank: 2, cls: "p2", user: users[1] },
@@ -41,7 +49,17 @@ function Podium({ users, metric }: { users: AnyUser[]; metric: Metric }) {
       {order.map((pod) =>
         pod.user ? (
           <div key={pod.cls} className={`lb-podium-slot ${pod.cls}`} onClick={() => window.open(`/${encodeURIComponent(pod.user!.username)}`, "_blank")}>
-            <div className="lb-podium-card">
+            <SpotlightCard
+              className="lb-podium-card"
+              spotlightColor={PODIUM_LIGHT[pod.cls].light}
+              intensity={0.22}
+              spotlightSize={220}
+              softness={0.55}
+              borderGlow={0.7}
+              proximity={120}
+              smoothing={0.35}
+              style={{ "--spotlight-card-border": PODIUM_LIGHT[pod.cls].border } as React.CSSProperties}
+            >
               <span className="lb-podium-rank">{pod.rank}</span>
               <SafeImg src={pod.user.avatar ? `/${pod.user.avatar}` : null} className="lb-podium-avatar" />
               <div className="lb-podium-name">
@@ -59,7 +77,7 @@ function Podium({ users, metric }: { users: AnyUser[]; metric: Metric }) {
                 )}
                 {fmtViews(metricValue(pod.user, metric))}
               </div>
-            </div>
+            </SpotlightCard>
           </div>
         ) : null
       )}
@@ -81,9 +99,11 @@ function Table({
   emptyText: string;
 }) {
   const rest = users.slice(3);
+  if (users.length > 0 && rest.length === 0) return null;
   const metricLabel = metric === "views" ? "Views" : metric === "localViews" ? "Local Views" : "Likes";
   return (
     <div className="lb-table-wrap">
+      <SpotlightCard className="lb-table-card" spotlightColor="#c4b5fd" intensity={0.1} spotlightSize={360} softness={0.8} borderGlow={0.5} proximity={60}>
       <table className="lb-table">
         <thead>
           <tr>
@@ -123,6 +143,54 @@ function Table({
           )}
         </tbody>
       </table>
+      </SpotlightCard>
+    </div>
+  );
+}
+
+const EyeIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+);
+const HeartIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
+);
+const METRICS = [
+  { key: "global", label: "Views", icon: <EyeIcon /> },
+  { key: "likes", label: "Likes", icon: <HeartIcon /> },
+] as const;
+
+// Small dropdown that flips the board between total views and likes.
+function MetricSwitch({ value, onChange }: { value: "global" | "local" | "likes"; onChange: (next: "global" | "likes") => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const current = METRICS.find((m) => m.key === value) ?? METRICS[0];
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", esc);
+    return () => { document.removeEventListener("mousedown", close); document.removeEventListener("keydown", esc); };
+  }, [open]);
+
+  return (
+    <div className="lb-metric" ref={ref}>
+      <button type="button" className="lb-metric-btn" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        {current.icon}
+        <span>{current.label}</span>
+        <svg className="lb-metric-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><polyline points="6 9 12 15 18 9" /></svg>
+      </button>
+      {open && (
+        <div className="lb-metric-menu" role="listbox">
+          {METRICS.map((m) => (
+            <button key={m.key} type="button" role="option" aria-selected={m.key === current.key} className={`lb-metric-opt${m.key === current.key ? " is-active" : ""}`} onClick={() => { onChange(m.key); setOpen(false); }}>
+              {m.icon}
+              <span>{m.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -197,15 +265,11 @@ export default function LeaderboardTabs({
   return (
     <>
       <div style={{ maxWidth: 900, margin: "0 auto 1rem", padding: "0 1.25rem" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
-          <div className="lb-tab-switch">
-            <button className={`lb-tab-btn ${tab === "global" ? "active" : ""}`} onClick={() => switchTab("global")}>Global</button>
-            <button className={`lb-tab-btn ${tab === "local" ? "active" : ""}`} onClick={() => switchTab("local")}>Local</button>
-            <button className={`lb-tab-btn ${tab === "likes" ? "active" : ""}`} onClick={() => switchTab("likes")}>Likes</button>
-          </div>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
+          <MetricSwitch value={tab} onChange={switchTab} />
         </div>
         {showRankPills && (
-          <div style={{ marginTop: ".75rem" }}>
+          <div style={{ marginTop: ".9rem", textAlign: "center" }}>
             {tab === "global" ? (
               <div className="lb-rank-pill" style={{ display: "inline-flex" }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" style={{ color: "var(--accent)", flexShrink: 0 }}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
@@ -282,6 +346,8 @@ export default function LeaderboardTabs({
           </>
         )}
       </div>
+
+      <div className="lb-divider" aria-hidden="true" />
     </>
   );
 }
