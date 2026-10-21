@@ -1,0 +1,259 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import QRCode from "qrcode";
+import { showToast } from "@/lib/toast";
+import { useT } from "@/lib/i18n/client";
+
+const SITE = "infected.wtf";
+
+async function json<T = Record<string, unknown>>(res: Response): Promise<T> {
+  return (await res.json().catch(() => ({}))) as T;
+}
+
+/* ───────────── Aliases ───────────── */
+
+export function AliasesPanel({ slug }: { slug: string }) {
+  const t = useT();
+  const [aliases, setAliases] = useState<{ id: number; alias: string }[]>([]);
+  const [limit, setLimit] = useState(3);
+  const [value, setValue] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/profile-extras/aliases").then(json<{ success: boolean; aliases: { id: number; alias: string }[]; limit: number }>).then((d) => {
+      if (d.success) { setAliases(d.aliases); setLimit(d.limit); }
+    });
+  }, []);
+
+  async function add(e: React.FormEvent) {
+    e.preventDefault();
+    if (!value.trim() || busy) return;
+    setBusy(true);
+    const res = await fetch("/api/profile-extras/aliases", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ alias: value }) });
+    const d = await json<{ success: boolean; alias: { id: number; alias: string }; error?: string }>(res);
+    setBusy(false);
+    if (d.success) { setAliases((a) => [...a, d.alias]); setValue(""); showToast(t("Alias added"), "success"); }
+    else showToast(t(d.error || "Something went wrong."), "error");
+  }
+
+  async function remove(id: number) {
+    const res = await fetch("/api/profile-extras/aliases", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    if ((await json<{ success: boolean }>(res)).success) setAliases((a) => a.filter((x) => x.id !== id));
+  }
+
+  return (
+    <div className="dash-card">
+      <p className="pe-panel-intro">{t("Aliases are extra names that redirect to {page}.", { page: `${SITE}/${slug}` })}</p>
+      <form className="pe-inline-form" onSubmit={add}>
+        <div className="pe-prefix-input">
+          <span>{SITE}/</span>
+          <input value={value} onChange={(e) => setValue(e.target.value.toLowerCase())} placeholder="alias" maxLength={30} />
+        </div>
+        <button type="submit" className="btn btn-primary btn-sm" disabled={busy || aliases.length >= limit}>{t("Add")}</button>
+      </form>
+      <p className="pe-hint">{t("{used} of {limit} used · 3-30 characters: letters, numbers, _ . -", { used: aliases.length, limit })}</p>
+      <div className="pe-chip-list">
+        {aliases.map((a) => (
+          <span className="pe-chip" key={a.id}>
+            {SITE}/{a.alias}
+            <button type="button" onClick={() => remove(a.id)} aria-label={t("Remove")}>✕</button>
+          </span>
+        ))}
+        {aliases.length === 0 && <span className="pe-empty">{t("No aliases yet.")}</span>}
+      </div>
+    </div>
+  );
+}
+
+/* ───────────── Best friend ───────────── */
+
+type Friend = { slug: string; displayName: string; avatar: string | null };
+
+export function BestFriendPanel({ onChange }: { onChange: () => void }) {
+  const t = useT();
+  const [friend, setFriend] = useState<Friend | null>(null);
+  const [value, setValue] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/profile-extras/best-friend").then(json<{ success: boolean; friend: Friend | null }>).then((d) => d.success && setFriend(d.friend));
+  }, []);
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    if (!value.trim() || busy) return;
+    setBusy(true);
+    const res = await fetch("/api/profile-extras/best-friend", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug: value }) });
+    const d = await json<{ success: boolean; friend: Friend; error?: string }>(res);
+    setBusy(false);
+    if (d.success) { setFriend(d.friend); setValue(""); onChange(); showToast(t("Best friend saved"), "success"); }
+    else showToast(t(d.error || "Something went wrong."), "error");
+  }
+
+  async function clear() {
+    await fetch("/api/profile-extras/best-friend", { method: "DELETE" });
+    setFriend(null);
+    onChange();
+  }
+
+  return (
+    <div className="dash-card">
+      <p className="pe-panel-intro">{t("Pick one profile to feature on your page. They'll get a notification.")}</p>
+      {friend && (
+        <div className="pe-friend">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={friend.avatar ? `/${friend.avatar}` : "/assets/img/default-avatar.png"} alt="" />
+          <div>
+            <b>{friend.displayName}</b>
+            <span>{SITE}/{friend.slug}</span>
+          </div>
+          <button type="button" className="btn btn-secondary btn-sm" onClick={clear}>{t("Remove")}</button>
+        </div>
+      )}
+      <form className="pe-inline-form" onSubmit={save}>
+        <div className="pe-prefix-input">
+          <span>{SITE}/</span>
+          <input value={value} onChange={(e) => setValue(e.target.value)} placeholder="username" maxLength={60} />
+        </div>
+        <button type="submit" className="btn btn-primary btn-sm" disabled={busy}>{friend ? t("Change") : t("Set")}</button>
+      </form>
+    </div>
+  );
+}
+
+/* ───────────── Skills ───────────── */
+
+type Skill = { name: string; level: number };
+
+export function SkillsPanel({ onSaved }: { onSaved: () => void }) {
+  const t = useT();
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [max, setMax] = useState(20);
+  const [loaded, setLoaded] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/profile-extras/skills").then(json<{ success: boolean; skills: Skill[]; max: number }>).then((d) => {
+      if (d.success) { setSkills(d.skills); setMax(d.max); }
+      setLoaded(true);
+    });
+  }, []);
+
+  function update(i: number, patch: Partial<Skill>) {
+    setSkills((s) => s.map((x, j) => (j === i ? { ...x, ...patch } : x)));
+    setDirty(true);
+  }
+  function move(i: number, dir: -1 | 1) {
+    setSkills((s) => {
+      const j = i + dir;
+      if (j < 0 || j >= s.length) return s;
+      const next = [...s];
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
+    setDirty(true);
+  }
+
+  async function save() {
+    setBusy(true);
+    const res = await fetch("/api/profile-extras/skills", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ skills }) });
+    const d = await json<{ success: boolean; skills: Skill[]; error?: string }>(res);
+    setBusy(false);
+    if (d.success) { setSkills(d.skills); setDirty(false); onSaved(); showToast(t("Skills saved"), "success"); }
+    else showToast(t(d.error || "Something went wrong."), "error");
+  }
+
+  return (
+    <div className="dash-card">
+      <p className="pe-panel-intro">{t("Skills show as bars on your profile. Drag the slider to set your level.")}</p>
+      <div className="pe-skills">
+        {skills.map((s, i) => (
+          <div className="pe-skill" key={i}>
+            <input className="form-control" value={s.name} maxLength={40} placeholder={t("Skill name")} onChange={(e) => update(i, { name: e.target.value })} />
+            <input type="range" min={0} max={100} value={s.level} onChange={(e) => update(i, { level: parseInt(e.target.value, 10) })} />
+            <span className="pe-skill-level">{s.level}%</span>
+            <div className="pe-skill-actions">
+              <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label={t("Move up")}>↑</button>
+              <button type="button" onClick={() => move(i, 1)} disabled={i === skills.length - 1} aria-label={t("Move down")}>↓</button>
+              <button type="button" onClick={() => { setSkills((x) => x.filter((_, j) => j !== i)); setDirty(true); }} aria-label={t("Remove")}>✕</button>
+            </div>
+          </div>
+        ))}
+        {loaded && skills.length === 0 && <span className="pe-empty">{t("No skills yet.")}</span>}
+      </div>
+      <div className="pe-inline-form" style={{ marginTop: ".9rem" }}>
+        <button type="button" className="btn btn-secondary btn-sm" disabled={skills.length >= max} onClick={() => { setSkills((s) => [...s, { name: "", level: 50 }]); setDirty(true); }}>
+          + {t("Add skill")}
+        </button>
+        <button type="button" className="btn btn-primary btn-sm" disabled={!dirty || busy} onClick={save}>{busy ? t("Saving…") : t("Save skills")}</button>
+      </div>
+    </div>
+  );
+}
+
+/* ───────────── Sharing ───────────── */
+
+export function SharingPanel({ slug }: { slug: string }) {
+  const t = useT();
+  const url = `https://${SITE}/${slug}`;
+  const [qr, setQr] = useState<string | null>(null);
+
+  useEffect(() => {
+    QRCode.toDataURL(url, { width: 360, margin: 1, color: { dark: "#000000", light: "#ffffff" } }).then(setQr).catch(() => setQr(null));
+  }, [url]);
+
+  const text = encodeURIComponent(t("Check out my page"));
+  const enc = encodeURIComponent(url);
+  const targets = [
+    { name: "X", href: `https://twitter.com/intent/tweet?text=${text}&url=${enc}` },
+    { name: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${enc}` },
+    { name: "WhatsApp", href: `https://wa.me/?text=${text}%20${enc}` },
+    { name: "Telegram", href: `https://t.me/share/url?url=${enc}&text=${text}` },
+    { name: "Reddit", href: `https://www.reddit.com/submit?url=${enc}&title=${text}` },
+  ];
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast(t("Link copied!"), "success");
+    } catch {
+      showToast(t("Couldn't copy — select the link manually."), "error");
+    }
+  }
+
+  return (
+    <div className="dash-card">
+      <div className="pe-share-link">
+        <input readOnly value={url} onFocus={(e) => e.target.select()} />
+        <button type="button" className="btn btn-primary btn-sm" onClick={copy}>{t("Copy")}</button>
+      </div>
+
+      <div className="pe-share-grid">
+        <div className="pe-share-qr">
+          {qr ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={qr} alt="QR" />
+          ) : (
+            <div className="pe-share-qr-empty" />
+          )}
+          {qr && <a className="btn btn-secondary btn-sm" href={qr} download={`${slug}-qr.png`}>{t("Download QR")}</a>}
+        </div>
+        <div className="pe-share-side">
+          <div className="pe-side-label">{t("Share to")}</div>
+          <div className="pe-share-targets">
+            {targets.map((x) => (
+              <a key={x.name} href={x.href} target="_blank" rel="noopener noreferrer" className="pe-share-target">{x.name}</a>
+            ))}
+          </div>
+          <div className="pe-side-label" style={{ marginTop: "1rem" }}>{t("Embed card")}</div>
+          <p className="pe-hint">{t("This is the card Discord and other apps show when you paste your link.")}</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="pe-share-og" src={`/${slug}/opengraph-image`} alt="" />
+          <a className="btn btn-secondary btn-sm" href={`/${slug}/opengraph-image`} download={`${slug}-card.png`}>{t("Download card")}</a>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import ToastContainer from "./ToastContainer";
+import { LanguagePicker, ThemePicker } from "./DashPrefs";
+import { useT } from "@/lib/i18n/client";
+import { applyDashTheme, clearDashTheme, type DashMode } from "@/lib/dash-theme";
 
 type Me = {
   username: string;
@@ -26,7 +29,16 @@ function SidebarLink({ href, active, icon, children }: { href: string; active: b
   );
 }
 
-export default function DashboardShell({ children }: { children: React.ReactNode }) {
+export default function DashboardShell({ children, initialMode, initialAccent }: { children: React.ReactNode; initialMode: DashMode; initialAccent: string }) {
+  const t = useT();
+  const [themeMode, setThemeMode] = useState<DashMode>(initialMode);
+  const [themeAccent, setThemeAccent] = useState(initialAccent);
+
+  useEffect(() => {
+    applyDashTheme(themeMode, themeAccent);
+  }, [themeMode, themeAccent]);
+  useEffect(() => clearDashTheme, []);
+
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const activePage = searchParams.get("page") || "overview";
@@ -116,7 +128,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             </svg>
           </button>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
+        <div className="navbar-dash-right" style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
+          <LanguagePicker />
+          <ThemePicker mode={themeMode} accent={themeAccent} onChange={(m, a) => { setThemeMode(m); setThemeAccent(a); }} />
           <div ref={bellWrapRef} style={{ position: "relative" }}>
             <button
               onClick={() => { setNotifOpen((o) => !o); if (!notifOpen) loadNotifs(); }}
@@ -131,12 +145,12 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             {notifOpen && (
               <div style={{ display: "block", position: "absolute", top: "calc(100% + 10px)", right: 0, width: "min(320px, calc(100vw - 2rem))", background: "#13131a", border: "1px solid rgba(255,255,255,.1)", borderRadius: 14, boxShadow: "0 20px 50px rgba(0,0,0,.6)", zIndex: 9998, overflow: "hidden" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: ".9rem 1rem .7rem", borderBottom: "1px solid rgba(255,255,255,.06)" }}>
-                  <span style={{ fontSize: ".9rem", fontWeight: 700, color: "#fff" }}>Notifications</span>
-                  <button onClick={markAllRead} style={{ fontSize: ".72rem", color: "var(--accent)", background: "none", border: "none", cursor: "pointer" }}>Mark all read</button>
+                  <span style={{ fontSize: ".9rem", fontWeight: 700, color: "#fff" }}>{t("Notifications")}</span>
+                  <button onClick={markAllRead} style={{ fontSize: ".72rem", color: "var(--accent)", background: "none", border: "none", cursor: "pointer" }}>{t("Mark all read")}</button>
                 </div>
                 <div style={{ maxHeight: 280, overflowY: "auto" }}>
                   {notifs.length === 0 ? (
-                    <div style={{ textAlign: "center", color: "rgba(255,255,255,.3)", fontSize: ".8rem", padding: "1.5rem 1rem" }}>No notifications yet</div>
+                    <div style={{ textAlign: "center", color: "rgba(255,255,255,.3)", fontSize: ".8rem", padding: "1.5rem 1rem" }}>{t("No notifications yet")}</div>
                   ) : (
                     notifs.map((n) => (
                       <div key={n.id} className={`notif-item ${!n.isRead ? "unread" : ""}`} onClick={() => openNotif(n.id)}>
@@ -152,7 +166,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                   )}
                 </div>
                 <div style={{ padding: ".6rem 1rem", borderTop: "1px solid rgba(255,255,255,.06)", textAlign: "center" }}>
-                  <span style={{ fontSize: ".72rem", color: "rgba(255,255,255,.3)" }}>Last 5 notifications</span>
+                  <span style={{ fontSize: ".72rem", color: "rgba(255,255,255,.3)" }}>{t("Last 5 notifications")}</span>
                 </div>
               </div>
             )}
@@ -167,22 +181,14 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             {userMenuOpen && (
               <div className="navbar-user-menu" style={{ display: "flex" }}>
                 <a href={`/${me?.username ?? ""}`} target="_blank" className="navbar-menu-item" rel="noreferrer">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-                  My Profile
-                </a>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>{t("My Profile")}</a>
                 <a href="#" className="navbar-menu-item" onClick={(e) => { e.preventDefault(); setUserMenuOpen(false); setAccountsOpen(true); }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-                  Manage Accounts
-                </a>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>{t("Manage Accounts")}</a>
                 <Link href="/dashboard?page=settings" className="navbar-menu-item">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><circle cx="12" cy="12" r="3" /></svg>
-                  Settings
-                </Link>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><circle cx="12" cy="12" r="3" /></svg>{t("Settings")}</Link>
                 <div style={{ height: 1, background: "rgba(255,255,255,.07)", margin: ".2rem 0" }} />
                 <a href="#" className="navbar-menu-item navbar-menu-logout" onClick={(e) => { e.preventDefault(); logout(); }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-                  Logout
-                </a>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>{t("Logout")}</a>
               </div>
             )}
             <div className="navbar-user-card" onClick={() => setUserMenuOpen((o) => !o)}>
@@ -197,7 +203,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 <span className={`navbar-user-name ${profile?.isPremium ? "navbar-user-name--premium" : ""}`}>
                   {profile?.displayName || me?.username}
                 </span>
-                <span className="navbar-user-sub">Profile</span>
+                <span className="navbar-user-sub">{t("Profile")}</span>
               </div>
             </div>
           </div>
@@ -238,34 +244,33 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
           {isModerator && (
             <>
-              <span className="sidebar-label">Staff</span>
-              <SidebarLink href="/admin" active={pathname === "/admin"} icon="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z">
-                Admin Panel
-              </SidebarLink>
+              <span className="sidebar-label">{t("Staff")}</span>
+              <SidebarLink href="/admin" active={pathname === "/admin"} icon="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z">{t("Admin Panel")}</SidebarLink>
             </>
           )}
 
-          <span className="sidebar-label">Main</span>
-          <SidebarLink href="/dashboard" active={pathname === "/dashboard" && activePage === "overview"} icon="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z">Dashboard</SidebarLink>
-          <SidebarLink href="/leaderboard" active={pathname === "/leaderboard"} icon="M18 20V10M12 20V4M6 20v-6">Leaderboard</SidebarLink>
-          <SidebarLink href="/dashboard?page=analytics" active={activePage === "analytics"} icon="M22 12h-4l-3 9L9 3l-3 9H2">Analytics</SidebarLink>
-          <SidebarLink href="/dashboard?page=shop" active={activePage === "shop"} icon="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0">Shop</SidebarLink>
-          <SidebarLink href="/dashboard?page=marketplace" active={activePage === "marketplace"} icon="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5">Marketplace</SidebarLink>
+          <span className="sidebar-label">{t("Main")}</span>
+          <SidebarLink href="/dashboard" active={pathname === "/dashboard" && activePage === "overview"} icon="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z">{t("Dashboard")}</SidebarLink>
+          <SidebarLink href="/leaderboard" active={pathname === "/leaderboard"} icon="M18 20V10M12 20V4M6 20v-6">{t("Leaderboard")}</SidebarLink>
+          <SidebarLink href="/dashboard?page=analytics" active={activePage === "analytics"} icon="M22 12h-4l-3 9L9 3l-3 9H2">{t("Analytics")}</SidebarLink>
+          <SidebarLink href="/dashboard?page=shop" active={activePage === "shop"} icon="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0">{t("Shop")}</SidebarLink>
+          <SidebarLink href="/dashboard?page=marketplace" active={activePage === "marketplace"} icon="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5">{t("Marketplace")}</SidebarLink>
 
-          <span className="sidebar-label">Store</span>
+          <span className="sidebar-label">{t("Store")}</span>
           <SidebarLink href="/dashboard?page=spin" active={activePage === "spin"} icon="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83">
-            Daily Spin <span className="sidebar-new-badge">NEW</span>
+            {t("Daily Spin")} <span className="sidebar-new-badge">{t("NEW")}</span>
           </SidebarLink>
-          <SidebarLink href="/dashboard?page=decorations" active={activePage === "decorations"} icon="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2L12 16.6 5.7 21l2.3-7.2-6-4.6h7.6z">Decorations</SidebarLink>
-          <SidebarLink href="/dashboard?page=premium" active={activePage === "premium"} icon="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm2.07-7.75-.9.92C13.45 11.9 13 12.5 13 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z">Infected Plus</SidebarLink>
+          <SidebarLink href="/dashboard?page=decorations" active={activePage === "decorations"} icon="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2L12 16.6 5.7 21l2.3-7.2-6-4.6h7.6z">{t("Decorations")}</SidebarLink>
+          <SidebarLink href="/dashboard?page=premium" active={activePage === "premium"} icon="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm2.07-7.75-.9.92C13.45 11.9 13 12.5 13 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z">{t("Infected Plus")}</SidebarLink>
 
-          <span className="sidebar-label">Profile</span>
-          <SidebarLink href="/dashboard?page=info" active={activePage === "info"} icon="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z">Customize</SidebarLink>
-          <SidebarLink href="/dashboard?page=badges" active={activePage === "badges"} icon="M12 15a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM8.21 13.89 7 23l5-3 5 3-1.21-9.12">Badges</SidebarLink>
-          <SidebarLink href="/dashboard?page=links" active={activePage === "links"} icon="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71">Links</SidebarLink>
-          <SidebarLink href="/dashboard?page=referral" active={activePage === "referral"} icon="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75">Referral</SidebarLink>
-          <SidebarLink href="/dashboard?page=effects" active={activePage === "effects"} icon="M12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">Effects</SidebarLink>
-          <SidebarLink href="/dashboard?page=integrations" active={activePage === "integrations"} icon="M5 2h14a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM12 18h.01M9 7h6M9 11h6">Integrations</SidebarLink>
+          <span className="sidebar-label">{t("Profile")}</span>
+          <SidebarLink href="/dashboard?page=editor" active={activePage === "editor" || activePage === "info"} icon="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z">{t("Customize")}</SidebarLink>
+          <SidebarLink href="/dashboard?page=badges" active={activePage === "badges"} icon="M12 15a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM8.21 13.89 7 23l5-3 5 3-1.21-9.12">{t("Badges")}</SidebarLink>
+          <SidebarLink href="/dashboard?page=links" active={activePage === "links"} icon="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71">{t("Links")}</SidebarLink>
+          <SidebarLink href="/dashboard?page=projects" active={activePage === "projects"} icon="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">{t("Projects")}</SidebarLink>
+          <SidebarLink href="/dashboard?page=referral" active={activePage === "referral"} icon="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75">{t("Referral")}</SidebarLink>
+          <SidebarLink href="/dashboard?page=effects" active={activePage === "effects"} icon="M12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">{t("Effects")}</SidebarLink>
+          <SidebarLink href="/dashboard?page=integrations" active={activePage === "integrations"} icon="M5 2h14a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM12 18h.01M9 7h6M9 11h6">{t("Integrations")}</SidebarLink>
         </aside>
         <div className={`sidebar-overlay ${sidebarOpen ? "active" : ""}`} onClick={() => setSidebarOpen(false)} />
 
@@ -282,35 +287,35 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           )}
           <Link href="/dashboard" className={`mobile-nav-item ${pathname === "/dashboard" && activePage === "overview" ? "active" : ""}`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>
-            <span>Home</span>
+            <span>{t("Home")}</span>
           </Link>
           <Link href="/dashboard?page=links" className={`mobile-nav-item ${activePage === "links" ? "active" : ""}`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
-            <span>Links</span>
+            <span>{t("Links")}</span>
           </Link>
-          <Link href="/dashboard?page=info" className={`mobile-nav-item ${activePage === "info" ? "active" : ""}`}>
+          <Link href="/dashboard?page=editor" className={`mobile-nav-item ${activePage === "editor" || activePage === "info" ? "active" : ""}`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3" /></svg>
-            <span>Style</span>
+            <span>{t("Style")}</span>
           </Link>
           <Link href="/dashboard?page=analytics" className={`mobile-nav-item ${activePage === "analytics" ? "active" : ""}`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
-            <span>Stats</span>
+            <span>{t("Stats")}</span>
           </Link>
           <Link href="/dashboard?page=badges" className={`mobile-nav-item ${activePage === "badges" ? "active" : ""}`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="6" /><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" /></svg>
-            <span>Badges</span>
+            <span>{t("Badges")}</span>
           </Link>
           <Link href="/dashboard?page=effects" className={`mobile-nav-item ${activePage === "effects" ? "active" : ""}`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-            <span>Effects</span>
+            <span>{t("Effects")}</span>
           </Link>
           <Link href="/dashboard?page=referral" className={`mobile-nav-item ${activePage === "referral" ? "active" : ""}`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg>
-            <span>Referral</span>
+            <span>{t("Referral")}</span>
           </Link>
           <Link href="/dashboard?page=shop" className={`mobile-nav-item ${activePage === "shop" ? "active" : ""}`}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /></svg>
-            <span>Shop</span>
+            <span>{t("Shop")}</span>
           </Link>
         </div>
       </nav>
@@ -325,6 +330,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 }
 
 function ManageAccountsModal({ currentUsername, currentAvatar, onClose }: { currentUsername: string; currentAvatar: string | null; onClose: () => void }) {
+  const t = useT();
   const router = useRouter();
   const [accounts, setAccounts] = useState<{ username: string; token: string; avatar: string | null }[]>([]);
   const [adding, setAdding] = useState(false);
@@ -409,8 +415,8 @@ function ManageAccountsModal({ currentUsername, currentAvatar, onClose }: { curr
     <div onClick={(e) => e.target === e.currentTarget && onClose()} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
       <div style={{ background: "#13131a", border: "1px solid rgba(255,255,255,.1)", borderRadius: 16, padding: "1.5rem", width: "min(420px,95vw)", maxHeight: "80vh", overflowY: "auto", position: "relative" }}>
         <button onClick={onClose} style={{ position: "absolute", top: ".9rem", right: ".9rem", background: "rgba(255,255,255,.06)", border: "none", color: "#aaa", width: 28, height: 28, borderRadius: "50%", cursor: "pointer" }}>✕</button>
-        <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "#fff" }}>Manage Accounts</div>
-        <div style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.1rem" }}>Switch between multiple accounts</div>
+        <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "#fff" }}>{t("Manage Accounts")}</div>
+        <div style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.1rem" }}>{t("Switch between multiple accounts")}</div>
 
         <div style={{ display: "flex", alignItems: "center", gap: ".75rem", padding: ".65rem .75rem", background: "rgba(124,58,237,.06)", border: "1px solid rgba(124,58,237,.15)", borderRadius: 10, marginBottom: ".5rem" }}>
           <div style={{ width: 38, height: 38, borderRadius: "50%", flexShrink: 0, overflow: "hidden", background: "rgba(124,58,237,.15)" }}>
@@ -435,29 +441,29 @@ function ManageAccountsModal({ currentUsername, currentAvatar, onClose }: { curr
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: ".85rem", fontWeight: 600, color: "#fff" }}>@{a.username}</div>
-              <div style={{ fontSize: ".7rem", color: "var(--text-muted)" }}>Saved account</div>
+              <div style={{ fontSize: ".7rem", color: "var(--text-muted)" }}>{t("Saved account")}</div>
             </div>
             <div style={{ display: "flex", gap: ".4rem" }}>
-              <button onClick={() => switchTo(a.username)} className="btn btn-secondary btn-xs">Switch</button>
-              <button onClick={() => remove(a.username)} className="btn btn-danger btn-xs">Remove</button>
+              <button onClick={() => switchTo(a.username)} className="btn btn-secondary btn-xs">{t("Switch")}</button>
+              <button onClick={() => remove(a.username)} className="btn btn-danger btn-xs">{t("Remove")}</button>
             </div>
           </div>
         ))}
 
         {adding ? (
           <div style={{ display: "flex", flexDirection: "column", gap: ".75rem", marginTop: ".75rem" }}>
-            <input className="form-control" placeholder="Username or email" value={login} onChange={(e) => setLogin(e.target.value)} />
-            <input className="form-control" type="password" placeholder="Password" value={pw} onChange={(e) => setPw(e.target.value)} />
-            <button onClick={addAccount} className="btn btn-primary btn-full">Log In &amp; Save Account</button>
+            <input className="form-control" placeholder={t("Username or email")} value={login} onChange={(e) => setLogin(e.target.value)} />
+            <input className="form-control" type="password" placeholder={t("Password")} value={pw} onChange={(e) => setPw(e.target.value)} />
+            <button onClick={addAccount} className="btn btn-primary btn-full">{t("Log in & save account")}</button>
             {status && <div style={{ textAlign: "center", fontSize: ".8rem", color: status.ok ? "#34d399" : "#ff8080" }}>{status.text}</div>}
           </div>
         ) : (
           <button onClick={() => setAdding(true)} className="btn btn-primary btn-full" style={{ marginTop: ".75rem" }}>
-            + Add an account
+            {t("+ Add an account")}
           </button>
         )}
         <p style={{ fontSize: ".7rem", color: "var(--text-muted)", marginTop: ".55rem", textAlign: "center" }}>
-          Accounts are saved locally in your browser.
+          {t("Accounts are saved locally in your browser.")}
         </p>
       </div>
     </div>

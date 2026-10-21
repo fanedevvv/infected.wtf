@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { COUNTRIES } from "@/lib/countries";
 import { showToast } from "@/lib/toast";
+import { useT } from "@/lib/i18n/client";
 
 type LoginSession = { browser: string; ipDisplay: string | null; deviceType: string; loggedAt: string };
 
@@ -25,6 +26,7 @@ const SENSITIVE_ACTIONS = ["change_username", "change_email", "change_password",
 type SensitiveAction = (typeof SENSITIVE_ACTIONS)[number];
 
 export default function SettingsClient(props: Props) {
+  const t = useT();
   const [openSections, setOpenSections] = useState<Set<string>>(new Set(["sec-username"]));
   const [twoFaEnabled, setTwoFaEnabled] = useState(props.twoFaEnabled);
 
@@ -212,7 +214,7 @@ export default function SettingsClient(props: Props) {
   // ── Delete account ──
   function confirmDelete() {
     if (!deletePassword) {
-      showToast("Enter your password first", "error");
+      showToast(t("Enter your password first"), "error");
       return;
     }
     requestSensitive("delete_account", doDelete);
@@ -232,7 +234,7 @@ export default function SettingsClient(props: Props) {
         showToast(j.error || "Error", "error");
       }
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
     }
   }
 
@@ -293,8 +295,8 @@ export default function SettingsClient(props: Props) {
   return (
     <>
       <div className="section-header">
-        <h2>Settings</h2>
-        <p>Manage your account information and security.</p>
+        <h2>{t("Settings")}</h2>
+        <p>{t("Manage your account information and security.")}</p>
       </div>
 
       <div className="acct-info-card">
@@ -302,7 +304,7 @@ export default function SettingsClient(props: Props) {
           <div className="acct-info-header-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
           </div>
-          <div className="acct-info-header-title">Account Information</div>
+          <div className="acct-info-header-title">{t("Account Information")}</div>
         </div>
         <div className="acct-info-grid">
           <div className="acct-info-item">
@@ -310,7 +312,7 @@ export default function SettingsClient(props: Props) {
               <div className="acct-info-item-icon" style={{ background: "rgba(124,58,237,.12)", color: "#7c3aed" }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
               </div>
-              <span className="acct-info-item-label">Username</span>
+              <span className="acct-info-item-label">{t("Username")}</span>
             </div>
             <div className="acct-info-item-value">{props.username}</div>
           </div>
@@ -319,7 +321,7 @@ export default function SettingsClient(props: Props) {
               <div className="acct-info-item-icon" style={{ background: "rgba(167,139,250,.12)", color: "#a78bfa" }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
               </div>
-              <span className="acct-info-item-label">Email</span>
+              <span className="acct-info-item-label">{t("Email")}</span>
             </div>
             <div className="acct-info-item-value">{props.email}</div>
           </div>
@@ -328,7 +330,7 @@ export default function SettingsClient(props: Props) {
               <div className="acct-info-item-icon" style={{ background: "rgba(52,211,153,.12)", color: "#34d399" }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" /></svg>
               </div>
-              <span className="acct-info-item-label">User ID</span>
+              <span className="acct-info-item-label">{t("User ID")}</span>
             </div>
             <div className="acct-info-item-value">{props.userId}</div>
           </div>
@@ -343,13 +345,13 @@ export default function SettingsClient(props: Props) {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
             </div>
             <div>
-              <div className="sv2-title">Username</div>
-              <div className="sv2-sub">Currently: <strong>@{props.username}</strong></div>
+              <div className="sv2-title">{t("Username")}</div>
+              <div className="sv2-sub">{t("Currently:")}{" "}<strong>@{props.username}</strong></div>
             </div>
             {!props.canChangeUsername && (
               <span className="sv2-cooldown">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="10" height="10"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-                {props.usernameNextChange}d cooldown
+                {props.usernameNextChange}{t("d cooldown")}
               </span>
             )}
             <svg className="sv2-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><polyline points="6 9 12 15 18 9" /></svg>
@@ -358,12 +360,12 @@ export default function SettingsClient(props: Props) {
             {props.canChangeUsername ? (
               <>
                 <input type="text" className="sv2-input" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} maxLength={30} />
-                <p className="sv2-hint">3–30 characters. Letters, numbers, underscores only. Can be changed once every 7 days.</p>
-                <button className="sv2-btn sv2-btn-accent" onClick={() => requestSensitive("change_username", saveUsername)}>Save Username</button>
+                <p className="sv2-hint">{t("3–30 characters. Letters, numbers, underscores only. Can be changed once every 7 days.")}</p>
+                <button className="sv2-btn sv2-btn-accent" onClick={() => requestSensitive("change_username", saveUsername)}>{t("Save Username")}</button>
                 {usernameStatus && <div className="sv2-status" style={{ color: usernameStatus.ok ? "#34d399" : "#ff8080" }}>{usernameStatus.text}</div>}
               </>
             ) : (
-              <p className="sv2-hint">You can change your username again in <strong>{props.usernameNextChange} day{(props.usernameNextChange || 0) > 1 ? "s" : ""}</strong>.</p>
+              <p className="sv2-hint">{t("You can change your username again in")}{" "}<strong>{props.usernameNextChange} day{(props.usernameNextChange || 0) > 1 ? "s" : ""}</strong>.</p>
             )}
           </div>
         </div>
@@ -375,15 +377,15 @@ export default function SettingsClient(props: Props) {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
             </div>
             <div>
-              <div className="sv2-title">Email Address</div>
-              <div className="sv2-sub">Currently: <strong>{props.email}</strong></div>
+              <div className="sv2-title">{t("Email Address")}</div>
+              <div className="sv2-sub">{t("Currently:")}{" "}<strong>{props.email}</strong></div>
             </div>
             <svg className="sv2-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><polyline points="6 9 12 15 18 9" /></svg>
           </div>
           <div className="sv2-body">
-            <input type="email" className="sv2-input" placeholder="New email address" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
-            <input type="password" className="sv2-input" placeholder="Confirm with current password" value={emailPassword} onChange={(e) => setEmailPassword(e.target.value)} />
-            <button className="sv2-btn sv2-btn-purple" onClick={() => requestSensitive("change_email", saveEmail)}>Save Email</button>
+            <input type="email" className="sv2-input" placeholder={t("New email address")} value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
+            <input type="password" className="sv2-input" placeholder={t("Confirm with current password")} value={emailPassword} onChange={(e) => setEmailPassword(e.target.value)} />
+            <button className="sv2-btn sv2-btn-purple" onClick={() => requestSensitive("change_email", saveEmail)}>{t("Save Email")}</button>
             {emailStatus && <div className="sv2-status" style={{ color: emailStatus.ok ? "#34d399" : "#ff8080" }}>{emailStatus.text}</div>}
           </div>
         </div>
@@ -395,16 +397,16 @@ export default function SettingsClient(props: Props) {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
             </div>
             <div>
-              <div className="sv2-title">Password</div>
-              <div className="sv2-sub">Change your login password</div>
+              <div className="sv2-title">{t("Password")}</div>
+              <div className="sv2-sub">{t("Change your login password")}</div>
             </div>
             <svg className="sv2-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><polyline points="6 9 12 15 18 9" /></svg>
           </div>
           <div className="sv2-body">
-            <input type="password" className="sv2-input" placeholder="Current password" value={curPw} onChange={(e) => setCurPw(e.target.value)} />
-            <input type="password" className="sv2-input" placeholder="New password (min. 6 characters)" value={newPw} onChange={(e) => setNewPw(e.target.value)} />
-            <input type="password" className="sv2-input" placeholder="Confirm new password" value={confPw} onChange={(e) => setConfPw(e.target.value)} />
-            <button className="sv2-btn sv2-btn-green" onClick={() => requestSensitive("change_password", savePassword)}>Change Password</button>
+            <input type="password" className="sv2-input" placeholder={t("Current password")} value={curPw} onChange={(e) => setCurPw(e.target.value)} />
+            <input type="password" className="sv2-input" placeholder={t("New password (min. 6 characters)")} value={newPw} onChange={(e) => setNewPw(e.target.value)} />
+            <input type="password" className="sv2-input" placeholder={t("Confirm new password")} value={confPw} onChange={(e) => setConfPw(e.target.value)} />
+            <button className="sv2-btn sv2-btn-green" onClick={() => requestSensitive("change_password", savePassword)}>{t("Change Password")}</button>
             {pwStatus && <div className="sv2-status" style={{ color: pwStatus.ok ? "#34d399" : "#ff8080" }}>{pwStatus.text}</div>}
           </div>
         </div>
@@ -416,8 +418,8 @@ export default function SettingsClient(props: Props) {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
             </div>
             <div>
-              <div className="sv2-title">Two-Factor Authentication</div>
-              <div className="sv2-sub">{twoFaEnabled ? <span style={{ color: "#34d399" }}>✓ Enabled</span> : "Extra security for your account"}</div>
+              <div className="sv2-title">{t("Two-Factor Authentication")}</div>
+              <div className="sv2-sub">{twoFaEnabled ? <span style={{ color: "#34d399" }}>{t("✓ Enabled")}</span> : "Extra security for your account"}</div>
             </div>
             <svg className="sv2-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><polyline points="6 9 12 15 18 9" /></svg>
           </div>
@@ -426,25 +428,25 @@ export default function SettingsClient(props: Props) {
               <>
                 <div className="sv2-row">
                   <div>
-                    <div className="sv2-row-label">Google Authenticator 2FA</div>
-                    <div className="sv2-row-sub">Scan a QR code with Google Authenticator to enable 2FA.</div>
+                    <div className="sv2-row-label">{t("Google Authenticator 2FA")}</div>
+                    <div className="sv2-row-sub">{t("Scan a QR code with Google Authenticator to enable 2FA.")}</div>
                   </div>
                 </div>
                 <button className="sv2-btn sv2-btn-yellow" onClick={openSetup}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
-                  Set Up 2FA
+                  {t("Set Up 2FA")}
                 </button>
               </>
             ) : (
               <>
                 <div className="sv2-row">
                   <div>
-                    <div className="sv2-row-label" style={{ color: "#34d399" }}>2FA is active</div>
-                    <div className="sv2-row-sub">Your account is protected with Google Authenticator.</div>
+                    <div className="sv2-row-label" style={{ color: "#34d399" }}>{t("2FA is active")}</div>
+                    <div className="sv2-row-sub">{t("Your account is protected with Google Authenticator.")}</div>
                   </div>
                 </div>
-                <input type="text" className="sv2-input" placeholder="Enter 6-digit code to disable" maxLength={6} inputMode="numeric" value={disable2faCode} onChange={(e) => setDisable2faCode(e.target.value.replace(/\D/g, "").slice(0, 6))} />
-                <button className="sv2-btn sv2-btn-red" onClick={disable2fa}>Disable 2FA</button>
+                <input type="text" className="sv2-input" placeholder={t("Enter 6-digit code to disable")} maxLength={6} inputMode="numeric" value={disable2faCode} onChange={(e) => setDisable2faCode(e.target.value.replace(/\D/g, "").slice(0, 6))} />
+                <button className="sv2-btn sv2-btn-red" onClick={disable2fa}>{t("Disable 2FA")}</button>
               </>
             )}
             {status2fa && <div className="sv2-status" style={{ color: status2fa.ok ? "#34d399" : "#ff8080" }}>{status2fa.text}</div>}
@@ -458,15 +460,15 @@ export default function SettingsClient(props: Props) {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><circle cx="8" cy="8" r="3" /><path d="M3 12h18" /><circle cx="16" cy="16" r="3" /></svg>
             </div>
             <div>
-              <div className="sv2-title">Session Manager</div>
-              <div className="sv2-sub">Manage your active login sessions.</div>
+              <div className="sv2-title">{t("Session Manager")}</div>
+              <div className="sv2-sub">{t("Manage your active login sessions.")}</div>
             </div>
             <svg className="sv2-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><polyline points="6 9 12 15 18 9" /></svg>
           </div>
           <div className="sv2-body">
             <div className="session-list">
               {props.loginSessions.length === 0 ? (
-                <div className="session-empty">No login sessions found.</div>
+                <div className="session-empty">{t("No login sessions found.")}</div>
               ) : (
                 props.loginSessions.map((sess, i) => {
                   const when = new Date(sess.loggedAt);
@@ -482,7 +484,7 @@ export default function SettingsClient(props: Props) {
                           {whenStr}
                         </div>
                       </div>
-                      {i === 0 && <div className="session-badge">Current Session</div>}
+                      {i === 0 && <div className="session-badge">{t("Current Session")}</div>}
                     </div>
                   );
                 })
@@ -498,17 +500,17 @@ export default function SettingsClient(props: Props) {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
             </div>
             <div>
-              <div className="sv2-title">Leaderboard Region</div>
-              <div className="sv2-sub">Choose your country for the local leaderboard</div>
+              <div className="sv2-title">{t("Leaderboard Region")}</div>
+              <div className="sv2-sub">{t("Choose your country for the local leaderboard")}</div>
             </div>
             <svg className="sv2-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><polyline points="6 9 12 15 18 9" /></svg>
           </div>
           <div className="sv2-body">
             <p style={{ fontSize: ".82rem", color: "var(--text-muted)", lineHeight: 1.5 }}>
-              Select your country to appear on the <strong style={{ color: "var(--text)" }}>local leaderboard</strong>. This is based on where you are from, not where your visitors come from.
+              {t("Select your country to appear on the")}{" "}<strong style={{ color: "var(--text)" }}>{t("local leaderboard")}</strong>{t(". This is based on where you are from, not where your visitors come from.")}
             </p>
             <div style={{ fontSize: ".82rem", color: "var(--text-muted)", marginBottom: ".25rem" }}>
-              {currentRegionLabel ? <>Current region: <strong style={{ color: "var(--text)" }}>{currentRegionLabel}</strong></> : "No region set yet."}
+              {currentRegionLabel ? <>{t("Current region:")}{" "}<strong style={{ color: "var(--text)" }}>{currentRegionLabel}</strong></> : "No region set yet."}
             </div>
 
             <div className="region-dd-wrap" ref={regionWrapRef}>
@@ -520,7 +522,7 @@ export default function SettingsClient(props: Props) {
                 <div className="region-dd-list">
                   <div className="region-dd-search-wrap">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="13" height="13" style={{ color: "rgba(255,255,255,.3)", flexShrink: 0 }}><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-                    <input type="text" className="region-dd-search" placeholder="Search country…" value={regionSearch} onChange={(e) => setRegionSearch(e.target.value)} autoComplete="off" />
+                    <input type="text" className="region-dd-search" placeholder={t("Search country…")} value={regionSearch} onChange={(e) => setRegionSearch(e.target.value)} autoComplete="off" />
                   </div>
                   <div className="region-dd-options">
                     {filteredCountries.map(([code, name]) => (
@@ -535,7 +537,7 @@ export default function SettingsClient(props: Props) {
 
             <button className="sv2-btn" onClick={saveRegion} style={{ background: "linear-gradient(135deg,rgba(167,139,250,.3),rgba(167,139,250,.1))", border: "1px solid rgba(167,139,250,.35)", color: "#a78bfa" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
-              Save Region
+              {t("Save Region")}
             </button>
             {regionMsg && <div style={{ fontSize: ".8rem", color: regionMsg.ok ? "#34d399" : "#ff8080" }} dangerouslySetInnerHTML={{ __html: regionMsg.html }} />}
           </div>
@@ -548,8 +550,8 @@ export default function SettingsClient(props: Props) {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6M14 11v6M9 6V4h6v2" /></svg>
             </div>
             <div>
-              <div className="sv2-title" style={{ color: "#ff8080" }}>Delete Account</div>
-              <div className="sv2-sub">Permanent and cannot be undone</div>
+              <div className="sv2-title" style={{ color: "#ff8080" }}>{t("Delete Account")}</div>
+              <div className="sv2-sub">{t("Permanent and cannot be undone")}</div>
             </div>
             <svg className="sv2-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><polyline points="6 9 12 15 18 9" /></svg>
           </div>
@@ -560,16 +562,16 @@ export default function SettingsClient(props: Props) {
                   <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#ff8080" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M22 7l-10 7L2 7" /></svg>
                 </div>
                 <div>
-                  <div style={{ fontSize: ".83rem", fontWeight: 600, color: "#ff8080", marginBottom: ".3rem" }}>Confirmation email sent</div>
-                  <div style={{ fontSize: ".78rem", color: "var(--text-muted)", lineHeight: 1.6 }}>Check your inbox and click the link to <strong style={{ color: "#ff9090" }}>permanently delete</strong> your account. Link expires in <strong style={{ color: "var(--text)" }}>1 hour</strong>.</div>
+                  <div style={{ fontSize: ".83rem", fontWeight: 600, color: "#ff8080", marginBottom: ".3rem" }}>{t("Confirmation email sent")}</div>
+                  <div style={{ fontSize: ".78rem", color: "var(--text-muted)", lineHeight: 1.6 }}>{t("Check your inbox and click the link to")}{" "}<strong style={{ color: "#ff9090" }}>{t("permanently delete")}</strong>{" "}{t("your account. Link expires in")}{" "}<strong style={{ color: "var(--text)" }}>{t("1 hour")}</strong>.</div>
                 </div>
               </div>
             ) : (
               <>
-                <input type="password" className="sv2-input danger" placeholder="Enter your password to confirm" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} />
+                <input type="password" className="sv2-input danger" placeholder={t("Enter your password to confirm")} value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} />
                 <button className="sv2-btn sv2-btn-red" onClick={confirmDelete}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /></svg>
-                  Delete My Account Permanently
+                  {t("Delete My Account Permanently")}
                 </button>
               </>
             )}
@@ -585,8 +587,8 @@ export default function SettingsClient(props: Props) {
             <div style={{ width: 60, height: 60, borderRadius: "50%", background: "rgba(251,191,36,.15)", border: "2px solid rgba(251,191,36,.35)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto .9rem" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="1.8" width="26" height="26"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
             </div>
-            <div className="sv2-modal-title" style={{ color: "#fbbf24" }}>Two-Factor Auth</div>
-            <div className="sv2-modal-sub" style={{ marginBottom: "1.1rem" }}>Open Google Authenticator and enter the 6-digit code for your account.</div>
+            <div className="sv2-modal-title" style={{ color: "#fbbf24" }}>{t("Two-Factor Auth")}</div>
+            <div className="sv2-modal-sub" style={{ marginBottom: "1.1rem" }}>{t("Open Google Authenticator and enter the 6-digit code for your account.")}</div>
             <input
               type="text"
               className="sv2-input"
@@ -599,10 +601,10 @@ export default function SettingsClient(props: Props) {
               onKeyDown={(e) => e.key === "Enter" && submitVerify()}
               autoFocus
             />
-            <button className="sv2-btn sv2-btn-yellow" style={{ marginTop: ".85rem" }} onClick={submitVerify}>Verify Code</button>
+            <button className="sv2-btn sv2-btn-yellow" style={{ marginTop: ".85rem" }} onClick={submitVerify}>{t("Verify Code")}</button>
             {verifyStatus && <div className="sv2-status" style={{ textAlign: "center", marginTop: ".6rem", color: verifyStatus.ok ? "#34d399" : "#ff8080" }}>{verifyStatus.text}</div>}
             <div style={{ marginTop: ".85rem" }}>
-              <a href="#" onClick={(e) => { e.preventDefault(); setVerifyOpen(false); }} style={{ fontSize: ".75rem", color: "var(--text-muted)", textDecoration: "none" }}>← Cancel</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); setVerifyOpen(false); }} style={{ fontSize: ".75rem", color: "var(--text-muted)", textDecoration: "none" }}>{t("← Cancel")}</a>
             </div>
           </div>
         </div>
@@ -613,31 +615,31 @@ export default function SettingsClient(props: Props) {
         <div className="sv2-modal-overlay">
           <div className="sv2-modal">
             <button className="sv2-modal-close" onClick={() => setSetupOpen(false)}>✕</button>
-            <div className="sv2-modal-title">Set Up 2FA</div>
-            <div className="sv2-modal-sub">Scan this QR code with Google Authenticator, then enter the 6-digit code to confirm.</div>
+            <div className="sv2-modal-title">{t("Set Up 2FA")}</div>
+            <div className="sv2-modal-sub">{t("Scan this QR code with Google Authenticator, then enter the 6-digit code to confirm.")}</div>
             {!qrDataUrl ? (
-              <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "2rem", fontSize: ".8rem" }}>Generating QR code...</div>
+              <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "2rem", fontSize: ".8rem" }}>{t("Generating QR code...")}</div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem", alignItems: "center" }}>
                 <div className="sv2-qr-wrap">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={qrDataUrl} alt="2FA QR code" />
+                  <img src={qrDataUrl} alt={t("2FA QR code")} />
                 </div>
                 <p style={{ fontSize: ".72rem", color: "var(--text-muted)", textAlign: "center" }}>
-                  Can&apos;t scan? Enter this key manually:<br />
+                  {t("Can't scan? Enter this key manually:")}<br />
                   <code style={{ color: "var(--accent)", letterSpacing: ".1em", fontSize: ".8rem" }}>{props.twofaSecret}</code>
                 </p>
                 <input
                   type="text"
                   className="sv2-input"
-                  placeholder="Enter 6-digit code from app"
+                  placeholder={t("Enter 6-digit code from app")}
                   maxLength={6}
                   inputMode="numeric"
                   style={{ textAlign: "center", letterSpacing: ".2em", fontSize: "1.1rem" }}
                   value={setupCode}
                   onChange={(e) => setSetupCode(e.target.value.replace(/\D/g, ""))}
                 />
-                <button className="sv2-btn sv2-btn-yellow" style={{ width: "100%" }} onClick={confirmSetup}>Confirm &amp; Enable 2FA</button>
+                <button className="sv2-btn sv2-btn-yellow" style={{ width: "100%" }} onClick={confirmSetup}>{t("Confirm & Enable 2FA")}</button>
                 {setupStatus && <div className="sv2-status" style={{ textAlign: "center", color: setupStatus.ok ? "#34d399" : "#ff8080" }}>{setupStatus.text}</div>}
               </div>
             )}

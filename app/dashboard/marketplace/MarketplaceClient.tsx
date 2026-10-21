@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { showToast } from "@/lib/toast";
 import EffectText from "@/components/EffectText";
+import { useT } from "@/lib/i18n/client";
 
 type Theme = {
   id: number;
@@ -61,12 +62,14 @@ function ThemePreview({ theme }: { theme: Theme }) {
 }
 
 function PreviewButton({ themeId, profileSlug }: { themeId: number; profileSlug: string }) {
+  const t = useT();
   return (
-    <a className="int-btn int-btn-manage" href={`/${profileSlug}?previewTheme=${themeId}`} target="_blank" rel="noopener">Preview</a>
+    <a className="int-btn int-btn-manage" href={`/${profileSlug}?previewTheme=${themeId}`} target="_blank" rel="noopener">{t("Preview")}</a>
   );
 }
 
 function ThemeCard({ theme, onChange, tokens, profileSlug }: { theme: Theme; onChange: () => void; tokens: number; profileSlug: string }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
 
   async function buy() {
@@ -81,7 +84,7 @@ function ThemeCard({ theme, onChange, tokens, profileSlug }: { theme: Theme; onC
       if (j.success) { showToast(`"${theme.name}" purchased!`, "success"); onChange(); }
       else showToast(j.error || "Error", "error");
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
     } finally {
       setBusy(false);
     }
@@ -99,7 +102,7 @@ function ThemeCard({ theme, onChange, tokens, profileSlug }: { theme: Theme; onC
       if (j.success) showToast(`"${theme.name}" applied to your profile!`, "success");
       else showToast(j.error || "Error", "error");
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
     } finally {
       setBusy(false);
     }
@@ -110,12 +113,12 @@ function ThemeCard({ theme, onChange, tokens, profileSlug }: { theme: Theme; onC
       <ThemePreview theme={theme} />
       <div className="theme-card-body">
         <div className="theme-card-name">{theme.name}</div>
-        <div className="theme-card-creator">by @{theme.creatorUsername} · {theme.purchaseCount} sold</div>
+        <div className="theme-card-creator">{t("by @")}{theme.creatorUsername} · {theme.purchaseCount} sold</div>
         {theme.description && <p className="theme-card-desc">{theme.description}</p>}
         <div className="theme-card-footer">
           <PreviewButton themeId={theme.id} profileSlug={profileSlug} />
           {theme.owned ? (
-            <button className="int-btn int-btn-manage" onClick={apply} disabled={busy}>Apply</button>
+            <button className="int-btn int-btn-manage" onClick={apply} disabled={busy}>{t("Apply")}</button>
           ) : (
             <button className="int-btn int-btn-primary" style={{ ["--int-color" as string]: "#7c3aed" }} onClick={buy} disabled={busy || tokens < theme.price}>
               {busy ? "…" : `Buy — ${theme.price} tokens`}
@@ -128,6 +131,7 @@ function ThemeCard({ theme, onChange, tokens, profileSlug }: { theme: Theme; onC
 }
 
 function PublishModal({ onClose, onPublished }: { onClose: () => void; onPublished: () => void }) {
+  const t = useT();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState(150);
@@ -163,14 +167,14 @@ function PublishModal({ onClose, onPublished }: { onClose: () => void; onPublish
     <div onClick={(e) => e.target === e.currentTarget && onClose()} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
       <div style={{ background: "#13131a", border: "1px solid rgba(255,255,255,.1)", borderRadius: 16, padding: "1.5rem", width: "min(420px,95vw)", position: "relative" }}>
         <button onClick={onClose} style={{ position: "absolute", top: ".9rem", right: ".9rem", background: "rgba(255,255,255,.06)", border: "none", color: "#aaa", width: 28, height: 28, borderRadius: "50%", cursor: "pointer" }}>✕</button>
-        <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "#fff" }}>Publish your current look as a Theme</div>
-        <div style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.1rem" }}>Snapshots your colors, effects, font, layout &amp; player style. You earn 50% of every sale in tokens.</div>
+        <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "#fff" }}>{t("Publish your current look as a Theme")}</div>
+        <div style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.1rem" }}>{t("Snapshots your colors, effects, font, layout & player style. You earn 50% of every sale in tokens.")}</div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: ".7rem" }}>
-          <input className="form-control" placeholder="Theme name" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} />
-          <textarea className="form-control" placeholder="Short description (optional)" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={300} />
+          <input className="form-control" placeholder={t("Theme name")} value={name} onChange={(e) => setName(e.target.value)} maxLength={60} />
+          <textarea className="form-control" placeholder={t("Short description (optional)")} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={300} />
           <div>
-            <label style={{ fontSize: ".75rem", color: "var(--text-muted)", display: "block", marginBottom: ".3rem" }}>Price: {price} tokens</label>
+            <label style={{ fontSize: ".75rem", color: "var(--text-muted)", display: "block", marginBottom: ".3rem" }}>{t("Price:")}{" "}{price} tokens</label>
             <input type="range" min={50} max={2000} step={10} value={price} onChange={(e) => setPrice(parseInt(e.target.value, 10))} style={{ width: "100%", accentColor: "var(--accent)" }} />
           </div>
         </div>
@@ -184,6 +188,7 @@ function PublishModal({ onClose, onPublished }: { onClose: () => void; onPublish
 }
 
 export default function MarketplaceClient({ tokens: initialTokens, profileSlug }: { tokens: number; username: string; profileSlug: string }) {
+  const t = useT();
   const [tab, setTab] = useState<"browse" | "mine">("browse");
   const [themes, setThemes] = useState<Theme[]>([]);
   const [myThemes, setMyThemes] = useState<Theme[]>([]);
@@ -216,14 +221,14 @@ export default function MarketplaceClient({ tokens: initialTokens, profileSlug }
   }
 
   async function unpublish(id: number) {
-    if (!confirm("Unpublish this theme? It will no longer be sold, but past buyers keep it.")) return;
+    if (!confirm(t("Unpublish this theme? It will no longer be sold, but past buyers keep it."))) return;
     const res = await fetch("/api/marketplace", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "unpublish", themeId: id }),
     });
     const j = await res.json();
-    if (j.success) { showToast("Theme unpublished.", "success"); loadMine(); loadBrowse(); }
+    if (j.success) { showToast(t("Theme unpublished."), "success"); loadMine(); loadBrowse(); }
     else showToast(j.error || "Error", "error");
   }
 
@@ -231,41 +236,41 @@ export default function MarketplaceClient({ tokens: initialTokens, profileSlug }
     <>
       <div className="section-header" style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
         <div>
-          <h2>Theme Marketplace</h2>
-          <p>Buy and sell profile themes with other creators — earn 50% of every sale in tokens</p>
+          <h2>{t("Theme Marketplace")}</h2>
+          <p>{t("Buy and sell profile themes with other creators — earn 50% of every sale in tokens")}</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setPublishOpen(true)}>+ Publish current look</button>
+        <button className="btn btn-primary" onClick={() => setPublishOpen(true)}>{t("+ Publish current look")}</button>
       </div>
 
       <div style={{ display: "flex", gap: ".5rem", marginBottom: "1.5rem" }}>
-        <button className={`lb-tab-btn ${tab === "browse" ? "active" : ""}`} onClick={() => setTab("browse")}>Browse</button>
-        <button className={`lb-tab-btn ${tab === "mine" ? "active" : ""}`} onClick={() => setTab("mine")}>My Themes ({myThemes.length})</button>
+        <button className={`lb-tab-btn ${tab === "browse" ? "active" : ""}`} onClick={() => setTab("browse")}>{t("Browse")}</button>
+        <button className={`lb-tab-btn ${tab === "mine" ? "active" : ""}`} onClick={() => setTab("mine")}>{t("My Themes (")}{myThemes.length})</button>
       </div>
 
       {!loading && tab === "browse" && (
         themes.length === 0 ? (
-          <p style={{ color: "var(--text-muted)", fontSize: ".85rem" }}>No themes published yet — be the first!</p>
+          <p style={{ color: "var(--text-muted)", fontSize: ".85rem" }}>{t("No themes published yet — be the first!")}</p>
         ) : (
           <div className="theme-grid">
-            {themes.map((t) => <ThemeCard key={t.id} theme={t} onChange={refreshAll} tokens={tokens} profileSlug={profileSlug} />)}
+            {themes.map((th) => <ThemeCard key={th.id} theme={th} onChange={refreshAll} tokens={tokens} profileSlug={profileSlug} />)}
           </div>
         )
       )}
 
       {!loading && tab === "mine" && (
         myThemes.length === 0 ? (
-          <p style={{ color: "var(--text-muted)", fontSize: ".85rem" }}>You haven&apos;t published any themes yet.</p>
+          <p style={{ color: "var(--text-muted)", fontSize: ".85rem" }}>{t("You haven't published any themes yet.")}</p>
         ) : (
           <div className="theme-grid">
-            {myThemes.map((t) => (
-              <div className="theme-card" key={t.id}>
-                <ThemePreview theme={t} />
+            {myThemes.map((th) => (
+              <div className="theme-card" key={th.id}>
+                <ThemePreview theme={th} />
                 <div className="theme-card-body">
-                  <div className="theme-card-name">{t.name}</div>
-                  <div className="theme-card-creator">{t.purchaseCount} sold · {t.purchaseCount * Math.floor(t.price / 2)} tokens earned</div>
+                  <div className="theme-card-name">{th.name}</div>
+                  <div className="theme-card-creator">{t("{sold} sold · {earned} tokens earned", { sold: th.purchaseCount, earned: th.purchaseCount * Math.floor(th.price / 2) })}</div>
                   <div className="theme-card-footer">
-                    <PreviewButton themeId={t.id} profileSlug={profileSlug} />
-                    <button className="int-btn int-btn-danger" onClick={() => unpublish(t.id)}>Unpublish</button>
+                    <PreviewButton themeId={th.id} profileSlug={profileSlug} />
+                    <button className="int-btn int-btn-danger" onClick={() => unpublish(th.id)}>{t("Unpublish")}</button>
                   </div>
                 </div>
               </div>

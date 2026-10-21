@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { showToast } from "@/lib/toast";
+import { useT } from "@/lib/i18n/client";
 
 export default function RedeemCodeCard() {
+  const t = useT();
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -26,7 +28,7 @@ export default function RedeemCodeCard() {
         showToast(j.error || "Invalid code", "error");
       }
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
     } finally {
       setBusy(false);
     }
@@ -36,14 +38,14 @@ export default function RedeemCodeCard() {
 
   return (
     <div className="dash-card redeem-card" style={{ marginTop: "1.5rem" }}>
-      <button type="button" className="redeem-dismiss" onClick={() => setDismissed(true)} aria-label="Dismiss">✕</button>
+      <button type="button" className="redeem-dismiss" onClick={() => setDismissed(true)} aria-label={t("Dismiss")}>✕</button>
       <div className="redeem-card-head">
         <div className="redeem-card-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 12 20 22 4 22 4 12" /><rect x="2" y="7" width="20" height="5" /><line x1="12" y1="22" x2="12" y2="7" /><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" /><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" /></svg>
         </div>
         <div>
-          <div className="redeem-card-title">Redeem a code</div>
-          <div className="redeem-card-sub">Enter your gift code below</div>
+          <div className="redeem-card-title">{t("Redeem a code")}</div>
+          <div className="redeem-card-sub">{t("Enter your gift code below")}</div>
         </div>
       </div>
       <div className="redeem-form-row">
@@ -52,7 +54,7 @@ export default function RedeemCodeCard() {
           <input
             type="text"
             className="form-control"
-            placeholder="e.g. WELCOME-2025"
+            placeholder={t("e.g. WELCOME-2025")}
             value={code}
             onChange={(e) => setCode(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && redeem()}

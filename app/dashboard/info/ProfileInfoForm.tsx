@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { showToast } from "@/lib/toast";
+import { useT } from "@/lib/i18n/client";
 
 const FONTS = ["Syne", "Outfit", "Space Mono", "Rajdhani", "Orbitron", "Bebas Neue", "Exo 2", "Josefin Sans"];
 const LAYOUT_TEMPLATES = ["classic", "editorial", "terminal", "banner", "compact", "aurora", "cinematic", "dossier"] as const;
@@ -32,9 +33,18 @@ type Props = {
   nameColor: string;
   bioColor: string;
   overlayColor: string;
+  /** Editor mode: render exactly these sections (visuals, audio, profile, colors, fonts, bg, template) instead of tab/sub. */
+  sections?: string[];
+  /** Editor mode: reports unsaved field values so the live preview can show them. */
+  onDraftChange?: (draft: Record<string, string>) => void;
+  /** Editor mode: lets the page header drive saving instead of the floating unsaved bar. */
+  onSaveStateChange?: (state: { dirty: boolean; saving: boolean; save: () => void; reset: () => void }) => void;
 };
 
+export type { Props as ProfileInfoFormProps };
+
 export default function ProfileInfoForm(props: Props) {
+  const t = useT();
   const [avatar, setAvatar] = useState(props.avatar);
   const [banner, setBanner] = useState(props.banner);
   const [bgType, setBgType] = useState(props.backgroundType);
@@ -149,7 +159,7 @@ export default function ProfileInfoForm(props: Props) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
-      showToast("Max 5MB", "error");
+      showToast(t("Max 5MB"), "error");
       return;
     }
     setAvatarUploading(true);
@@ -161,12 +171,12 @@ export default function ProfileInfoForm(props: Props) {
       const j = await res.json();
       if (j.success) {
         setAvatar(j.path);
-        showToast("Avatar updated!", "success");
+        showToast(t("Avatar updated!"), "success");
       } else {
         showToast(j.error || "Upload failed", "error");
       }
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
     } finally {
       setAvatarUploading(false);
       if (avatarInputRef.current) avatarInputRef.current.value = "";
@@ -181,10 +191,10 @@ export default function ProfileInfoForm(props: Props) {
       const j = await r.json();
       if (j.success) {
         setAvatar(null);
-        showToast("Avatar removed!", "success");
+        showToast(t("Avatar removed!"), "success");
       } else showToast(j.error || "Error", "error");
     } catch {
-      showToast("Delete error", "error");
+      showToast(t("Delete error"), "error");
     }
   }
 
@@ -192,7 +202,7 @@ export default function ProfileInfoForm(props: Props) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 8 * 1024 * 1024) {
-      showToast("Max 8MB", "error");
+      showToast(t("Max 8MB"), "error");
       return;
     }
     setBannerUploading(true);
@@ -204,12 +214,12 @@ export default function ProfileInfoForm(props: Props) {
       const j = await res.json();
       if (j.success) {
         setBanner(j.path);
-        showToast("Banner updated!", "success");
+        showToast(t("Banner updated!"), "success");
       } else {
         showToast(j.error || "Upload failed", "error");
       }
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
     } finally {
       setBannerUploading(false);
       if (bannerInputRef.current) bannerInputRef.current.value = "";
@@ -224,10 +234,10 @@ export default function ProfileInfoForm(props: Props) {
       const j = await r.json();
       if (j.success) {
         setBanner(null);
-        showToast("Banner removed!", "success");
+        showToast(t("Banner removed!"), "success");
       } else showToast(j.error || "Error", "error");
     } catch {
-      showToast("Delete error", "error");
+      showToast(t("Delete error"), "error");
     }
   }
 
@@ -235,7 +245,7 @@ export default function ProfileInfoForm(props: Props) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 100 * 1024 * 1024) {
-      showToast("Max 100MB", "error");
+      showToast(t("Max 100MB"), "error");
       return;
     }
     setBgUploading(true);
@@ -248,12 +258,12 @@ export default function ProfileInfoForm(props: Props) {
       if (j.success) {
         setBgType(file.type === "video/mp4" || file.type === "video/webm" ? "video" : "image");
         setBgValue(j.path);
-        showToast("Background updated!", "success");
+        showToast(t("Background updated!"), "success");
       } else {
         showToast(j.error || "Upload failed", "error");
       }
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
     } finally {
       setBgUploading(false);
       if (bgInputRef.current) bgInputRef.current.value = "";
@@ -269,10 +279,10 @@ export default function ProfileInfoForm(props: Props) {
       if (j.success) {
         setBgType("particles");
         setBgValue("#050507");
-        showToast("Background removed!", "success");
+        showToast(t("Background removed!"), "success");
       } else showToast(j.error || "Error", "error");
     } catch {
-      showToast("Delete error", "error");
+      showToast(t("Delete error"), "error");
     }
   }
 
@@ -280,7 +290,7 @@ export default function ProfileInfoForm(props: Props) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 20 * 1024 * 1024) {
-      showToast("Max 20MB for audio files.", "error");
+      showToast(t("Max 20MB for audio files."), "error");
       return;
     }
     setMusicUploading(slot);
@@ -293,12 +303,12 @@ export default function ProfileInfoForm(props: Props) {
       const j = await res.json();
       if (j.success) {
         setMusicTracks((t) => { const n = [...t]; n[slot - 1] = j.path; return n; });
-        showToast("Track uploaded!", "success");
+        showToast(t("Track uploaded!"), "success");
       } else {
         showToast(j.error || "Upload failed", "error");
       }
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
     } finally {
       setMusicUploading(null);
       const ref = musicInputRefs[slot - 1].current;
@@ -315,10 +325,10 @@ export default function ProfileInfoForm(props: Props) {
       const j = await r.json();
       if (j.success) {
         setMusicTracks((t) => { const n = [...t]; n[slot - 1] = null; return n; });
-        showToast("Track removed!", "success");
+        showToast(t("Track removed!"), "success");
       } else showToast(j.error || "Error", "error");
     } catch {
-      showToast("Delete error", "error");
+      showToast(t("Delete error"), "error");
     }
   }
 
@@ -328,11 +338,11 @@ export default function ProfileInfoForm(props: Props) {
 
   async function selectLayoutTemplate(tpl: string) {
     if (PREMIUM_LAYOUT_TEMPLATES.includes(tpl as (typeof PREMIUM_LAYOUT_TEMPLATES)[number]) && !props.isPremium) {
-      showToast("This layout is an Infected Plus feature.", "error");
+      showToast(t("This layout is an Infected Plus feature."), "error");
       return;
     }
     if (!LAYOUT_TEMPLATES.includes(tpl as (typeof LAYOUT_TEMPLATES)[number])) {
-      showToast("Invalid layout.", "error");
+      showToast(t("Invalid layout."), "error");
       return;
     }
     setLayoutTemplate(tpl);
@@ -342,7 +352,7 @@ export default function ProfileInfoForm(props: Props) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      showToast("Max 2MB for cursor.", "error");
+      showToast(t("Max 2MB for cursor."), "error");
       return;
     }
     setCursorUploading(true);
@@ -354,12 +364,12 @@ export default function ProfileInfoForm(props: Props) {
       const j = await res.json();
       if (j.success) {
         setCursorPath(j.path);
-        showToast("Cursor uploaded!", "success");
+        showToast(t("Cursor uploaded!"), "success");
       } else {
         showToast(j.error || "Upload failed", "error");
       }
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
     } finally {
       setCursorUploading(false);
       if (cursorInputRef.current) cursorInputRef.current.value = "";
@@ -374,10 +384,10 @@ export default function ProfileInfoForm(props: Props) {
       const j = await r.json();
       if (j.success) {
         setCursorPath(null);
-        showToast("Cursor removed!", "success");
+        showToast(t("Cursor removed!"), "success");
       } else showToast(j.error || "Error", "error");
     } catch {
-      showToast("Delete error", "error");
+      showToast(t("Delete error"), "error");
     }
   }
 
@@ -406,18 +416,37 @@ export default function ProfileInfoForm(props: Props) {
       const res = await fetch("/api/update_profile", { method: "POST", body: fd });
       const j = await res.json();
       if (j.success) {
-        showToast("Profile saved!", "success");
+        showToast(t("Profile saved!"), "success");
         original.current = { displayName, location, job, birthDate, bio, font, playlistStyle, layoutTemplate, opacity, blur, accentColor, backgroundColor, nameColor, bioColor, overlayColor };
         checkDirty();
       } else {
         showToast(j.error || "Error", "error");
       }
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
     } finally {
       setSaving(false);
     }
   }
+
+  function show(section: string) {
+    return props.sections ? props.sections.includes(section) : props.sub === section;
+  }
+
+  const { onDraftChange, onSaveStateChange } = props;
+  useEffect(() => {
+    onDraftChange?.({ displayName, bio, location, job, layoutTemplate, playlistStyle, accentColor, backgroundColor, nameColor, bioColor, overlayColor });
+  }, [onDraftChange, displayName, bio, location, job, layoutTemplate, playlistStyle, accentColor, backgroundColor, nameColor, bioColor, overlayColor]);
+
+  const saveRef = useRef(save);
+  const resetRef = useRef(reset);
+  useEffect(() => {
+    saveRef.current = save;
+    resetRef.current = reset;
+  });
+  useEffect(() => {
+    onSaveStateChange?.({ dirty, saving, save: () => saveRef.current(), reset: () => resetRef.current() });
+  }, [onSaveStateChange, dirty, saving]);
 
   function reset() {
     const o = original.current;
@@ -440,27 +469,27 @@ export default function ProfileInfoForm(props: Props) {
 
   return (
     <>
-      {props.tab === "media" && props.sub === "visuals" && (
+      {show("visuals") && (
         <div className="dash-card">
-          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: ".25rem" }}>Visuals</h3>
-          <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>Avatar, background and banner</p>
+          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: ".25rem" }}>{t("Visuals")}</h3>
+          <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>{t("Avatar, background and banner")}</p>
           <div className="visuals-grid">
             <div className="visuals-col">
-              <label className="visuals-label">Avatar</label>
+              <label className="visuals-label">{t("Avatar")}</label>
               <div className="upload-card upload-card--plain">
-                {avatar && <button type="button" className="upload-clear-btn" onClick={clearAvatar} title="Remove avatar">✕</button>}
+                {avatar && <button type="button" className="upload-clear-btn" onClick={clearAvatar} title={t("Remove avatar")}>✕</button>}
                 <div className="upload-zone upload-zone--square" onClick={() => avatarInputRef.current?.click()}>
                   {avatar ? (
                     <>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={`/${avatar}`} className="upload-preview-img" onError={(e) => { (e.target as HTMLImageElement).src = "/assets/img/default-avatar.png"; }} alt="" />
-                      <span className="upload-badge">IMG</span>
+                      <span className="upload-badge">{t("IMG")}</span>
                     </>
                   ) : (
                     <div className="upload-placeholder">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="30" height="30"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                       <span>{avatarUploading ? "Uploading…" : "Upload avatar"}</span>
-                      <span className="upload-hint">jpg · png · gif · 10MB</span>
+                      <span className="upload-hint">{t("jpg · png · gif · 10MB")}</span>
                     </div>
                   )}
                 </div>
@@ -469,49 +498,49 @@ export default function ProfileInfoForm(props: Props) {
             </div>
 
             <div className="visuals-col">
-              <label className="visuals-label">Background</label>
+              <label className="visuals-label">{t("Background")}</label>
               <div className="upload-card upload-card--plain">
-                {["image", "video"].includes(bgType) && bgValue && <button type="button" className="upload-clear-btn" onClick={clearBackground} title="Remove background">✕</button>}
+                {["image", "video"].includes(bgType) && bgValue && <button type="button" className="upload-clear-btn" onClick={clearBackground} title={t("Remove background")}>✕</button>}
                 <div className="upload-zone upload-zone--wide" onClick={() => bgInputRef.current?.click()}>
                   {bgType === "image" && bgValue ? (
                     <>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={`/${bgValue}`} className="upload-preview-img" alt="" />
-                      <span className="upload-badge">IMG</span>
+                      <span className="upload-badge">{t("IMG")}</span>
                     </>
                   ) : bgType === "video" && bgValue ? (
                     <>
                       <video className="upload-preview-img" autoPlay muted loop playsInline style={{ display: "block", background: "#000" }}>
                         <source src={`/${bgValue}`} />
                       </video>
-                      <span className="upload-badge">MP4</span>
+                      <span className="upload-badge">{t("MP4")}</span>
                     </>
                   ) : (
                     <div className="upload-placeholder">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="30" height="30"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
                       <span>{bgUploading ? "Uploading…" : "Upload background"}</span>
-                      <span className="upload-hint">img · mp4 · webm · 100MB</span>
+                      <span className="upload-hint">{t("img · mp4 · webm · 100MB")}</span>
                     </div>
                   )}
                 </div>
                 <input ref={bgInputRef} type="file" accept="image/*,video/mp4,video/webm" style={{ display: "none" }} onChange={handleBgChange} />
               </div>
 
-              <label className="visuals-label" style={{ marginTop: "1.1rem" }}>Banner</label>
+              <label className="visuals-label" style={{ marginTop: "1.1rem" }}>{t("Banner")}</label>
               <div className="upload-card upload-card--plain">
-                {banner && <button type="button" className="upload-clear-btn" onClick={clearBanner} title="Remove banner">✕</button>}
+                {banner && <button type="button" className="upload-clear-btn" onClick={clearBanner} title={t("Remove banner")}>✕</button>}
                 <div className="upload-zone upload-zone--wide" onClick={() => bannerInputRef.current?.click()}>
                   {banner ? (
                     <>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={`/${banner}`} className="upload-preview-img" alt="" />
-                      <span className="upload-badge">IMG</span>
+                      <span className="upload-badge">{t("IMG")}</span>
                     </>
                   ) : (
                     <div className="upload-placeholder">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="30" height="30"><rect x="3" y="3" width="18" height="12" rx="2" /><path d="M3 11l4-3 5 4 5-3 4 3" /></svg>
                       <span>{bannerUploading ? "Uploading…" : "Upload banner"}</span>
-                      <span className="upload-hint">jpg · png · webp · 10MB</span>
+                      <span className="upload-hint">{t("jpg · png · webp · 10MB")}</span>
                     </div>
                   )}
                 </div>
@@ -522,13 +551,13 @@ export default function ProfileInfoForm(props: Props) {
         </div>
       )}
 
-      {props.tab === "media" && props.sub === "audio" && (
+      {show("audio") && (
         <div className="dash-card">
-          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: ".25rem" }}>Audio &amp; Cursor</h3>
-          <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>Background music, playlist tracks and custom cursor</p>
+          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: ".25rem" }}>{t("Audio & Cursor")}</h3>
+          <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>{t("Background music, playlist tracks and custom cursor")}</p>
 
           <div className="form-group" style={{ marginBottom: "1.25rem" }}>
-            <label>Playlist Style</label>
+            <label>{t("Playlist Style")}</label>
             <div className="playlist-style-grid">
               {[
                 { id: "glow", label: "Glow" },
@@ -549,15 +578,15 @@ export default function ProfileInfoForm(props: Props) {
                 <div className="upload-card" key={slot}>
                   <div className="upload-card-header">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
-                    <div><div className="upload-card-title">Profile Track</div><div className="upload-card-sub">Plays on your profile</div></div>
-                    {trackPath && <button type="button" className="upload-clear-btn" onClick={() => deleteMusicTrack(slot)} title="Remove track">✕</button>}
+                    <div><div className="upload-card-title">{t("Profile Track")}</div><div className="upload-card-sub">{t("Plays on your profile")}</div></div>
+                    {trackPath && <button type="button" className="upload-clear-btn" onClick={() => deleteMusicTrack(slot)} title={t("Remove track")}>✕</button>}
                   </div>
                   <div className="upload-zone" style={{ cursor: "pointer" }} onClick={() => musicInputRefs[slot - 1].current?.click()}>
                     {trackPath ? (
                       <div className="upload-placeholder">
                         <svg viewBox="0 0 24 24" fill="currentColor" width="36" height="36" style={{ color: "var(--accent)", opacity: 0.7 }}><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" /></svg>
                         <span style={{ fontSize: ".72rem", wordBreak: "break-all", textAlign: "center", padding: "0 .5rem" }}>{trackPath.split("/").pop()}</span>
-                        <span className="upload-badge" style={{ position: "static", marginTop: ".25rem" }}>MP3</span>
+                        <span className="upload-badge" style={{ position: "static", marginTop: ".25rem" }}>{t("MP3")}</span>
                       </div>
                     ) : (
                       <div className="upload-placeholder">
@@ -573,20 +602,20 @@ export default function ProfileInfoForm(props: Props) {
           </div>
 
           <div className="form-group" style={{ marginTop: "1.25rem", maxWidth: 320 }}>
-            <label>Custom Cursor</label>
+            <label>{t("Custom Cursor")}</label>
             <div className="upload-card">
               <div className="upload-card-header">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M4 4l7.07 17 2.51-7.39L21 11.07z" /></svg>
-                <div><div className="upload-card-title">Custom Cursor</div><div className="upload-card-sub">Upload a profile cursor</div></div>
-                {cursorPath && <button type="button" className="upload-clear-btn" onClick={deleteCursor} title="Remove cursor">✕</button>}
+                <div><div className="upload-card-title">{t("Custom Cursor")}</div><div className="upload-card-sub">{t("Upload a profile cursor")}</div></div>
+                {cursorPath && <button type="button" className="upload-clear-btn" onClick={deleteCursor} title={t("Remove cursor")}>✕</button>}
               </div>
               <div className="upload-zone" style={{ cursor: "pointer" }} onClick={() => cursorInputRef.current?.click()}>
                 {cursorPath ? (
                   <div className="upload-placeholder">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={`/${cursorPath}`} style={{ width: 42, height: 42, objectFit: "contain", opacity: 0.8 }} alt="cursor preview" />
+                    <img src={`/${cursorPath}`} style={{ width: 42, height: 42, objectFit: "contain", opacity: 0.8 }} alt={t("cursor preview")} />
                     <span style={{ fontSize: ".72rem", wordBreak: "break-all", textAlign: "center", padding: "0 .5rem" }}>{cursorPath.split("/").pop()}</span>
-                    <span className="upload-badge" style={{ position: "static", marginTop: ".25rem" }}>WEBP</span>
+                    <span className="upload-badge" style={{ position: "static", marginTop: ".25rem" }}>{t("WEBP")}</span>
                   </div>
                 ) : (
                   <div className="upload-placeholder">
@@ -601,41 +630,41 @@ export default function ProfileInfoForm(props: Props) {
         </div>
       )}
 
-      {props.tab === "appearance" && props.sub === "profile" && (
+      {show("profile") && (
         <div className="dash-card">
-          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: ".25rem" }}>Profile Details</h3>
-          <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>Your public identity</p>
+          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: ".25rem" }}>{t("Profile Details")}</h3>
+          <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>{t("Your public identity")}</p>
           <div className="form-grid-2">
             <div className="form-group">
-              <label>Display name</label>
-              <input type="text" className="form-control" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Enter your display name" maxLength={100} />
+              <label>{t("Display name")}</label>
+              <input type="text" className="form-control" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder={t("Enter your display name")} maxLength={100} />
             </div>
             <div className="form-group">
-              <label>Location</label>
-              <input type="text" className="form-control" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Where are you from?" maxLength={100} />
+              <label>{t("Location")}</label>
+              <input type="text" className="form-control" value={location} onChange={(e) => setLocation(e.target.value)} placeholder={t("Where are you from?")} maxLength={100} />
             </div>
           </div>
           <div className="form-grid-2">
             <div className="form-group">
-              <label>Job / Occupation</label>
-              <input type="text" className="form-control" value={job} onChange={(e) => setJob(e.target.value)} placeholder="What do you do?" maxLength={100} />
+              <label>{t("Job / Occupation")}</label>
+              <input type="text" className="form-control" value={job} onChange={(e) => setJob(e.target.value)} placeholder={t("What do you do?")} maxLength={100} />
             </div>
             <div className="form-group">
-              <label>Birth date</label>
+              <label>{t("Birth date")}</label>
               <input type="date" className="form-control" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} max={new Date().toISOString().slice(0, 10)} />
             </div>
           </div>
           <div className="form-group">
-            <label>Bio</label>
-            <textarea className="form-control" maxLength={300} placeholder="Tell people about yourself..." value={bio} onChange={(e) => setBio(e.target.value)} />
+            <label>{t("Bio")}</label>
+            <textarea className="form-control" maxLength={300} placeholder={t("Tell people about yourself...")} value={bio} onChange={(e) => setBio(e.target.value)} />
           </div>
         </div>
       )}
 
-      {props.tab === "appearance" && props.sub === "colors" && (
+      {show("colors") && (
         <div className="dash-card">
-          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: ".25rem" }}>Colors</h3>
-          <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>Define your palette</p>
+          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: ".25rem" }}>{t("Colors")}</h3>
+          <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>{t("Define your palette")}</p>
           <div className="palette-grid-lg">
             {[
               { label: "Accent", value: accentColor, set: setAccentColor },
@@ -665,10 +694,10 @@ export default function ProfileInfoForm(props: Props) {
         </div>
       )}
 
-      {props.tab === "appearance" && props.sub === "fonts" && (
+      {show("fonts") && (
         <div className="dash-card">
-          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: ".25rem" }}>Typography</h3>
-          <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>Font selection</p>
+          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: ".25rem" }}>{t("Typography")}</h3>
+          <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>{t("Font selection")}</p>
           <div className="font-radio-list">
             {FONTS.map((f) => (
               <div key={f} className={`font-radio-row ${f === font ? "active" : ""}`} onClick={() => setFont(f)}>
@@ -680,37 +709,37 @@ export default function ProfileInfoForm(props: Props) {
         </div>
       )}
 
-      {props.tab === "appearance" && props.sub === "bg" && (
+      {show("bg") && (
         <div className="dash-card">
-          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: ".25rem" }}>Background</h3>
-          <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>Opacity and blur of your profile card</p>
+          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: ".25rem" }}>{t("Background")}</h3>
+          <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>{t("Opacity and blur of your profile card")}</p>
           <div className="form-grid-2">
             <div className="form-group">
               <label style={{ display: "flex", alignItems: "center", gap: ".4rem" }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><circle cx="12" cy="12" r="10" /><path d="M12 2a10 10 0 0 1 0 20" /></svg>
-                Profile Opacity
+                {t("Profile Opacity")}
                 <span style={{ marginLeft: "auto", color: "var(--accent)", fontWeight: 700, letterSpacing: 0 }}>{opacity}%</span>
               </label>
               <input type="range" min={0} max={100} value={opacity} onChange={(e) => setOpacity(parseInt(e.target.value, 10))} style={{ width: "100%", accentColor: "var(--accent)", cursor: "pointer" }} />
-              <p style={{ fontSize: ".72rem", color: "var(--text-muted)", marginTop: ".4rem" }}>Controls the transparency of your profile card (0% = fully transparent, 100% = fully opaque)</p>
+              <p style={{ fontSize: ".72rem", color: "var(--text-muted)", marginTop: ".4rem" }}>{t("Controls the transparency of your profile card (0% = fully transparent, 100% = fully opaque)")}</p>
             </div>
             <div className="form-group">
               <label style={{ display: "flex", alignItems: "center", gap: ".4rem" }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><circle cx="12" cy="12" r="3" /><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" /></svg>
-                Profile Blur
+                {t("Profile Blur")}
                 <span style={{ marginLeft: "auto", color: "var(--accent)", fontWeight: 700, letterSpacing: 0 }}>{blur}px</span>
               </label>
               <input type="range" min={0} max={100} value={blur} onChange={(e) => setBlur(parseInt(e.target.value, 10))} style={{ width: "100%", accentColor: "var(--accent)", cursor: "pointer" }} />
-              <p style={{ fontSize: ".72rem", color: "var(--text-muted)", marginTop: ".4rem" }}>Adds a backdrop blur effect to your profile card (0px = no blur, 100px = maximum blur)</p>
+              <p style={{ fontSize: ".72rem", color: "var(--text-muted)", marginTop: ".4rem" }}>{t("Adds a backdrop blur effect to your profile card (0px = no blur, 100px = maximum blur)")}</p>
             </div>
           </div>
         </div>
       )}
 
-      {props.tab === "layout" && props.sub === "template" && (
+      {show("template") && (
         <div className="dash-card">
-          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: ".25rem" }}>Template</h3>
-          <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>Choose your profile layout</p>
+          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: ".25rem" }}>{t("Template")}</h3>
+          <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>{t("Choose your profile layout")}</p>
           <div className="template-card-grid">
             {[
               { id: "classic", label: "Classic", premium: false, desc: "Avatar and name perfectly centered — the clean baseline.", features: ["Centered design", "Mobile optimized", "Clean & minimal"] },
@@ -721,12 +750,12 @@ export default function ProfileInfoForm(props: Props) {
               { id: "aurora", label: "Aurora", premium: true, desc: "An oversized centered avatar wrapped in a glowing ambient halo.", features: ["Oversized avatar", "Ambient glow halo", "Infected Plus exclusive"] },
               { id: "cinematic", label: "Cinematic", premium: true, desc: "A full-bleed hero banner with your avatar and name pinned bottom-left.", features: ["270px hero banner", "Avatar+name side-by-side", "Infected Plus exclusive"] },
               { id: "dossier", label: "Dossier", premium: true, desc: "A wide identity-card layout with corner brackets and a big photo column.", features: ["1100px wide 2-column card", "Corner bracket accents", "Infected Plus exclusive"] },
-            ].map((t) => {
-              const locked = t.premium && !props.isPremium;
+            ].map((tpl) => {
+              const locked = tpl.premium && !props.isPremium;
               return (
-                <div key={t.id} className={`template-card ${layoutTemplate === t.id ? "active" : ""}`}>
+                <div key={tpl.id} className={`template-card ${layoutTemplate === tpl.id ? "active" : ""}`}>
                   <div className="template-card-preview">
-                    <div className={`template-card-preview-inner tpl-${t.id}`}>
+                    <div className={`template-card-preview-inner tpl-${tpl.id}`}>
                       <span className="tpl-dot" />
                       <span className="tpl-lines">
                         <span className="tpl-line" />
@@ -734,19 +763,19 @@ export default function ProfileInfoForm(props: Props) {
                       </span>
                     </div>
                   </div>
-                  <div className="template-card-name">{t.label}</div>
-                  <span className={`template-card-badge ${t.premium ? "pro" : "free"}`}>{t.premium ? "PRO" : "FREE"}</span>
-                  <p className="template-card-desc">{t.desc}</p>
+                  <div className="template-card-name">{t(tpl.label)}</div>
+                  <span className={`template-card-badge ${tpl.premium ? "pro" : "free"}`}>{tpl.premium ? "PRO" : "FREE"}</span>
+                  <p className="template-card-desc">{t(tpl.desc)}</p>
                   <ul className="template-card-features">
-                    {t.features.map((f) => <li key={f}>{f}</li>)}
+                    {tpl.features.map((f) => <li key={f}>{t(f)}</li>)}
                   </ul>
                   <button
                     type="button"
                     className="btn btn-secondary btn-full btn-sm"
                     disabled={locked}
-                    onClick={() => selectLayoutTemplate(t.id)}
+                    onClick={() => selectLayoutTemplate(tpl.id)}
                   >
-                    {locked ? "🔒 Infected Plus" : layoutTemplate === t.id ? "Selected" : "Select"}
+                    {locked ? "🔒 Infected Plus" : layoutTemplate === tpl.id ? t("Selected") : t("Select")}
                   </button>
                 </div>
               );
@@ -755,13 +784,13 @@ export default function ProfileInfoForm(props: Props) {
         </div>
       )}
 
-      <div className={`unsaved-bar ${dirty ? "visible" : ""}`}>
+      <div className={`unsaved-bar ${dirty && !onSaveStateChange ? "visible" : ""}`}>
         <span className="unsaved-bar-text">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="15" height="15" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
-          You have unsaved changes!
+          {t("You have unsaved changes!")}
         </span>
         <div className="unsaved-bar-actions">
-          <button className="btn btn-secondary btn-sm" onClick={reset}>Reset</button>
+          <button className="btn btn-secondary btn-sm" onClick={reset}>{t("Reset")}</button>
           <button className="btn btn-primary btn-sm" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save Changes"}</button>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { BADGE_SVG } from "@/lib/badge-defs";
+import { useT } from "@/lib/i18n/client";
 
 type Card = {
   cardId: string;
@@ -22,6 +23,7 @@ function hexToRgb(hex: string): [number, number, number] {
 }
 
 export default function BadgesGrid({ cards: initialCards, totalCount, earnedCount }: { cards: Card[]; totalCount: number; earnedCount: number }) {
+  const t = useT();
   const [cards, setCards] = useState(initialCards);
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set(initialCards.filter((c) => c.hidden).map((c) => c.cardId)));
   const [dragId, setDragId] = useState<string | null>(null);
@@ -74,15 +76,15 @@ export default function BadgesGrid({ cards: initialCards, totalCount, earnedCoun
         alert(j.error || "Error updating badge visibility.");
       }
     } catch {
-      alert("Network error.");
+      alert(t("Network error."));
     }
   }
 
   return (
     <>
       <div className="section-header">
-        <h2>Badges</h2>
-        <p>Collect badges by being active on the platform.</p>
+        <h2>{t("Badges")}</h2>
+        <p>{t("Collect badges by being active on the platform.")}</p>
       </div>
 
       <div className="badges-meta">
@@ -129,7 +131,7 @@ export default function BadgesGrid({ cards: initialCards, totalCount, earnedCoun
               {c.unlocked && (
                 <div
                   className="badge-move-btn"
-                  title="Drag to reorder"
+                  title={t("Drag to reorder")}
                   draggable
                   onDragStart={() => setDragId(c.cardId)}
                   onDragEnd={() => {
@@ -180,7 +182,7 @@ export default function BadgesGrid({ cards: initialCards, totalCount, earnedCoun
 
       <div style={{ marginTop: "1.2rem", padding: ".85rem 1.1rem", background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 12, fontSize: ".78rem", color: "rgba(255,255,255,.45)", display: "flex", alignItems: "center", gap: ".5rem" }}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><circle cx="12" cy="12" r="10" /><path d="M12 8v4l3 3" /></svg>
-        Click the arrows icon on an unlocked badge to drag and reorder how they appear on your profile.
+        {t("Click the arrows icon on an unlocked badge to drag and reorder how they appear on your profile.")}
       </div>
     </>
   );

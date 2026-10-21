@@ -12,11 +12,13 @@ import SettingsPage from "./settings/page";
 import DecorationsPage from "./decorations/page";
 import SpinPage from "./spin/page";
 import PremiumPage from "./premium/page";
+import ProjectsPage from "./projects/page";
+import EditorPage from "./editor/page";
 
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; error?: string; connected?: string; rp?: string }>;
+  searchParams: Promise<{ page?: string; error?: string; connected?: string; rp?: string; tile?: string }>;
 }) {
   const params = await searchParams;
   const page = params.page || "overview";
@@ -48,6 +50,10 @@ export default async function DashboardPage({
       return <SpinPage />;
     case "premium":
       return <PremiumPage />;
+    case "projects":
+      return <ProjectsPage />;
+    case "editor":
+      return <EditorPage searchParams={Promise.resolve({ tile: params.tile, error: params.error, connected: params.connected })} />;
     default:
       return <OverviewContent />;
   }

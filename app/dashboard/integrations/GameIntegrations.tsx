@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { showToast } from "@/lib/toast";
 import { SteamIcon, RobloxIcon, MinecraftIcon, ServerIcon, ValorantIcon, TwitchIcon, SpotifyIcon, GithubIcon } from "@/components/IntegrationIcons";
+import { useT } from "@/lib/i18n/client";
 
 type IntegrationRow = { data: Record<string, unknown>; visible: boolean } | null;
 
@@ -25,6 +26,7 @@ function GameCard({
   connectHref?: string;
   renderPreview: (data: Record<string, unknown>) => React.ReactNode;
 }) {
+  const t = useT();
   const [integration, setIntegration] = useState<IntegrationRow>(null);
   const [loaded, setLoaded] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
@@ -69,7 +71,7 @@ function GameCard({
       setIntegration(null);
       showToast(`${title} disconnected.`, "success");
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
     }
   }
 
@@ -79,7 +81,7 @@ function GameCard({
       const j = await res.json();
       if (j.success) setIntegration((i) => (i ? { ...i, visible: j.visible } : i));
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
     }
   }
 
@@ -97,21 +99,21 @@ function GameCard({
 
       {integration ? (
         <>
-          <div className="int-status connected"><div className="int-status-dot" />Connected</div>
+          <div className="int-status connected"><div className="int-status-dot" />{t("Connected")}</div>
           {renderPreview(integration.data)}
           <div className="int-card-footer-row">
             <button className="int-btn int-btn-outline" onClick={toggleVisible}>{integration.visible ? "Hide" : "Show"}</button>
-            <button className="int-btn int-btn-danger" onClick={disconnect}>Disconnect</button>
+            <button className="int-btn int-btn-danger" onClick={disconnect}>{t("Disconnect")}</button>
           </div>
         </>
       ) : (
         <>
-          <div className="int-status disconnected"><div className="int-status-dot" />Not connected</div>
+          <div className="int-status disconnected"><div className="int-status-dot" />{t("Not connected")}</div>
           {connectHref ? (
             <>
               <p className="int-card-desc">{subtitle}</p>
               <div className="int-card-footer">
-                <a href={connectHref} className="int-btn int-btn-primary">{icon} Connect {title}</a>
+                <a href={connectHref} className="int-btn int-btn-primary">{icon}{" "}{t("Connect")}{" "}{title}</a>
               </div>
             </>
           ) : formOpen ? (
@@ -132,7 +134,7 @@ function GameCard({
             <>
               <p className="int-card-desc">{subtitle}</p>
               <div className="int-card-footer">
-                <button className="int-btn int-btn-primary" onClick={() => setFormOpen(true)}>{icon} Connect {title}</button>
+                <button className="int-btn int-btn-primary" onClick={() => setFormOpen(true)}>{icon}{" "}{t("Connect")}{" "}{title}</button>
               </div>
             </>
           )}
@@ -143,17 +145,18 @@ function GameCard({
 }
 
 export default function GameIntegrations() {
+  const t = useT();
   return (
     <>
       <div className="section-header">
-        <h2>Game Integrations</h2>
-        <p>Show your gaming accounts and a live server status on your profile</p>
+        <h2>{t("Game Integrations")}</h2>
+        <p>{t("Show your gaming accounts and a live server status on your profile")}</p>
       </div>
 
       <div className="int-grid">
         <GameCard
           type="steam"
-          title="Steam"
+          title={t("Steam")}
           subtitle="Show your Steam profile on your page"
           color="#66c0f4"
           icon={<SteamIcon />}
@@ -166,7 +169,7 @@ export default function GameIntegrations() {
               </div>
               <div className="int-preview-info">
                 <div className="int-preview-name">{String(d.personaName || "")}</div>
-                <div className="int-preview-sub">Steam</div>
+                <div className="int-preview-sub">{t("Steam")}</div>
               </div>
             </div>
           )}
@@ -174,7 +177,7 @@ export default function GameIntegrations() {
 
         <GameCard
           type="roblox"
-          title="Roblox"
+          title={t("Roblox")}
           subtitle="Show your Roblox username and avatar"
           color="#e2231a"
           icon={<RobloxIcon />}
@@ -195,7 +198,7 @@ export default function GameIntegrations() {
 
         <GameCard
           type="minecraft"
-          title="Minecraft"
+          title={t("Minecraft")}
           subtitle="Show your Minecraft username and skin"
           color="#5cb85c"
           icon={<MinecraftIcon />}
@@ -208,7 +211,7 @@ export default function GameIntegrations() {
               </div>
               <div className="int-preview-info">
                 <div className="int-preview-name">{String(d.username || "")}</div>
-                <div className="int-preview-sub">Minecraft</div>
+                <div className="int-preview-sub">{t("Minecraft")}</div>
               </div>
             </div>
           )}
@@ -216,7 +219,7 @@ export default function GameIntegrations() {
 
         <GameCard
           type="mcserver"
-          title="MC Server"
+          title={t("MC Server")}
           subtitle="Show a live status widget for a Minecraft server"
           color="#7cb342"
           icon={<ServerIcon />}
@@ -237,7 +240,7 @@ export default function GameIntegrations() {
 
         <GameCard
           type="twitch"
-          title="Twitch"
+          title={t("Twitch")}
           subtitle="Show your Twitch channel on your profile"
           color="#9146ff"
           icon={<TwitchIcon />}
@@ -255,7 +258,7 @@ export default function GameIntegrations() {
 
         <GameCard
           type="spotify"
-          title="Spotify"
+          title={t("Spotify")}
           subtitle="Show your now playing and recently played tracks"
           color="#1db954"
           icon={<SpotifyIcon />}
@@ -281,14 +284,14 @@ export default function GameIntegrations() {
                     </>
                   ) : recent[0] ? (
                     <>
-                      <div className="int-preview-sub" style={{ color: "#1db954", fontWeight: 700 }}>Recently Played</div>
+                      <div className="int-preview-sub" style={{ color: "#1db954", fontWeight: 700 }}>{t("Recently Played")}</div>
                       <div className="int-preview-name">{String(recent[0].trackName || "")}</div>
                       <div className="int-preview-sub">{String(recent[0].artists || "")}</div>
                     </>
                   ) : (
                     <>
                       <div className="int-preview-name">{String(d.displayName || "Spotify")}</div>
-                      <div className="int-preview-sub">Connected</div>
+                      <div className="int-preview-sub">{t("Connected")}</div>
                     </>
                   )}
                 </div>
@@ -299,7 +302,7 @@ export default function GameIntegrations() {
 
         <GameCard
           type="github"
-          title="GitHub"
+          title={t("GitHub")}
           subtitle="Show your GitHub profile and repo count"
           color="#f0f6fc"
           icon={<GithubIcon />}
@@ -312,7 +315,7 @@ export default function GameIntegrations() {
               </div>
               <div className="int-preview-info">
                 <div className="int-preview-name">{String(d.name || d.username || "")}</div>
-                <div className="int-preview-sub">{String(d.publicRepos ?? 0)} repos · {String(d.followers ?? 0)} followers</div>
+                <div className="int-preview-sub">{String(d.publicRepos ?? 0)}{" "}{t("repos ·")}{" "}{String(d.followers ?? 0)} followers</div>
               </div>
             </div>
           )}
@@ -320,7 +323,7 @@ export default function GameIntegrations() {
 
         <GameCard
           type="valorant"
-          title="Valorant"
+          title={t("Valorant")}
           subtitle="Show your Riot ID on your profile (self-reported)"
           color="#ff4655"
           icon={<ValorantIcon />}

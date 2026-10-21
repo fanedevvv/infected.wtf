@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { showToast } from "@/lib/toast";
+import { useT } from "@/lib/i18n/client";
 
 type PrizeInfo = { label: string; color: string; type: string };
 
@@ -37,6 +38,7 @@ export default function SpinClient({
   canSpin: boolean;
   nextAt: number | null;
 }) {
+  const t = useT();
   const [tokenBal, setTokenBal] = useState(tokens);
   const [canSpin, setCanSpin] = useState(initialCanSpin);
   const [nextAt, setNextAt] = useState<number | null>(initialNextAt);
@@ -97,7 +99,7 @@ export default function SpinClient({
         showToast(`You won: ${j.prize.label}!`, "success");
       }, 3400);
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
       setSpinning(false);
     }
   }
@@ -106,8 +108,8 @@ export default function SpinClient({
     <>
       <div className="section-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
         <div>
-          <h2>Daily Spin</h2>
-          <p>Spin once every 24 hours for a chance at tokens, Infected Plus days, or a badge</p>
+          <h2>{t("Daily Spin")}</h2>
+          <p>{t("Spin once every 24 hours for a chance at tokens, Infected Plus days, or a badge")}</p>
         </div>
         <div className="shop-token-bal"><span>{tokenBal.toLocaleString()} tokens</span></div>
       </div>
@@ -130,7 +132,7 @@ export default function SpinClient({
         </div>
 
         {result && !spinning && (
-          <div className="spin-result">You won <strong style={{ color: "var(--accent)" }}>{result.label}</strong>!</div>
+          <div className="spin-result">{t("You won")}{" "}<strong style={{ color: "var(--accent)" }}>{result.label}</strong>!</div>
         )}
 
         <button type="button" className="spin-btn" disabled={!canSpin || spinning} onClick={spin}>

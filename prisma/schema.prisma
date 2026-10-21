@@ -116,6 +116,11 @@ model Profile {
   profileDomains   ProfileDomain[]
   comments         ProfileComment[]
   reports          ProfileReport[]
+  projects         ProfileProject[]
+  aliases          ProfileAlias[]
+  skills           ProfileSkill[]
+  bestFriend       ProfileBestFriend?   @relation("BestFriendOwner")
+  bestFriendOf     ProfileBestFriend[]  @relation("BestFriendTarget")
 
   @@index([userId], map: "idx_profile_user")
   @@map("profiles")
@@ -510,4 +515,59 @@ model ProfileReport {
   @@index([reporterId], map: "fk_pr_reporter")
   @@index([status, createdAt], map: "idx_pr_status_created")
   @@map("profile_reports")
+}
+
+model ProfileProject {
+  id           Int       @id @default(autoincrement())
+  profileId    Int       @map("profile_id")
+  title        String    @db.VarChar(80)
+  description  String?   @db.VarChar(1000)
+  url          String?   @db.VarChar(300)
+  repoUrl      String?   @map("repo_url") @db.VarChar(300)
+  technologies String?   @db.VarChar(500)
+  image        String?   @db.VarChar(300)
+  status       String    @default("pending") @db.VarChar(20)
+  rejectReason String?   @map("reject_reason") @db.VarChar(300)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+  reviewedAt   DateTime? @map("reviewed_at") @db.DateTime(0)
+  profile      Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_pp_profile")
+
+  @@index([profileId, status], map: "idx_pp_profile_status")
+  @@index([status, createdAt], map: "idx_pp_status_created")
+  @@map("profile_projects")
+}
+
+model ProfileAlias {
+  id        Int      @id @default(autoincrement())
+  profileId Int      @map("profile_id")
+  alias     String   @unique(map: "uniq_alias") @db.VarChar(30)
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_pa_profile")
+
+  @@index([profileId], map: "fk_pa_profile")
+  @@map("profile_aliases")
+}
+
+model ProfileBestFriend {
+  profileId       Int      @id @map("profile_id")
+  friendProfileId Int      @map("friend_profile_id")
+  createdAt       DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  profile         Profile  @relation("BestFriendOwner", fields: [profileId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_pbf_profile")
+  friend          Profile  @relation("BestFriendTarget", fields: [friendProfileId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_pbf_friend")
+
+  @@index([friendProfileId], map: "fk_pbf_friend")
+  @@map("profile_best_friends")
+}
+
+model ProfileSkill {
+  id           Int      @id @default(autoincrement())
+  profileId    Int      @map("profile_id")
+  name         String   @db.VarChar(40)
+  level        Int      @default(50)
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  profile      Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_ps_profile")
+
+  @@index([profileId], map: "fk_ps_profile")
+  @@map("profile_skills")
 }

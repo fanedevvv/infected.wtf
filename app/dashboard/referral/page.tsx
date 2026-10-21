@@ -6,10 +6,12 @@ import { prisma } from "@/lib/prisma";
 import CopyRefLinkButton from "./CopyRefLinkButton";
 import SafeImg from "@/components/SafeImg";
 import { parseStringArray } from "@/lib/json-array";
+import { getT } from "@/lib/i18n/server";
 
 const PER_PAGE = 10;
 
 export default async function ReferralPage({ searchParams }: { searchParams: Promise<{ rp?: string }> }) {
+  const t = await getT();
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
@@ -82,8 +84,8 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
   return (
     <>
       <div className="section-header">
-        <h2>Referral Program</h2>
-        <p>Invite friends and earn {tokensPerRef} tokens for each registration</p>
+        <h2>{t("Referral Program")}</h2>
+        <p>{t("Invite friends and earn")}{" "}{tokensPerRef}{" "}{t("tokens for each registration")}</p>
       </div>
 
       {(!hasPromoterElite || totalRefs < 20) && (
@@ -94,22 +96,22 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: ".82rem", fontWeight: 800, color: "#fff", marginBottom: ".1rem" }}>
-                Promoter Badge
+                {t("Promoter Badge")}
                 {hasPromoterElite ? (
-                  <span style={{ marginLeft: ".5rem", fontSize: ".7rem", padding: ".2rem .55rem", borderRadius: 20, background: "rgba(75,85,99,.3)", border: "1px solid rgba(75,85,99,.6)", color: "#9ca3af", fontWeight: 700 }}>ELITE ✓</span>
+                  <span style={{ marginLeft: ".5rem", fontSize: ".7rem", padding: ".2rem .55rem", borderRadius: 20, background: "rgba(75,85,99,.3)", border: "1px solid rgba(75,85,99,.6)", color: "#9ca3af", fontWeight: 700 }}>{t("ELITE ✓")}</span>
                 ) : hasPromoter ? (
-                  <span style={{ marginLeft: ".5rem", fontSize: ".7rem", padding: ".2rem .55rem", borderRadius: 20, background: "rgba(156,163,175,.15)", border: "1px solid rgba(156,163,175,.4)", color: "#9ca3af", fontWeight: 700 }}>UNLOCKED ✓</span>
+                  <span style={{ marginLeft: ".5rem", fontSize: ".7rem", padding: ".2rem .55rem", borderRadius: 20, background: "rgba(156,163,175,.15)", border: "1px solid rgba(156,163,175,.4)", color: "#9ca3af", fontWeight: 700 }}>{t("UNLOCKED ✓")}</span>
                 ) : null}
               </div>
-              <div style={{ fontSize: ".72rem", color: "rgba(255,255,255,.35)" }}>Invite friends via your referral link and unlock exclusive badges</div>
+              <div style={{ fontSize: ".72rem", color: "rgba(255,255,255,.35)" }}>{t("Invite friends via your referral link and unlock exclusive badges")}</div>
             </div>
-            <div style={{ fontSize: ".78rem", fontWeight: 700, color: "rgba(255,255,255,.5)", whiteSpace: "nowrap" }}>{totalRefs} / 20 inv.</div>
+            <div style={{ fontSize: ".78rem", fontWeight: 700, color: "rgba(255,255,255,.5)", whiteSpace: "nowrap" }}>{totalRefs}{" "}{t("/ 20 inv.")}</div>
           </div>
 
           <div style={{ marginBottom: ".9rem" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: ".4rem" }}>
               <span style={{ fontSize: ".7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".07em", color: hasPromoter || hasPromoterElite ? "#9ca3af" : "rgba(255,255,255,.3)" }}>
-                {hasPromoter || hasPromoterElite ? "✓ " : ""}Promoter <span style={{ opacity: 0.6 }}>(gray)</span>
+                {hasPromoter || hasPromoterElite ? "✓ " : ""}{t("Promoter")}{" "}<span style={{ opacity: 0.6 }}>{t("(gray)")}</span>
               </span>
               <span style={{ fontSize: ".7rem", color: "rgba(255,255,255,.35)" }}>{phase1Done}/10</span>
             </div>
@@ -121,9 +123,9 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: ".4rem" }}>
               <span style={{ fontSize: ".7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".07em", color: hasPromoterElite ? "#6b7280" : "rgba(255,255,255,.3)" }}>
-                {hasPromoterElite ? "✓ " : ""}Promoter Elite <span style={{ opacity: 0.6 }}>(gray+black)</span>
+                {hasPromoterElite ? "✓ " : ""}{t("Promoter Elite")}{" "}<span style={{ opacity: 0.6 }}>{t("(gray+black)")}</span>
               </span>
-              <span style={{ fontSize: ".7rem", color: "rgba(255,255,255,.35)" }}>{hasPromoterElite ? "10" : phase2Done}/10 more</span>
+              <span style={{ fontSize: ".7rem", color: "rgba(255,255,255,.35)" }}>{hasPromoterElite ? "10" : phase2Done}{t("/10 more")}</span>
             </div>
             <div style={{ height: 7, borderRadius: 99, background: "rgba(255,255,255,.07)", overflow: "hidden" }}>
               <div style={{ height: "100%", width: `${hasPromoterElite ? 100 : phase2Pct}%`, background: "linear-gradient(90deg,#6b7280,#1f2937)", borderRadius: 99, transition: "width .6s" }} />
@@ -132,11 +134,11 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
 
           {!hasPromoter && !hasPromoterElite ? (
             <div style={{ marginTop: ".9rem", fontSize: ".72rem", color: "rgba(255,255,255,.3)", textAlign: "center" }}>
-              You need <strong style={{ color: "rgba(156,163,175,.7)" }}>{Math.max(0, 10 - totalRefs)} more invite{Math.max(0, 10 - totalRefs) !== 1 ? "s" : ""}</strong> to unlock the Promoter badge (gray)
+              {t("You need")}{" "}<strong style={{ color: "rgba(156,163,175,.7)" }}>{Math.max(0, 10 - totalRefs)}{" "}{t("more invite")}{Math.max(0, 10 - totalRefs) !== 1 ? "s" : ""}</strong>{" "}{t("to unlock the Promoter badge (gray)")}
             </div>
           ) : hasPromoter && !hasPromoterElite ? (
             <div style={{ marginTop: ".9rem", fontSize: ".72rem", color: "rgba(255,255,255,.3)", textAlign: "center" }}>
-              You need <strong style={{ color: "rgba(107,114,128,.8)" }}>{Math.max(0, 20 - totalRefs)} more invite{Math.max(0, 20 - totalRefs) !== 1 ? "s" : ""}</strong> to upgrade to Promoter Elite
+              {t("You need")}{" "}<strong style={{ color: "rgba(107,114,128,.8)" }}>{Math.max(0, 20 - totalRefs)}{" "}{t("more invite")}{Math.max(0, 20 - totalRefs) !== 1 ? "s" : ""}</strong>{" "}{t("to upgrade to Promoter Elite")}
             </div>
           ) : null}
         </div>
@@ -149,8 +151,8 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
             <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" style={{ color: "#ff9900" }}><path d="M7 2v11h3v9l7-12h-4l4-8z" /></svg>
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "var(--font-sans)", fontSize: "1rem", fontWeight: 900, color: "#ff9900", letterSpacing: ".03em" }}>X2 TOKENS EVENT — ACTIVE!</div>
-            <div style={{ fontSize: ".82rem", color: "rgba(255,255,255,.55)", marginTop: ".2rem" }}>All referrals give <strong style={{ color: "#ffb900" }}>double tokens</strong> right now! You earn <strong style={{ color: "#ffb900" }}>+{tokensPerRef} tokens</strong> per invite.</div>
+            <div style={{ fontFamily: "var(--font-sans)", fontSize: "1rem", fontWeight: 900, color: "#ff9900", letterSpacing: ".03em" }}>{t("X2 TOKENS EVENT — ACTIVE!")}</div>
+            <div style={{ fontSize: ".82rem", color: "rgba(255,255,255,.55)", marginTop: ".2rem" }}>{t("All referrals give")}{" "}<strong style={{ color: "#ffb900" }}>{t("double tokens")}</strong>{" "}{t("right now! You earn")}{" "}<strong style={{ color: "#ffb900" }}>+{tokensPerRef} tokens</strong>{" "}{t("per invite.")}</div>
           </div>
           <div style={{ background: "rgba(255,140,0,.18)", border: "1px solid rgba(255,140,0,.4)", borderRadius: 10, padding: ".4rem .9rem", fontWeight: 900, fontSize: ".9rem", color: "#ffaa00", whiteSpace: "nowrap", letterSpacing: ".03em" }}>x2</div>
         </div>
@@ -162,10 +164,10 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
             <svg viewBox="0 0 24 24" fill="none" width="20" height="20" style={{ color: "#ffd700" }}><path d="M2.5 9L7 3h10l4.5 6L12 21 2.5 9z" fill="rgba(255,215,0,.25)" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><path d="M2.5 9h19M7 3l3 6h4l3-6" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" opacity=".8" /></svg>
           </div>
           <div className="ref-premium-banner-text">
-            <div className="ref-premium-banner-title">Infected Plus Referral Bonus Active</div>
-            <div className="ref-premium-banner-sub">As an Infected Plus member you earn <strong style={{ color: "#ffd700" }}>+20 tokens</strong> per referral instead of the standard 10. Double the rewards!</div>
+            <div className="ref-premium-banner-title">{t("Infected Plus Referral Bonus Active")}</div>
+            <div className="ref-premium-banner-sub">{t("As an Infected Plus member you earn")}{" "}<strong style={{ color: "#ffd700" }}>{t("+20 tokens")}</strong>{" "}{t("per referral instead of the standard 10. Double the rewards!")}</div>
           </div>
-          <div className="ref-premium-badge">+20 tokens</div>
+          <div className="ref-premium-badge">{t("+20 tokens")}</div>
         </div>
       ) : (
         <div className="ref-upsell-banner">
@@ -173,52 +175,51 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
             <svg viewBox="0 0 24 24" fill="none" width="20" height="20" style={{ color: "#ffd700" }}><path d="M2.5 9L7 3h10l4.5 6L12 21 2.5 9z" fill="rgba(255,215,0,.25)" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><path d="M2.5 9h19M7 3l3 6h4l3-6" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" opacity=".8" /></svg>
           </div>
           <div className="ref-upsell-text">
-            <div className="ref-upsell-title">Get Infected Plus for double referral rewards</div>
-            <div className="ref-upsell-sub">Infected Plus members earn <strong style={{ color: "rgba(255,215,0,.7)" }}>+20 tokens</strong> per referral instead of 10.</div>
+            <div className="ref-upsell-title">{t("Get Infected Plus for double referral rewards")}</div>
+            <div className="ref-upsell-sub">{t("Infected Plus members earn")}{" "}<strong style={{ color: "rgba(255,215,0,.7)" }}>{t("+20 tokens")}</strong>{" "}{t("per referral instead of 10.")}</div>
           </div>
-          <a href="/dashboard?page=shop" className="ref-upsell-link">Get Infected Plus</a>
+          <a href="/dashboard?page=shop" className="ref-upsell-link">{t("Get Infected Plus")}</a>
         </div>
       )}
 
       <div className="ref-hero">
         <div className="ref-stat">
           <div className="ref-stat-num">{totalRefs.toLocaleString()}</div>
-          <div className="ref-stat-label">Total Referrals</div>
+          <div className="ref-stat-label">{t("Total Referrals")}</div>
         </div>
         <div className="ref-stat">
           <div className="ref-stat-num" style={{ color: "#5fefa5" }}>+{tokensEarned.toLocaleString()}</div>
-          <div className="ref-stat-label">Tokens Earned</div>
+          <div className="ref-stat-label">{t("Tokens Earned")}</div>
         </div>
         <div className="ref-stat">
           <div className="ref-stat-num accent">{myCode}</div>
-          <div className="ref-stat-label">Your Code</div>
+          <div className="ref-stat-label">{t("Your Code")}</div>
         </div>
       </div>
 
       <div className="dash-card" style={{ marginBottom: "1.25rem" }}>
         <div style={{ fontSize: ".72rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em", color: "rgba(255,255,255,.35)", marginBottom: ".85rem" }}>
-          Your Referral Link
+          {t("Your Referral Link")}
         </div>
         <div className="ref-link-box">
           <input type="text" className="ref-link-input" value={refLink} readOnly />
           <CopyRefLinkButton link={refLink} />
         </div>
         <p style={{ fontSize: ".75rem", color: "rgba(255,255,255,.25)", marginTop: ".75rem", lineHeight: 1.6 }}>
-          Friends can use your code <strong style={{ color: "rgba(255,255,255,.5)" }}>{myCode}</strong> or your username <strong style={{ color: "rgba(255,255,255,.5)" }}>@{user.username}</strong> when registering.
-          You earn <strong style={{ color: isPremium ? "#ffd700" : "#5fefa5" }}>{isPremium ? "+20 tokens (Infected Plus bonus!)" : "+10 tokens"}</strong> for each successful registration.
+          {t("Friends can use your code")}{" "}<strong style={{ color: "rgba(255,255,255,.5)" }}>{myCode}</strong>{" "}{t("or your username")}{" "}<strong style={{ color: "rgba(255,255,255,.5)" }}>@{user.username}</strong>{" "}{t("when registering. You earn")}{" "}<strong style={{ color: isPremium ? "#ffd700" : "#5fefa5" }}>{isPremium ? "+20 tokens (Infected Plus bonus!)" : "+10 tokens"}</strong>{" "}{t("for each successful registration.")}
         </p>
       </div>
 
       <div className="dash-card">
         <div className="ref-invited-header">
-          <span className="ref-invited-title">Invited Users</span>
+          <span className="ref-invited-title">{t("Invited Users")}</span>
           <span className="ref-invited-count">{totalRefs}</span>
         </div>
 
         {referralsRaw.length === 0 ? (
           <div className="ref-empty">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="48" height="48"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-            Nobody yet. Share your link and start earning!
+            {t("Nobody yet. Share your link and start earning!")}
           </div>
         ) : (
           referralsRaw.map((r) => (
@@ -238,11 +239,11 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
 
         {totalPages > 1 && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: ".45rem", marginTop: "1.4rem", flexWrap: "wrap" }}>
-            <a href={`/dashboard?page=referral&rp=${Math.max(1, page - 1)}`} style={cssTextToObj(page <= 1 ? btnDisabl : btnNormal)}>← Prev</a>
+            <a href={`/dashboard?page=referral&rp=${Math.max(1, page - 1)}`} style={cssTextToObj(page <= 1 ? btnDisabl : btnNormal)}>{t("← Prev")}</a>
             {pageNumbers.map((i) => (
               <a key={i} href={`/dashboard?page=referral&rp=${i}`} style={cssTextToObj(i === page ? btnActive : btnNormal)}>{i}</a>
             ))}
-            <a href={`/dashboard?page=referral&rp=${Math.min(totalPages, page + 1)}`} style={cssTextToObj(page >= totalPages ? btnDisabl : btnNormal)}>Next →</a>
+            <a href={`/dashboard?page=referral&rp=${Math.min(totalPages, page + 1)}`} style={cssTextToObj(page >= totalPages ? btnDisabl : btnNormal)}>{t("Next →")}</a>
           </div>
         )}
       </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
+import { useT } from "@/lib/i18n/client";
 
 declare global {
   interface Window {
@@ -54,12 +55,13 @@ function osAbbr(name: string) {
 }
 
 function GenericList({ items, nameKey, unit, iconFn }: { items: NamedCount[]; nameKey: "browser" | "os_name"; unit: string; iconFn: (s: string) => string }) {
+  const t = useT();
   const total = items.reduce((s, i) => s + i.cnt, 0);
   if (items.length === 0) {
     return (
       <div className="an-empty">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="36" height="36" style={{ opacity: 0.25 }}><circle cx="12" cy="12" r="10" /></svg>
-        <strong>No data yet</strong><span>Data will appear here once visitors arrive.</span>
+        <strong>{t("No data yet")}</strong><span>{t("Data will appear here once visitors arrive.")}</span>
       </div>
     );
   }
@@ -85,6 +87,7 @@ function GenericList({ items, nameKey, unit, iconFn }: { items: NamedCount[]; na
 }
 
 export default function AnalyticsClient() {
+  const t = useT();
   const [range, setRange] = useState("7d");
   const [d, setD] = useState<Data | null>(null);
   const [updateText, setUpdateText] = useState("Loading…");
@@ -216,9 +219,9 @@ export default function AnalyticsClient() {
         <div className="an-header-left">
           <h2>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="22" height="22"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
-            Analytics
+            {t("Analytics")}
           </h2>
-          <p>Track your profile performance and visitor insights in real time.</p>
+          <p>{t("Track your profile performance and visitor insights in real time.")}</p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: ".75rem", flexWrap: "wrap" }}>
           <span className="an-update-pill">
@@ -241,7 +244,7 @@ export default function AnalyticsClient() {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
           </div>
           <div className="an-stat-value">{d ? fmt(d.stats.total) : "—"}</div>
-          <div className="an-stat-label">Profile Views</div>
+          <div className="an-stat-label">{t("Profile Views")}</div>
           <div className="an-stat-sub"><span className="badge-neut">{RANGE_LABELS[range].toLowerCase()}</span></div>
         </div>
         <div className="an-stat">
@@ -249,24 +252,24 @@ export default function AnalyticsClient() {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
           </div>
           <div className="an-stat-value">{d ? d.stats.daily_avg : "—"}</div>
-          <div className="an-stat-label">Daily Average</div>
-          <div className="an-stat-sub"><span className="badge-neut">visitors / day</span></div>
+          <div className="an-stat-label">{t("Daily Average")}</div>
+          <div className="an-stat-sub"><span className="badge-neut">{t("visitors / day")}</span></div>
         </div>
         <div className="an-stat">
           <div className="an-stat-icon icon-green">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" /></svg>
           </div>
           <div className="an-stat-value">{d ? fmt(d.stats.peak) : "—"}</div>
-          <div className="an-stat-label">Peak Day</div>
-          <div className="an-stat-sub"><span className="badge-neut">best single day</span></div>
+          <div className="an-stat-label">{t("Peak Day")}</div>
+          <div className="an-stat-sub"><span className="badge-neut">{t("best single day")}</span></div>
         </div>
         <div className="an-stat">
           <div className="an-stat-icon icon-amber">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>
           </div>
           <div className="an-stat-value">{d ? fmt(d.stats.today) : "—"}</div>
-          <div className="an-stat-label">Today&apos;s Views</div>
-          <div className="an-stat-sub"><span className="badge-neut">since midnight</span></div>
+          <div className="an-stat-label">{t("Today's Views")}</div>
+          <div className="an-stat-sub"><span className="badge-neut">{t("since midnight")}</span></div>
         </div>
       </div>
 
@@ -275,14 +278,14 @@ export default function AnalyticsClient() {
           <div className="an-card-header">
             <span className="an-card-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>
-              Views Over Time
+              {t("Views Over Time")}
             </span>
             <span className="an-card-badge">{RANGE_LABELS[range]}</span>
           </div>
           <div className="an-chart-wrap">
             {!d && (
               <div className="an-chart-loading">
-                <div className="an-spinner" /> Loading chart…
+                <div className="an-spinner" />{" "}{t("Loading chart…")}
               </div>
             )}
             <canvas ref={viewsCanvasRef} style={{ display: d ? "block" : "none" }} />
@@ -293,7 +296,7 @@ export default function AnalyticsClient() {
           <div className="an-card-header">
             <span className="an-card-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2" /><line x1="12" y1="18" x2="12.01" y2="18" /></svg>
-              Visitor Devices
+              {t("Visitor Devices")}
             </span>
           </div>
           <div className="an-donut-wrap">
@@ -301,25 +304,25 @@ export default function AnalyticsClient() {
               <canvas ref={deviceCanvasRef} width={160} height={160} />
               <div className="an-donut-center">
                 <span className="an-donut-center-val">{d ? fmt(devTotal) : "—"}</span>
-                <span className="an-donut-center-lbl">Visitors</span>
+                <span className="an-donut-center-lbl">{t("Visitors")}</span>
               </div>
             </div>
             <div className="an-legend">
               <div className="an-legend-item">
                 <span className="an-legend-dot" style={{ background: "var(--accent)" }} />
-                <span className="an-legend-label">Desktop</span>
+                <span className="an-legend-label">{t("Desktop")}</span>
                 <span className="an-legend-val">{d ? fmt(d.devices.desktop) : "—"}</span>
                 <span className="an-legend-pct">{d ? pct(d.devices.desktop, devTotal) : ""}</span>
               </div>
               <div className="an-legend-item">
                 <span className="an-legend-dot" style={{ background: "var(--accent2)" }} />
-                <span className="an-legend-label">Mobile</span>
+                <span className="an-legend-label">{t("Mobile")}</span>
                 <span className="an-legend-val">{d ? fmt(d.devices.mobile) : "—"}</span>
                 <span className="an-legend-pct">{d ? pct(d.devices.mobile, devTotal) : ""}</span>
               </div>
               <div className="an-legend-item">
                 <span className="an-legend-dot" style={{ background: "#00c864" }} />
-                <span className="an-legend-label">Tablet</span>
+                <span className="an-legend-label">{t("Tablet")}</span>
                 <span className="an-legend-val">{d ? fmt(d.devices.tablet) : "—"}</span>
                 <span className="an-legend-pct">{d ? pct(d.devices.tablet, devTotal) : ""}</span>
               </div>
@@ -332,7 +335,7 @@ export default function AnalyticsClient() {
         <div className="an-card-header">
           <span className="an-card-title">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
-            Top Countries by Views
+            {t("Top Countries by Views")}
           </span>
           <span className="an-card-badge">{d ? `${fmt(d.total_ctr_views)} total` : "—"}</span>
         </div>
@@ -341,8 +344,8 @@ export default function AnalyticsClient() {
         ) : d.countries.length === 0 ? (
           <div className="an-empty">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="40" height="40"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
-            <strong>No country data yet</strong>
-            <span>Visit your profile to start collecting country data.</span>
+            <strong>{t("No country data yet")}</strong>
+            <span>{t("Visit your profile to start collecting country data.")}</span>
           </div>
         ) : (
           d.countries.map((c, i) => {
@@ -367,7 +370,7 @@ export default function AnalyticsClient() {
           <div className="an-card-header">
             <span className="an-card-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
-              Top Browsers
+              {t("Top Browsers")}
             </span>
             <span className="an-card-badge">{d ? `${fmt(d.browsers.reduce((s, b) => s + b.cnt, 0))} views` : "—"}</span>
           </div>
@@ -378,7 +381,7 @@ export default function AnalyticsClient() {
           <div className="an-card-header">
             <span className="an-card-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="3" width="20" height="14" rx="2" /><path d="M8 21h8M12 17v4" /></svg>
-              Top OS
+              {t("Top OS")}
             </span>
             <span className="an-card-badge">{d ? `${fmt(d.os.reduce((s, o) => s + o.cnt, 0))} views` : "—"}</span>
           </div>
@@ -389,7 +392,7 @@ export default function AnalyticsClient() {
           <div className="an-card-header">
             <span className="an-card-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
-              Top Links
+              {t("Top Links")}
             </span>
             <span className="an-card-badge">{d ? `${fmt(d.total_link_clicks)} clicks` : "—"}</span>
           </div>
@@ -398,7 +401,7 @@ export default function AnalyticsClient() {
           ) : d.top_links.length === 0 ? (
             <div className="an-empty">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="36" height="36" style={{ opacity: 0.25 }}><circle cx="12" cy="12" r="10" /></svg>
-              <strong>No link clicks yet</strong><span>Clicks on your links will appear here.</span>
+              <strong>{t("No link clicks yet")}</strong><span>{t("Clicks on your links will appear here.")}</span>
             </div>
           ) : (
             d.top_links.map((l) => {

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { getProfileBadges } from "@/lib/badges";
@@ -12,6 +12,21 @@ import { refreshSpotifyIntegrationForUser } from "@/lib/spotify";
 import { parseStringArray, parseJsonObject, parseNumberArray } from "@/lib/json-array";
 import { pickThemeSnapshot } from "@/lib/theme-snapshot";
 import Link from "next/link";
+
+const DRAFT_STRING_FIELDS = ["displayName", "bio", "location", "job", "layoutTemplate", "playlistStyle"] as const;
+const DRAFT_COLOR_FIELDS = ["accentColor", "backgroundColor", "nameColor", "bioColor", "overlayColor"] as const;
+
+function parseEditorDraft(raw: string): Record<string, string> {
+  try {
+    const data = JSON.parse(Buffer.from(raw, "base64url").toString("utf8")) as Record<string, unknown>;
+    const out: Record<string, string> = {};
+    for (const f of DRAFT_STRING_FIELDS) if (typeof data[f] === "string") out[f] = (data[f] as string).slice(0, 300);
+    for (const f of DRAFT_COLOR_FIELDS) if (typeof data[f] === "string" && /^#[0-9a-fA-F]{6}$/.test(data[f] as string)) out[f] = data[f] as string;
+    return out;
+  } catch {
+    return {};
+  }
+}
 
 async function getEmbedProfile(slug: string) {
   const profile = await prisma.profile.findUnique({ where: { slug }, include: { user: { select: { username: true, banned: true } } } });
@@ -45,17 +60,22 @@ export default async function ProfilePage({
   searchParams,
 }: {
   params: Promise<{ username: string }>;
-  searchParams: Promise<{ previewTheme?: string }>;
+  searchParams: Promise<{ previewTheme?: string; draft?: string; embed?: string }>;
 }) {
   const { username: slug } = await params;
-  const { previewTheme } = await searchParams;
+  const { previewTheme, draft, embed } = await searchParams;
 
   const profile = await prisma.profile.findUnique({
     where: { slug },
     include: { user: { include: { socialLinks: { orderBy: { displayOrder: "asc" } } } } },
   });
 
-  if (!profile) notFound();
+  if (!profile) {
+    // Aliases are extra handles that point at a real page.
+    const alias = await prisma.profileAlias.findUnique({ where: { alias: slug.toLowerCase() }, select: { profile: { select: { slug: true } } } });
+    if (alias) redirect(`/${alias.profile.slug}`);
+    notFound();
+  }
   const user = profile.user;
   if (user.banned) notFound();
 
@@ -76,7 +96,9 @@ export default async function ProfilePage({
     ? await prisma.theme.findUnique({ where: { id: previewThemeId } })
     : null;
   const canPreview = !!themePreview && (themePreview.active || themePreview.creatorId === viewer?.id || parseNumberArray(viewer?.purchasedThemes).includes(themePreview.id));
-  const look = canPreview ? ({ ...profile, ...pickThemeSnapshot(themePreview!) } as typeof profile) : profile;
+  const themed = canPreview ? ({ ...profile, ...pickThemeSnapshot(themePreview!) } as typeof profile) : profile;
+  // The dashboard editor previews unsaved changes by passing them here (owner only, whitelisted fields).
+  const look = isOwner && draft ? ({ ...themed, ...parseEditorDraft(draft) } as typeof profile) : themed;
 
   if (!isOwner) {
     const h = await headers();
@@ -128,6 +150,18 @@ export default async function ProfilePage({
     if (!hadBirthdayThisYear) age -= 1;
   }
 
+  const [projects, skills, bestFriendRow] = await Promise.all([
+    prisma.profileProject.findMany({ where: { profileId: profile.id, status: "approved" }, orderBy: { createdAt: "desc" }, take: 12 }),
+    prisma.profileSkill.findMany({ where: { profileId: profile.id }, orderBy: [{ displayOrder: "asc" }, { id: "asc" }], take: 20 }),
+    prisma.profileBestFriend.findUnique({
+      where: { profileId: profile.id },
+      select: { friend: { select: { slug: true, displayName: true, avatar: true, user: { select: { username: true, banned: true } } } } },
+    }),
+  ]);
+  const bestFriend = bestFriendRow && !bestFriendRow.friend.user.banned
+    ? { slug: bestFriendRow.friend.slug, displayName: bestFriendRow.friend.displayName || bestFriendRow.friend.user.username, avatar: bestFriendRow.friend.avatar }
+    : null;
+
   const [likeCount, likedByViewer, dislikeCount, dislikedByViewer] = await Promise.all([
     prisma.profileLike.count({ where: { profileUserId: user.id } }),
     viewer ? prisma.profileLike.findUnique({ where: { profileUserId_likerUserId: { profileUserId: user.id, likerUserId: viewer.id } } }) : null,
@@ -137,7 +171,7 @@ export default async function ProfilePage({
 
   return (
     <>
-    {canPreview && (
+    {canPreview && embed !== "1" && (
       <div className="theme-preview-bar">
         <span>Previewing <b>{themePreview!.name}</b> on your profile — nothing is saved</span>
         <Link href="/dashboard?page=marketplace">Back to marketplace</Link>
@@ -146,10 +180,10 @@ export default async function ProfilePage({
     )}
     <ProfileView
       username={profile.slug}
-      displayName={profile.displayName || user.username}
-      bio={profile.bio}
-      location={profile.location}
-      job={profile.job}
+      displayName={look.displayName || user.username}
+      bio={look.bio}
+      location={look.location}
+      job={look.job}
       age={age}
       avatar={profile.avatar}
       banner={profile.banner}
@@ -168,7 +202,7 @@ export default async function ProfilePage({
       cursorTrail={!!look.cursorTrail}
       nameEffect={look.nameEffect}
       bioEffect={look.bioEffect}
-      musicTracks={parseStringArray(profile.musicTracks).filter(Boolean)}
+      musicTracks={embed === "1" && isOwner ? [] : parseStringArray(profile.musicTracks).filter(Boolean)}
       playlistStyle={look.playlistStyle}
       cursorPath={profile.cursorPath}
       views={profile.views ?? 0}
@@ -199,6 +233,9 @@ export default async function ProfilePage({
           : null
       }
       gameIntegrations={gameIntegrations}
+      projects={projects.map((pr) => ({ id: pr.id, title: pr.title, description: pr.description, url: pr.url, repoUrl: pr.repoUrl, technologies: pr.technologies, image: pr.image }))}
+      skills={skills.map((sk) => ({ id: sk.id, name: sk.name, level: sk.level }))}
+      bestFriend={bestFriend}
       layoutTemplate={look.layoutTemplate}
       purchasedEffects={purchasedEffects}
       activeCursorEffect={activeEffects.cursor || ""}
@@ -209,6 +246,7 @@ export default async function ProfilePage({
       dislikeCount={dislikeCount}
       dislikedByViewer={!!dislikedByViewer}
       viewerLoggedIn={!!viewer}
+      autoEnter={embed === "1" && isOwner}
     />
     </>
   );

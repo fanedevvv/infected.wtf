@@ -14,6 +14,7 @@ import PurchasedEffectsEngine from "./PurchasedEffectsEngine";
 import { DecorationFrame } from "./DecorationSVGs";
 import { BADGE_ICON } from "@/lib/badge-icons";
 import ProfileComments from "./ProfileComments";
+import ProfileProjects, { type ProfileProjectCard } from "./ProfileProjects";
 import ReportProfileModal from "./ReportProfileModal";
 
 const PLATFORM_ICON: Record<string, React.ReactNode> = {
@@ -110,6 +111,9 @@ interface ProfileViewProps {
   discordInt: { discordUserId: string; discordUsername: string; discordGlobalName: string | null; discordAvatar: string | null } | null;
   discordServerInt: { invite: string; serverName: string; serverIcon: string | null; serverId: string; online: number; total: number } | null;
   gameIntegrations: GameIntegration[];
+  projects: ProfileProjectCard[];
+  skills: { id: number; name: string; level: number }[];
+  bestFriend: { slug: string; displayName: string; avatar: string | null } | null;
   layoutTemplate: string;
   purchasedEffects: string[];
   activeCursorEffect: string;
@@ -120,10 +124,12 @@ interface ProfileViewProps {
   dislikeCount: number;
   dislikedByViewer: boolean;
   viewerLoggedIn: boolean;
+  /** Skip the "click to enter" splash (used by the dashboard's live preview). */
+  autoEnter?: boolean;
 }
 
 export default function ProfileView(p: ProfileViewProps) {
-  const [entered, setEntered] = useState(false);
+  const [entered, setEntered] = useState(!!p.autoEnter);
   const cardRef = useRef<HTMLDivElement>(null);
   const [liked, setLiked] = useState(p.likedByViewer);
   const [likeCount, setLikeCount] = useState(p.likeCount);
@@ -362,6 +368,16 @@ export default function ProfileView(p: ProfileViewProps) {
               </p>
             )}
 
+            {p.bestFriend && (
+              <Link href={`/${p.bestFriend.slug}`} className="profile-bestfriend fade-in-d1" title="Best friend">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
+                <span>Best friend</span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.bestFriend.avatar ? `/${p.bestFriend.avatar}` : "/assets/img/default-avatar.png"} alt="" />
+                <b>{p.bestFriend.displayName}</b>
+              </Link>
+            )}
+
             {(p.location || p.job || p.age !== null) && (
               <div className="profile-meta-row fade-in-d2">
                 {p.location && (
@@ -440,6 +456,17 @@ export default function ProfileView(p: ProfileViewProps) {
               </div>
             )}
 
+            {p.skills.length > 0 && (
+              <div className="profile-skills fade-in-d3">
+                {p.skills.map((sk) => (
+                  <div className="profile-skill" key={sk.id}>
+                    <div className="profile-skill-head"><span>{sk.name}</span><span>{sk.level}%</span></div>
+                    <div className="profile-skill-bar"><span style={{ width: `${Math.max(2, Math.min(100, sk.level))}%` }} /></div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="fade-in-d4" style={{ marginTop: ".85rem" }}>
               <div className="profile-views-row">
                 <div className="profile-views-pill">
@@ -484,6 +511,7 @@ export default function ProfileView(p: ProfileViewProps) {
 
         {entered && (
           <div className="profile-social">
+            {p.projects.length > 0 && <ProfileProjects projects={p.projects} />}
             <ProfileComments slug={p.username} viewerLoggedIn={p.viewerLoggedIn} />
           </div>
         )}

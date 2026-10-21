@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { showToast } from "@/lib/toast";
+import { useT } from "@/lib/i18n/client";
 
 type Domain = { id: number; hostname: string; isDefault: boolean; tier: string };
 
@@ -26,12 +27,13 @@ function DomainCard({
   domain: Domain; slug: string; isActive: boolean; isPremiumUser: boolean; busy: boolean;
   onToggle: () => void; onCopy: () => void;
 }) {
+  const t = useT();
   const locked = domain.tier === "premium" && !isPremiumUser;
 
   return (
     <div className={`domain-card ${isActive ? "active" : ""} ${locked ? "locked" : ""}`}>
       {domain.tier === "premium" && (
-        <span className="domain-card-badge"><StarIcon /> Infected Plus</span>
+        <span className="domain-card-badge"><StarIcon />{" "}{t("Infected Plus")}</span>
       )}
       <div className="domain-card-icon"><LinkIcon /></div>
       <div>
@@ -41,18 +43,18 @@ function DomainCard({
 
       {domain.isDefault ? (
         <button className="domain-card-btn domain-card-btn-active" disabled>
-          <CheckIcon /> Active
+          <CheckIcon />{" "}{t("Active")}
         </button>
       ) : locked ? (
-        <button className="domain-card-btn domain-card-btn-locked" disabled title="Available on Infected Plus">
-          <LockIcon /> Infected Plus
+        <button className="domain-card-btn domain-card-btn-locked" disabled title={t("Available on Infected Plus")}>
+          <LockIcon />{" "}{t("Infected Plus")}
         </button>
       ) : isActive ? (
         <div style={{ display: "flex", gap: ".4rem", width: "100%" }}>
           <button className="domain-card-btn domain-card-btn-active" style={{ flex: 1 }} onClick={onToggle} disabled={busy}>
-            {busy ? "…" : (<><CheckIcon /> Active</>)}
+            {busy ? "…" : (<><CheckIcon />{" "}{t("Active")}</>)}
           </button>
-          <button className="domain-card-btn domain-card-btn-copy" onClick={onCopy} title="Copy link">⧉</button>
+          <button className="domain-card-btn domain-card-btn-copy" onClick={onCopy} title={t("Copy link")}>⧉</button>
         </div>
       ) : (
         <button className="domain-card-btn domain-card-btn-select" onClick={onToggle} disabled={busy}>
@@ -64,6 +66,7 @@ function DomainCard({
 }
 
 export default function DomainPicker({ slug, domains, initialSelected, max, isPremium }: { slug: string; domains: Domain[]; initialSelected: number[]; max: number; isPremium: boolean }) {
+  const t = useT();
   const [selected, setSelected] = useState<Set<number>>(new Set(initialSelected));
   const [busyId, setBusyId] = useState<number | null>(null);
 
@@ -93,7 +96,7 @@ export default function DomainPicker({ slug, domains, initialSelected, max, isPr
         showToast(j.error || "Error", "error");
       }
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
     } finally {
       setBusyId(null);
     }
@@ -101,8 +104,8 @@ export default function DomainPicker({ slug, domains, initialSelected, max, isPr
 
   function copyLink(hostname: string) {
     navigator.clipboard.writeText(`https://${hostname}/${slug}`).then(
-      () => showToast("Link copied!", "success"),
-      () => showToast("Couldn't copy link.", "error")
+      () => showToast(t("Link copied!"), "success"),
+      () => showToast(t("Couldn't copy link."), "error")
     );
   }
 
@@ -112,17 +115,17 @@ export default function DomainPicker({ slug, domains, initialSelected, max, isPr
   return (
     <>
       <div className="section-header">
-        <h2>Links</h2>
-        <p>Choose up to {max} domains your profile is reachable on — your page stays the same, just the link changes.</p>
+        <h2>{t("Links")}</h2>
+        <p>{t("Choose up to")}{" "}{max}{" "}{t("domains your profile is reachable on — your page stays the same, just the link changes.")}</p>
       </div>
 
       <div className="dash-card">
         <div className="dash-card-header">
-          <span className="dash-card-title"><LinkIcon /> Free Domains</span>
-          <span style={{ fontSize: ".78rem", color: "rgba(255,255,255,.4)" }}>Available to all users</span>
+          <span className="dash-card-title"><LinkIcon />{" "}{t("Free Domains")}</span>
+          <span style={{ fontSize: ".78rem", color: "rgba(255,255,255,.4)" }}>{t("Available to all users")}</span>
         </div>
         {freeDomains.length === 0 ? (
-          <p style={{ color: "var(--text-muted)", textAlign: "center", padding: "2rem", fontSize: ".875rem" }}>No free domains yet.</p>
+          <p style={{ color: "var(--text-muted)", textAlign: "center", padding: "2rem", fontSize: ".875rem" }}>{t("No free domains yet.")}</p>
         ) : (
           <div className="domain-grid">
             {freeDomains.map((d) => (
@@ -144,8 +147,8 @@ export default function DomainPicker({ slug, domains, initialSelected, max, isPr
       {premiumDomains.length > 0 && (
         <div className="dash-card">
           <div className="dash-card-header">
-            <span className="dash-card-title"><StarIcon /> Infected Plus Domains</span>
-            <span style={{ fontSize: ".78rem", color: "rgba(255,255,255,.4)" }}>Exclusive domains for Infected Plus users</span>
+            <span className="dash-card-title"><StarIcon />{" "}{t("Infected Plus Domains")}</span>
+            <span style={{ fontSize: ".78rem", color: "rgba(255,255,255,.4)" }}>{t("Exclusive domains for Infected Plus users")}</span>
           </div>
           <div className="domain-grid">
             {premiumDomains.map((d) => (

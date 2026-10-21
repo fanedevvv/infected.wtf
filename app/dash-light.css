@@ -1,0 +1,13 @@
+/* Light dashboard: invert the whole (dark) dashboard, then re-invert real media so photos keep their colours.
+   A filter on the root element doesn't create a containing block, so fixed navbars/modals keep working. */
+html.dash-active.dash-light { filter:invert(1) hue-rotate(180deg); }
+html.dash-active.dash-light img,
+html.dash-active.dash-light video,
+html.dash-active.dash-light canvas,
+html.dash-active.dash-light iframe,
+html.dash-active.dash-light picture,
+html.dash-active.dash-light .dash-no-invert,
+html.dash-active.dash-light [style*="background-image"] { filter:invert(1) hue-rotate(180deg); }
+html.dash-active.dash-light .dash-no-invert img,
+html.dash-active.dash-light .dash-no-invert video,
+html.dash-active.dash-light [style*="background-image"] img { filter:none; }

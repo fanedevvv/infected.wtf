@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { showToast } from "@/lib/toast";
+import { useT } from "@/lib/i18n/client";
 
 type SearchUser = { id: number; username: string; avatar: string };
 
@@ -25,6 +26,7 @@ export default function PremiumClient({
   isPremium: boolean;
   premiumExpiresAt: string | null;
 }) {
+  const t = useT();
   const [tokenBal, setTokenBal] = useState(tokens);
   const [days, setDays] = useState(30);
   const [activating, setActivating] = useState(false);
@@ -54,7 +56,7 @@ export default function PremiumClient({
         showToast(j.error || "Failed", "error");
       }
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
     } finally {
       setActivating(false);
     }
@@ -92,7 +94,7 @@ export default function PremiumClient({
         showToast(j.error || "Failed", "error");
       }
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
     } finally {
       setSending(false);
     }
@@ -102,7 +104,7 @@ export default function PremiumClient({
     <>
       <div className="section-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
         <div>
-          <h2>Infected Plus</h2>
+          <h2>{t("Infected Plus")}</h2>
           <p>{isPremium ? `You have Infected Plus${premiumExpiresAt ? ` until ${new Date(premiumExpiresAt).toLocaleDateString()}` : ""}.` : "Unlock exclusive perks across the platform"}</p>
         </div>
         <div className="shop-token-bal"><span>{tokenBal.toLocaleString()} tokens</span></div>
@@ -110,11 +112,11 @@ export default function PremiumClient({
 
       <div className="premium-grid">
         <div className="dash-card">
-          <div className="tpm-pill" style={{ marginBottom: ".5rem" }}>TOKENS</div>
-          <div className="tpm-title">Buy Infected Plus with Tokens</div>
-          <div className="tpm-sub" style={{ marginBottom: "1.25rem" }}>100 tokens per day</div>
+          <div className="tpm-pill" style={{ marginBottom: ".5rem" }}>{t("TOKENS")}</div>
+          <div className="tpm-title">{t("Buy Infected Plus with Tokens")}</div>
+          <div className="tpm-sub" style={{ marginBottom: "1.25rem" }}>{t("100 tokens per day")}</div>
 
-          <div className="tpm-days-label">Number of days</div>
+          <div className="tpm-days-label">{t("Number of days")}</div>
           <div className="tpm-days-row">
             <div className="tpm-days-ctrl">
               <button type="button" className="tpm-days-btn" onClick={() => setDays((d) => Math.max(1, d - 1))}>−</button>
@@ -129,13 +131,13 @@ export default function PremiumClient({
           </div>
           <div className="tpm-cost-card">
             <div>
-              <div className="tpm-cost-label">Total cost</div>
+              <div className="tpm-cost-label">{t("Total cost")}</div>
               <div className="tpm-cost-amount">{cost.toLocaleString()}</div>
             </div>
             <div className="tpm-cost-unit">tokens</div>
           </div>
           <div className="tpm-bal-row">
-            <span className="tpm-bal-label">Your balance</span>
+            <span className="tpm-bal-label">{t("Your balance")}</span>
             <span className="tpm-bal-value">{tokenBal.toLocaleString()} tokens</span>
           </div>
           <div className="tpm-bar-track">
@@ -144,13 +146,13 @@ export default function PremiumClient({
           <button type="button" className="tpm-activate-btn" disabled={cost > tokenBal || activating} onClick={activatePremium}>
             {activating ? "Activating…" : "Activate Infected Plus"}
           </button>
-          {cost > tokenBal && <div className="tpm-not-enough" style={{ display: "block" }}>Not enough tokens.</div>}
+          {cost > tokenBal && <div className="tpm-not-enough" style={{ display: "block" }}>{t("Not enough tokens.")}</div>}
         </div>
 
         <div className="dash-card">
-          <div className="tpm-pill" style={{ marginBottom: ".5rem" }}>SEND</div>
-          <div className="tpm-title">Transfer Tokens</div>
-          <div className="tpm-sub" style={{ marginBottom: "1.25rem" }}>Send tokens to another user (min. 10)</div>
+          <div className="tpm-pill" style={{ marginBottom: ".5rem" }}>{t("SEND")}</div>
+          <div className="tpm-title">{t("Transfer Tokens")}</div>
+          <div className="tpm-sub" style={{ marginBottom: "1.25rem" }}>{t("Send tokens to another user (min. 10)")}</div>
 
           <div className="tpm-days-row">
             <div className="tpm-days-ctrl">
@@ -165,13 +167,13 @@ export default function PremiumClient({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={target.avatar} alt="" onError={(e) => { (e.target as HTMLImageElement).src = "/assets/img/default-avatar.png"; }} />
               <span>@{target.username}</span>
-              <button type="button" className="gift-selected-clear" onClick={() => setTarget(null)} title="Clear">✕</button>
+              <button type="button" className="gift-selected-clear" onClick={() => setTarget(null)} title={t("Clear")}>✕</button>
             </div>
           ) : (
             <>
               <div className="gift-search-wrap" style={{ marginTop: "1rem" }}>
                 <svg className="gift-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-                <input type="text" className="gift-search-input" placeholder="Search username..." value={search} onChange={(e) => searchUsers(e.target.value)} autoComplete="off" />
+                <input type="text" className="gift-search-input" placeholder={t("Search username...")} value={search} onChange={(e) => searchUsers(e.target.value)} autoComplete="off" />
               </div>
               {results.length > 0 && (
                 <div className="gift-results show">
@@ -190,13 +192,13 @@ export default function PremiumClient({
           <button type="button" className="tpm-activate-btn" style={{ marginTop: "1.25rem" }} disabled={!target || amount < 10 || amount > tokenBal || sending} onClick={sendTransfer}>
             {sending ? "Sending…" : `Send ${amount.toLocaleString()} Tokens`}
           </button>
-          {target && amount > tokenBal && <div className="tpm-not-enough" style={{ display: "block" }}>Not enough tokens.</div>}
+          {target && amount > tokenBal && <div className="tpm-not-enough" style={{ display: "block" }}>{t("Not enough tokens.")}</div>}
         </div>
       </div>
 
       <div className="section-header" style={{ marginTop: "2rem" }}>
-        <h2 style={{ fontSize: "1.15rem" }}>PRO Features</h2>
-        <p>Everything unlocked with an active Infected Plus subscription</p>
+        <h2 style={{ fontSize: "1.15rem" }}>{t("PRO Features")}</h2>
+        <p>{t("Everything unlocked with an active Infected Plus subscription")}</p>
       </div>
       <div className="pro-feature-grid">
         {PRO_FEATURES.map((f) => (

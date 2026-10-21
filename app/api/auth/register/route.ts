@@ -94,6 +94,8 @@ export async function POST(req: NextRequest) {
   }
 
   const blindIndex = emailBlindIndex(email);
+  const aliasTaken = await prisma.profileAlias.findUnique({ where: { alias: username.toLowerCase() }, select: { id: true } });
+  if (aliasTaken) return NextResponse.json({ error: "Username or email already in use." }, { status: 400 });
   const existing = await prisma.user.findFirst({
     where: { OR: [{ username }, { emailBlindIndex: blindIndex }] },
     select: { id: true, emailVerified: true },

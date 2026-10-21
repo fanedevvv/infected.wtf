@@ -2,12 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser, validateUsername } from "@/lib/auth-helpers";
 import { getActiveProfileId, setActiveProfileCookie, maxPagesFor } from "@/lib/active-profile";
+import { RESERVED_SLUGS, isSlugTaken } from "@/lib/slug-availability";
 
-const RESERVED_SLUGS = new Set([
-  "login", "register", "logout", "dashboard", "leaderboard", "admin", "api", "support",
-  "terms", "privacy", "banned", "maintenance", "forgot-password", "reset-password", "auth",
-  "assets", "uploads", "favicon.ico",
-]);
 
 function isPremiumNow(isPremium: boolean, premiumExpiresAt: Date | null): boolean {
   return isPremium && (!premiumExpiresAt || premiumExpiresAt.getTime() > Date.now());
@@ -62,8 +58,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const taken = await prisma.profile.findUnique({ where: { slug }, select: { id: true } });
-  if (taken) {
+  if (await isSlugTaken(slug)) {
     return NextResponse.json({ success: false, error: "That slug is already taken." }, { status: 400 });
   }
 

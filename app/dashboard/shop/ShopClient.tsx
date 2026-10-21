@@ -4,6 +4,7 @@ import { useState } from "react";
 import { BADGE_SVG } from "@/lib/badge-defs";
 import { showToast } from "@/lib/toast";
 import EffectPreviewCanvas from "@/components/EffectPreviewCanvas";
+import { useT } from "@/lib/i18n/client";
 
 const SITE_NAME = "INFECTED.WTF";
 const ADMIN_EMAIL = `admin@${SITE_NAME.toLowerCase().replace(/[^a-z0-9.]/gi, "")}`;
@@ -83,6 +84,7 @@ type GiftTarget =
   | { kind: "premium_tokens" };
 
 export default function ShopClient(props: Props) {
+  const t = useT();
   const [tokens, setTokens] = useState(props.tokens);
   const [ownedBadges, setOwnedBadges] = useState(new Set(props.ownedBadges));
   const [purchasedEffects, setPurchasedEffects] = useState(new Set(props.purchasedEffects));
@@ -123,7 +125,7 @@ export default function ShopClient(props: Props) {
         showToast(j.error || "Error", "error");
       }
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
     }
   }
 
@@ -154,7 +156,7 @@ export default function ShopClient(props: Props) {
     if (!gift || !giftTarget) return;
     if (gift.kind === "premium_money") {
       window.location.href = `mailto:${ADMIN_EMAIL}?subject=Gift+Infected+Plus&body=I+want+to+gift+Infected+Plus+to+user+ID:+${giftTarget.id}+(@${giftTarget.username}).+My+user+ID:+${props.userId}`;
-      showToast("Opening email to complete the Infected Plus gift...", "success");
+      showToast(t("Opening email to complete the Infected Plus gift..."), "success");
       closeGift();
       return;
     }
@@ -176,7 +178,7 @@ export default function ShopClient(props: Props) {
         showToast(j.error || "Error", "error");
       }
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
     } finally {
       setGiftSending(false);
     }
@@ -204,7 +206,7 @@ export default function ShopClient(props: Props) {
         showToast(j.error || "Error", "error");
       }
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
     }
   }
 
@@ -212,8 +214,8 @@ export default function ShopClient(props: Props) {
     <>
       <div className="section-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
         <div>
-          <h2>Shop</h2>
-          <p>Unlock exclusive perks with your tokens and cash.</p>
+          <h2>{t("Shop")}</h2>
+          <p>{t("Unlock exclusive perks with your tokens and cash.")}</p>
         </div>
         <div className="shop-token-bal">
           <TokenIcon size={16} />
@@ -226,25 +228,25 @@ export default function ShopClient(props: Props) {
         <div className="bundles-grid">
           {props.bundles.map((b) => (
             <div className="bundle-shop-card" key={b.id}>
-              <span className="bundle-pill-label">BUNDLE</span>
+              <span className="bundle-pill-label">{t("BUNDLE")}</span>
               <div className="bundle-name">{b.name}</div>
               <div style={{ fontSize: ".78rem", color: "rgba(255,255,255,.4)" }}>
                 {b.badges.length > 0 && <>{b.badges.length} badge{b.badges.length !== 1 ? "s" : ""}</>}
                 {b.effects.length > 0 && <>{b.badges.length > 0 ? " · " : ""}{b.effects.length} effect{b.effects.length !== 1 ? "s" : ""}</>}
-                {b.premiumDays > 0 && <>{(b.badges.length > 0 || b.effects.length > 0) ? " · " : ""}{b.premiumDays}d Infected Plus</>}
+                {b.premiumDays > 0 && <>{(b.badges.length > 0 || b.effects.length > 0) ? " · " : ""}{b.premiumDays}{t("d Infected Plus")}</>}
               </div>
               <div style={{ fontFamily: "var(--font-sans)", fontSize: "1.4rem", fontWeight: 900, color: "#10b981" }}>
                 {b.priceType === "tokens" ? <>{b.price.toLocaleString()} tokens</> : <>€{b.price}</>}
               </div>
               {ownedBundles.has(b.id) ? (
-                <div className="shop-card-owned-badge"><CheckIcon /> OWNED</div>
+                <div className="shop-card-owned-badge"><CheckIcon />{" "}{t("OWNED")}</div>
               ) : b.priceType === "tokens" ? (
                 <button className="shop-buy-btn" onClick={() => setConfirmBuy({ kind: "bundle", id: b.id, name: b.name, price: b.price, color: "#10b981" })}>
-                  <BuyIcon /> Buy
+                  <BuyIcon />{" "}{t("Buy")}
                 </button>
               ) : (
                 <a className="shop-buy-btn" href={`mailto:${ADMIN_EMAIL}?subject=Bundle+Purchase&body=User+ID:+${props.userId}%0ABundle:+${encodeURIComponent(b.name)}`}>
-                  <BuyIcon /> Buy — €{b.price}
+                  <BuyIcon />{" "}{t("Buy — €")}{b.price}
                 </a>
               )}
             </div>
@@ -261,10 +263,10 @@ export default function ShopClient(props: Props) {
                 <div>
                   <div className="prem-badge-pill">
                     <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M12 2L9.5 8.5H3l5.5 4L6 19l6-4 6 4-2.5-6.5L21 8.5h-6.5L12 2z" /></svg>
-                    INFECTED PLUS
+                    {t("INFECTED PLUS")}
                   </div>
-                  <div className="prem-title">Unlock the full experience</div>
-                  <div className="prem-sub">Everything you need to stand out on {SITE_NAME}.</div>
+                  <div className="prem-title">{t("Unlock the full experience")}</div>
+                  <div className="prem-sub">{t("Everything you need to stand out on")}{" "}{SITE_NAME}.</div>
                 </div>
               </div>
 
@@ -289,18 +291,18 @@ export default function ShopClient(props: Props) {
                 <>
                   <div className="prem-active-banner">
                     <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 2L9.5 8.5H3l5.5 4L6 19l6-4 6 4-2.5-6.5L21 8.5h-6.5L12 2z" /></svg>
-                    Infected Plus is active{premiumExpiresAt ? ` — expires ${new Date(premiumExpiresAt).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}` : " (lifetime)"}.
+                    {t("Infected Plus is active")}{premiumExpiresAt ? ` — expires ${new Date(premiumExpiresAt).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}` : " (lifetime)"}.
                     <button className="prem-token-buy" onClick={() => setTokenPremOpen(true)} style={{ marginLeft: "auto" }}>
-                      <TokenIcon /> Extend with tokens
+                      <TokenIcon />{" "}{t("Extend with tokens")}
                     </button>
                   </div>
                   <div className="prem-gift-row">
-                    <span className="prem-gift-label"><GiftIcon size={13} /> Gift Infected Plus:</span>
+                    <span className="prem-gift-label"><GiftIcon size={13} />{" "}{t("Gift Infected Plus:")}</span>
                     <button className="btn-gift-prem-money" onClick={() => setGift({ kind: "premium_money" })}>
-                      <TokenIcon size={14} /> Gift for €7
+                      <TokenIcon size={14} />{" "}{t("Gift for €7")}
                     </button>
                     <button className="btn-gift-prem-tokens" onClick={() => setGift({ kind: "premium_tokens" })}>
-                      <TokenIcon size={14} /> Gift with tokens (100/day)
+                      <TokenIcon size={14} />{" "}{t("Gift with tokens (100/day)")}
                     </button>
                   </div>
                 </>
@@ -309,24 +311,24 @@ export default function ShopClient(props: Props) {
                   <div className="prem-buy-row">
                     <div>
                       <div className="prem-price-tag">€7</div>
-                      <div className="prem-price-sub">lifetime · one-time</div>
+                      <div className="prem-price-sub">{t("lifetime · one-time")}</div>
                     </div>
                     <a href={`mailto:${ADMIN_EMAIL}?subject=Infected+Plus+Purchase&body=User+ID:+${props.userId}`} className="btn-buy-premium">
                       <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 2L9.5 8.5H3l5.5 4L6 19l6-4 6 4-2.5-6.5L21 8.5h-6.5L12 2z" /></svg>
-                      Buy Infected Plus — €7 <span style={{ fontSize: ".75rem", opacity: 0.75, fontWeight: 600, marginLeft: 4 }}>(lifetime)</span>
+                      {t("Buy Infected Plus — €7")}{" "}<span style={{ fontSize: ".75rem", opacity: 0.75, fontWeight: 600, marginLeft: 4 }}>{t("(lifetime)")}</span>
                     </a>
                     <button className="prem-token-buy" onClick={() => setTokenPremOpen(true)}>
-                      <TokenIcon size={15} /> Buy with tokens <span style={{ fontSize: ".75rem", opacity: 0.75, fontWeight: 600, marginLeft: 2 }}>(100/day)</span>
+                      <TokenIcon size={15} />{" "}{t("Buy with tokens")}{" "}<span style={{ fontSize: ".75rem", opacity: 0.75, fontWeight: 600, marginLeft: 2 }}>{t("(100/day)")}</span>
                     </button>
                   </div>
                   <div className="prem-gift-row">
-                    <span className="prem-gift-label"><GiftIcon size={13} /> Gift Infected Plus:</span>
+                    <span className="prem-gift-label"><GiftIcon size={13} />{" "}{t("Gift Infected Plus:")}</span>
                     <button className="btn-gift-prem-money" onClick={() => setGift({ kind: "premium_money" })}>
-                      <TokenIcon size={14} /> Gift for €7
+                      <TokenIcon size={14} />{" "}{t("Gift for €7")}
                     </button>
-                    <button className="btn-gift-prem-tokens" style={{ opacity: 0.38, cursor: "not-allowed" }} title="Infected Plus required to gift with tokens" onClick={() => showToast("Gifting Infected Plus with tokens requires your own Infected Plus subscription.", "error")}>
+                    <button className="btn-gift-prem-tokens" style={{ opacity: 0.38, cursor: "not-allowed" }} title={t("Infected Plus required to gift with tokens")} onClick={() => showToast(t("Gifting Infected Plus with tokens requires your own Infected Plus subscription."), "error")}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>
-                      Gift with tokens (Infected Plus only)
+                      {t("Gift with tokens (Infected Plus only)")}
                     </button>
                   </div>
                 </>
@@ -340,9 +342,9 @@ export default function ShopClient(props: Props) {
               <div className="verified-card-left">
                 <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                   <div className="verified-card-info">
-                    <div className="verified-label"><CheckIcon /> VERIFIED</div>
-                    <h3>Get Verified</h3>
-                    <p>Show the world your account is authentic.</p>
+                    <div className="verified-label"><CheckIcon />{" "}{t("VERIFIED")}</div>
+                    <h3>{t("Get Verified")}</h3>
+                    <p>{t("Show the world your account is authentic.")}</p>
                   </div>
                 </div>
                 <div className="verified-perks">
@@ -356,16 +358,16 @@ export default function ShopClient(props: Props) {
               {hasVerified ? (
                 <div className="verified-owned-banner">
                   <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" /></svg>
-                  Your account is Verified.
+                  {t("Your account is Verified.")}
                 </div>
               ) : (
                 <div className="verified-buy-row">
                   <div>
                     <div className="verified-price">€5</div>
-                    <div className="verified-price-sub">one-time · permanent</div>
+                    <div className="verified-price-sub">{t("one-time · permanent")}</div>
                   </div>
                   <button className="btn-buy-verified" onClick={() => setVerifiedModalOpen(true)}>
-                    <CheckIcon /> Buy Verified — €5
+                    <CheckIcon />{" "}{t("Buy Verified — €5")}
                   </button>
                 </div>
               )}
@@ -381,8 +383,8 @@ export default function ShopClient(props: Props) {
             <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" style={{ color: "#ff9900" }}><path d="M7 2v11h3v9l7-12h-4l4-8z" /></svg>
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "var(--font-sans)", fontSize: "1rem", fontWeight: 900, color: "#ff9900" }}>X2 TOKENS EVENT — ACTIVE!</div>
-            <div style={{ fontSize: ".82rem", color: "rgba(255,255,255,.55)" }}>All token packs give <strong style={{ color: "#ffb900" }}>double tokens</strong> right now!</div>
+            <div style={{ fontFamily: "var(--font-sans)", fontSize: "1rem", fontWeight: 900, color: "#ff9900" }}>{t("X2 TOKENS EVENT — ACTIVE!")}</div>
+            <div style={{ fontSize: ".82rem", color: "rgba(255,255,255,.55)" }}>{t("All token packs give")}{" "}<strong style={{ color: "#ffb900" }}>{t("double tokens")}</strong>{" "}{t("right now!")}</div>
           </div>
           <div style={{ background: "rgba(255,140,0,.18)", border: "1px solid rgba(255,140,0,.4)", borderRadius: 10, padding: ".4rem .9rem", fontWeight: 900, fontSize: ".9rem", color: "#ffaa00" }}>x2</div>
         </div>
@@ -393,10 +395,10 @@ export default function ShopClient(props: Props) {
         <div className="shop-section-head">
           <span className="shop-section-label" style={{ display: "inline-flex", alignItems: "center", gap: ".4rem" }}>
             <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z" /></svg>
-            BUY TOKENS
+            {t("BUY TOKENS")}
           </span>
-          <h3 className="shop-section-title">Token Packs — real money</h3>
-          <p style={{ fontSize: ".82rem", color: "rgba(255,255,255,.4)", margin: ".35rem 0 0" }}>Purchase tokens with real money.</p>
+          <h3 className="shop-section-title">{t("Token Packs — real money")}</h3>
+          <p style={{ fontSize: ".82rem", color: "rgba(255,255,255,.4)", margin: ".35rem 0 0" }}>{t("Purchase tokens with real money.")}</p>
         </div>
         <div className="tpack-grid">
           {TOKEN_PACKS.map((pack) => {
@@ -404,7 +406,7 @@ export default function ShopClient(props: Props) {
             const displayTotal = props.x2Active ? baseTotal * 2 : baseTotal;
             return (
               <div className={`tpack-card ${pack.popular ? "tpack-popular" : ""}`} key={pack.id}>
-                {pack.popular && <div className="tpack-popular-badge">★ POPULAR</div>}
+                {pack.popular && <div className="tpack-popular-badge">{t("★ POPULAR")}</div>}
                 <div className="tpack-tokens">
                   {(props.x2Active ? baseTotal * 2 : pack.tokens).toLocaleString()} <span>tokens</span>
                 </div>
@@ -412,13 +414,13 @@ export default function ShopClient(props: Props) {
                   {pack.bonus > 0 && !props.x2Active && (
                     <div className="tpack-bonus">
                       <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z" /></svg>
-                      +{pack.bonus} bonus tokens
+                      +{pack.bonus}{" "}{t("bonus tokens")}
                     </div>
                   )}
                   {props.x2Active && (
                     <div className="tpack-x2">
                       <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11"><path d="M7 2v11h3v9l7-12h-4l4-8z" /></svg>
-                      x2 EVENT — {(baseTotal * 2).toLocaleString()} total
+                      {t("x2 EVENT —")}{" "}{(baseTotal * 2).toLocaleString()} total
                     </div>
                   )}
                 </div>
@@ -428,7 +430,7 @@ export default function ShopClient(props: Props) {
                   className="tpack-buy-btn"
                 >
                   <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z" /></svg>
-                  Buy {pack.price}
+                  {t("Buy")}{" "}{pack.price}
                 </a>
               </div>
             );
@@ -439,8 +441,8 @@ export default function ShopClient(props: Props) {
       {/* Badges shop */}
       <div className="shop-section">
         <div className="shop-section-head">
-          <span className="shop-section-label">TOKEN SHOP</span>
-          <h3 className="shop-section-title">Make your profile unique with badges</h3>
+          <span className="shop-section-label">{t("TOKEN SHOP")}</span>
+          <h3 className="shop-section-title">{t("Make your profile unique with badges")}</h3>
         </div>
         <div className="shop-grid">
           {Object.entries(props.badgeCatalog).map(([id, item]) => {
@@ -462,15 +464,15 @@ export default function ShopClient(props: Props) {
                   {owned ? (
                     <div className="shop-card-owned-badge" style={{ flex: 1 }}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12" /></svg>
-                      OWNED
+                      {t("OWNED")}
                     </div>
                   ) : (
                     <button className="shop-buy-btn" onClick={() => setConfirmBuy({ kind: "badge", id, name: item.name, price: item.price, color: item.color })}>
-                      <BuyIcon /> Buy
+                      <BuyIcon />{" "}{t("Buy")}
                     </button>
                   )}
-                  <button className="shop-gift-btn" onClick={() => setGift({ kind: "badge", id, name: item.name, price: item.price, color: item.color })} title="Gift this badge">
-                    <GiftIcon /> Gift
+                  <button className="shop-gift-btn" onClick={() => setGift({ kind: "badge", id, name: item.name, price: item.price, color: item.color })} title={t("Gift this badge")}>
+                    <GiftIcon />{" "}{t("Gift")}
                   </button>
                 </div>
               </div>
@@ -482,8 +484,8 @@ export default function ShopClient(props: Props) {
       {/* Effects shop */}
       <div id="effects" className="shop-section" style={{ marginTop: "2.5rem" }}>
         <div className="shop-section-head">
-          <span className="shop-section-label">EFFECTS SHOP</span>
-          <h3 className="shop-section-title">Power up your profile with visual effects</h3>
+          <span className="shop-section-label">{t("EFFECTS SHOP")}</span>
+          <h3 className="shop-section-title">{t("Power up your profile with visual effects")}</h3>
         </div>
 
         {(["cursor", "avatar", "bg"] as const).map((typeKey) => (
@@ -517,15 +519,15 @@ export default function ShopClient(props: Props) {
                         {owned ? (
                           <div className="shop-card-owned-badge" style={{ flex: 1 }}>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12" /></svg>
-                            OWNED
+                            {t("OWNED")}
                           </div>
                         ) : (
                           <button className="shop-buy-btn" onClick={() => setConfirmBuy({ kind: "effect", id, name: eff.name, price: eff.price, color: eff.color })}>
-                            <BuyIcon /> Buy
+                            <BuyIcon />{" "}{t("Buy")}
                           </button>
                         )}
-                        <button className="shop-gift-btn" onClick={() => setGift({ kind: "effect", id, name: eff.name, price: eff.price, color: eff.color })} title="Gift this effect">
-                          <GiftIcon /> Gift
+                        <button className="shop-gift-btn" onClick={() => setGift({ kind: "effect", id, name: eff.name, price: eff.price, color: eff.color })} title={t("Gift this effect")}>
+                          <GiftIcon />{" "}{t("Gift")}
                         </button>
                       </div>
                     </div>
@@ -547,14 +549,14 @@ export default function ShopClient(props: Props) {
                 <path d="M16 10a4 4 0 01-8 0" stroke={confirmBuy.color} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <div className="scm-title">Confirm Purchase</div>
+            <div className="scm-title">{t("Confirm Purchase")}</div>
             <div className="scm-sub">
-              Buy <strong className="scm-badge-name" style={{ color: confirmBuy.color }}>{confirmBuy.name}</strong> for <span className="scm-price">{confirmBuy.price.toLocaleString()} tokens</span>?
+              {t("Buy")}{" "}<strong className="scm-badge-name" style={{ color: confirmBuy.color }}>{confirmBuy.name}</strong> for <span className="scm-price">{confirmBuy.price.toLocaleString()} tokens</span>?
             </div>
             <div className="scm-divider" />
             <div className="scm-actions">
-              <button className="scm-btn-confirm" onClick={doBuy}>Confirm</button>
-              <button className="scm-btn-cancel" onClick={() => setConfirmBuy(null)}>Cancel</button>
+              <button className="scm-btn-confirm" onClick={doBuy}>{t("Confirm")}</button>
+              <button className="scm-btn-cancel" onClick={() => setConfirmBuy(null)}>{t("Cancel")}</button>
             </div>
           </div>
         </div>
@@ -567,8 +569,8 @@ export default function ShopClient(props: Props) {
             <button className="gift-close-x" onClick={closeGift}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
             </button>
-            <div className="gift-modal-title"><GiftIcon size={16} /> Gift {gift.kind === "premium_tokens" ? "Infected Plus" : gift.kind === "bundle" ? "Bundle" : gift.kind === "effect" ? "Effect" : "Badge"}</div>
-            <div className="gift-modal-sub">Choose who to send this gift to</div>
+            <div className="gift-modal-title"><GiftIcon size={16} />{" "}{t("Gift")}{" "}{gift.kind === "premium_tokens" ? "Infected Plus" : gift.kind === "bundle" ? "Bundle" : gift.kind === "effect" ? "Effect" : "Badge"}</div>
+            <div className="gift-modal-sub">{t("Choose who to send this gift to")}</div>
 
             {gift.kind === "premium_tokens" ? (
               <div>
@@ -577,7 +579,7 @@ export default function ShopClient(props: Props) {
                   <span style={{ color: "rgba(255,255,255,.5)" }}>days</span>
                   <span className="token-days-cost">= {(giftDays * 100).toLocaleString()} tokens</span>
                 </div>
-                <div style={{ fontSize: ".8rem", color: "rgba(255,255,255,.4)", marginBottom: "1rem" }}>Your balance: <span style={{ color: "#34d399" }}>{tokens.toLocaleString()}</span> tokens</div>
+                <div style={{ fontSize: ".8rem", color: "rgba(255,255,255,.4)", marginBottom: "1rem" }}>{t("Your balance:")}{" "}<span style={{ color: "#34d399" }}>{tokens.toLocaleString()}</span> tokens</div>
               </div>
             ) : (
               <div className="gift-badge-preview">
@@ -596,13 +598,13 @@ export default function ShopClient(props: Props) {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={giftTarget.avatar} alt="" onError={(e) => { (e.target as HTMLImageElement).src = "/assets/img/default-avatar.png"; }} />
                 <span>@{giftTarget.username}</span>
-                <button className="gift-selected-clear" onClick={() => setGiftTarget(null)} title="Clear">✕</button>
+                <button className="gift-selected-clear" onClick={() => setGiftTarget(null)} title={t("Clear")}>✕</button>
               </div>
             ) : (
               <>
                 <div className="gift-search-wrap">
                   <svg className="gift-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-                  <input type="text" className="gift-search-input" placeholder="Search username..." value={giftSearch} onChange={(e) => searchGiftUsers(e.target.value)} autoComplete="off" />
+                  <input type="text" className="gift-search-input" placeholder={t("Search username...")} value={giftSearch} onChange={(e) => searchGiftUsers(e.target.value)} autoComplete="off" />
                 </div>
                 {giftResults.length > 0 && (
                   <div className="gift-results show">
@@ -620,7 +622,7 @@ export default function ShopClient(props: Props) {
             )}
 
             <div className="gift-modal-actions">
-              <button className="gift-cancel-btn" onClick={closeGift}>Cancel</button>
+              <button className="gift-cancel-btn" onClick={closeGift}>{t("Cancel")}</button>
               <button className="gift-send-btn" disabled={!giftTarget || giftSending} onClick={sendGift}>{giftSending ? "Sending..." : "Send Gift"}</button>
             </div>
           </div>
@@ -634,21 +636,21 @@ export default function ShopClient(props: Props) {
             <button className="gift-close-x" onClick={closeGift}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
             </button>
-            <div className="gift-modal-title" style={{ color: "#34d399" }}><GiftIcon size={16} /> Gift Infected Plus</div>
-            <div className="gift-modal-sub">Send Infected Plus for €7 — we&apos;ll contact the recipient.</div>
+            <div className="gift-modal-title" style={{ color: "#34d399" }}><GiftIcon size={16} />{" "}{t("Gift Infected Plus")}</div>
+            <div className="gift-modal-sub">{t("Send Infected Plus for €7 — we'll contact the recipient.")}</div>
 
             {giftTarget ? (
               <div className="gift-selected-user show">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={giftTarget.avatar} alt="" onError={(e) => { (e.target as HTMLImageElement).src = "/assets/img/default-avatar.png"; }} />
                 <span>@{giftTarget.username}</span>
-                <button className="gift-selected-clear" onClick={() => setGiftTarget(null)} title="Clear">✕</button>
+                <button className="gift-selected-clear" onClick={() => setGiftTarget(null)} title={t("Clear")}>✕</button>
               </div>
             ) : (
               <>
                 <div className="gift-search-wrap">
                   <svg className="gift-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-                  <input type="text" className="gift-search-input" placeholder="Search username..." value={giftSearch} onChange={(e) => searchGiftUsers(e.target.value)} autoComplete="off" />
+                  <input type="text" className="gift-search-input" placeholder={t("Search username...")} value={giftSearch} onChange={(e) => searchGiftUsers(e.target.value)} autoComplete="off" />
                 </div>
                 {giftResults.length > 0 && (
                   <div className="gift-results show">
@@ -665,8 +667,8 @@ export default function ShopClient(props: Props) {
             )}
 
             <div className="gift-modal-actions">
-              <button className="gift-cancel-btn" onClick={closeGift}>Cancel</button>
-              <button className="gift-send-btn" disabled={!giftTarget} onClick={sendGift}>Send Gift</button>
+              <button className="gift-cancel-btn" onClick={closeGift}>{t("Cancel")}</button>
+              <button className="gift-send-btn" disabled={!giftTarget} onClick={sendGift}>{t("Send Gift")}</button>
             </div>
           </div>
         </div>
@@ -680,15 +682,15 @@ export default function ShopClient(props: Props) {
               <button className="vpm-close" onClick={() => setVerifiedModalOpen(false)}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
               </button>
-              <div className="vpm-title">Get Verified</div>
-              <div className="vpm-sub">One-time purchase — permanent badge on your profile</div>
+              <div className="vpm-title">{t("Get Verified")}</div>
+              <div className="vpm-sub">{t("One-time purchase — permanent badge on your profile")}</div>
             </div>
             <div className="vpm-body">
               <div className="vpm-preview">
                 <div className="vpm-preview-ico"><CheckIcon /></div>
                 <div className="vpm-preview-info">
-                  <strong>Verified Badge</strong>
-                  <span>Official green checkmark — shows on your public profile</span>
+                  <strong>{t("Verified Badge")}</strong>
+                  <span>{t("Official green checkmark — shows on your public profile")}</span>
                 </div>
               </div>
               <a
@@ -696,7 +698,7 @@ export default function ShopClient(props: Props) {
                 className="vpm-buy-btn"
                 onClick={() => setVerifiedModalOpen(false)}
               >
-                ✓ Buy Verified Badge — €5
+                {t("✓ Buy Verified Badge — €5")}
               </a>
             </div>
           </div>
@@ -711,12 +713,12 @@ export default function ShopClient(props: Props) {
               <button className="tpm-close" onClick={() => setTokenPremOpen(false)}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
               </button>
-              <div className="tpm-pill">TOKENS</div>
-              <div className="tpm-title">Activate Infected Plus</div>
-              <div className="tpm-sub">100 tokens per day</div>
+              <div className="tpm-pill">{t("TOKENS")}</div>
+              <div className="tpm-title">{t("Activate Infected Plus")}</div>
+              <div className="tpm-sub">{t("100 tokens per day")}</div>
             </div>
             <div className="tpm-body">
-              <div className="tpm-days-label">Number of days</div>
+              <div className="tpm-days-label">{t("Number of days")}</div>
               <div className="tpm-days-row">
                 <div className="tpm-days-ctrl">
                   <button className="tpm-days-btn" onClick={() => setTokenPremDays((d) => Math.max(1, d - 1))}>−</button>
@@ -731,22 +733,22 @@ export default function ShopClient(props: Props) {
               </div>
               <div className="tpm-cost-card">
                 <div>
-                  <div className="tpm-cost-label">Total cost</div>
+                  <div className="tpm-cost-label">{t("Total cost")}</div>
                   <div className="tpm-cost-amount">{(tokenPremDays * 100).toLocaleString()}</div>
                 </div>
                 <div className="tpm-cost-unit">tokens</div>
               </div>
               <div className="tpm-bal-row">
-                <span className="tpm-bal-label">Your balance</span>
+                <span className="tpm-bal-label">{t("Your balance")}</span>
                 <span className="tpm-bal-value">{tokens.toLocaleString()} tokens</span>
               </div>
               <div className="tpm-bar-track">
                 <div className={`tpm-bar-fill ${tokenPremDays * 100 > tokens ? "danger" : ""}`} style={{ width: `${Math.min(100, (tokenPremDays * 100 / Math.max(1, tokens)) * 100)}%` }} />
               </div>
               <button className="tpm-activate-btn" disabled={tokenPremDays * 100 > tokens} onClick={activatePremiumTokens}>
-                Activate Infected Plus
+                {t("Activate Infected Plus")}
               </button>
-              {tokenPremDays * 100 > tokens && <div className="tpm-not-enough" style={{ display: "block" }}>Not enough tokens.</div>}
+              {tokenPremDays * 100 > tokens && <div className="tpm-not-enough" style={{ display: "block" }}>{t("Not enough tokens.")}</div>}
             </div>
           </div>
         </div>

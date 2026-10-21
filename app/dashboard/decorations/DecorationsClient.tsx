@@ -5,6 +5,7 @@ import { showToast } from "@/lib/toast";
 import { RARITY_COLOR } from "@/lib/decorations";
 import type { DecorationRarity } from "@/lib/decorations";
 import { DecorationFrame } from "@/components/DecorationSVGs";
+import { useT } from "@/lib/i18n/client";
 
 type CatalogItem = { id: string; name: string; price: number; rarity: DecorationRarity; desc: string; owned: boolean };
 const PAGE_SIZE = 48;
@@ -41,6 +42,7 @@ export default function DecorationsClient({
   catalog: CatalogItem[];
   activeDecoration: string | null;
 }) {
+  const t = useT();
   const [tab, setTab] = useState<"shop" | "inventory">("shop");
   const [tokenBal, setTokenBal] = useState(tokens);
   const [active, setActive] = useState(activeDecoration);
@@ -51,7 +53,7 @@ export default function DecorationsClient({
   const [sortBy, setSortBy] = useState<SortMode>("rarity");
 
   async function buy(id: string, price: number) {
-    if (tokenBal < price) { showToast("Not enough tokens.", "error"); return; }
+    if (tokenBal < price) { showToast(t("Not enough tokens."), "error"); return; }
     setBusyId(id);
     try {
       const res = await fetch("/api/shop", {
@@ -63,12 +65,12 @@ export default function DecorationsClient({
       if (j.success) {
         setTokenBal(j.tokens);
         setItems((prev) => prev.map((it) => (it.id === id ? { ...it, owned: true } : it)));
-        showToast("Decoration purchased!", "success");
+        showToast(t("Decoration purchased!"), "success");
       } else {
         showToast(j.error || "Purchase failed", "error");
       }
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
     } finally {
       setBusyId(null);
     }
@@ -90,7 +92,7 @@ export default function DecorationsClient({
         showToast(j.error || "Failed", "error");
       }
     } catch {
-      showToast("Network error", "error");
+      showToast(t("Network error"), "error");
     } finally {
       setBusyId(null);
     }
@@ -129,8 +131,8 @@ export default function DecorationsClient({
     <>
       <div className="section-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
         <div>
-          <h2>Decorations</h2>
-          <p>Equip a decorative frame around your avatar</p>
+          <h2>{t("Decorations")}</h2>
+          <p>{t("Equip a decorative frame around your avatar")}</p>
         </div>
         <div className="shop-token-bal"><TokenIcon /><span>{tokenBal.toLocaleString()} tokens</span></div>
       </div>
@@ -152,8 +154,8 @@ export default function DecorationsClient({
       </div>
 
       <div className="appr-tabbar" style={{ marginBottom: "1.25rem" }}>
-        <button type="button" className={`appr-tab ${tab === "shop" ? "active" : ""}`} style={{ border: "none", background: "none", cursor: "pointer" }} onClick={() => setTab("shop")}>Shop</button>
-        <button type="button" className={`appr-tab ${tab === "inventory" ? "active" : ""}`} style={{ border: "none", background: "none", cursor: "pointer" }} onClick={() => setTab("inventory")}>My Inventory ({inventoryItems.length})</button>
+        <button type="button" className={`appr-tab ${tab === "shop" ? "active" : ""}`} style={{ border: "none", background: "none", cursor: "pointer" }} onClick={() => setTab("shop")}>{t("Shop")}</button>
+        <button type="button" className={`appr-tab ${tab === "inventory" ? "active" : ""}`} style={{ border: "none", background: "none", cursor: "pointer" }} onClick={() => setTab("inventory")}>{t("My Inventory (")}{inventoryItems.length})</button>
       </div>
 
       <div className="dash-card decorations-controls" style={{ marginBottom: "1.25rem" }}>
@@ -163,24 +165,24 @@ export default function DecorationsClient({
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name"
-            aria-label="Search decorations by name"
+            placeholder={t("Search by name")}
+            aria-label={t("Search decorations by name")}
           />
           <select
             className="form-control decorations-sort-select"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortMode)}
-            aria-label="Sort decorations"
+            aria-label={t("Sort decorations")}
           >
-            <option value="rarity">Sort by rarity</option>
-            <option value="price_asc">Price: low to high</option>
-            <option value="price_desc">Price: high to low</option>
-            <option value="alpha">Alphabetical</option>
+            <option value="rarity">{t("Sort by rarity")}</option>
+            <option value="price_asc">{t("Price: low to high")}</option>
+            <option value="price_desc">{t("Price: high to low")}</option>
+            <option value="alpha">{t("Alphabetical")}</option>
           </select>
         </div>
         <div className="decorations-controls-meta">
           <span>
-            Showing {visibleItems.length.toLocaleString()} {visibleItems.length === 1 ? "decoration" : "decorations"}
+            {t("Showing")}{" "}{visibleItems.length.toLocaleString()} {visibleItems.length === 1 ? "decoration" : "decorations"}
           </span>
           {(search || sortBy !== "rarity") && (
             <button
@@ -191,7 +193,7 @@ export default function DecorationsClient({
                 setSortBy("rarity");
               }}
             >
-              Reset
+              {t("Reset")}
             </button>
           )}
         </div>
@@ -229,7 +231,7 @@ export default function DecorationsClient({
               <div className="shop-card-actions" style={{ display: "flex", gap: ".5rem" }}>
                 {it.owned ? (
                   activeNormalized === normalizeDecorationId(it.id) ? (
-                    <div className="shop-card-owned-badge" style={{ flex: 1 }}>EQUIPPED</div>
+                    <div className="shop-card-owned-badge" style={{ flex: 1 }}>{t("EQUIPPED")}</div>
                   ) : (
                     <button className="shop-buy-btn" disabled={busyId === it.id} onClick={() => equip(it.id)}>
                       {busyId === it.id ? "Equipping…" : "Equip"}
@@ -249,7 +251,7 @@ export default function DecorationsClient({
       {visibleItems.length > PAGE_SIZE && (
         <div className="dash-card" style={{ marginTop: "1rem", padding: ".85rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: ".75rem", flexWrap: "wrap" }}>
           <span style={{ fontSize: ".8rem", color: "rgba(255,255,255,.6)" }}>
-            Page {page} / {totalPages} • {visibleItems.length.toLocaleString()} decorations
+            {t("Page")}{" "}{page} / {totalPages} • {visibleItems.length.toLocaleString()} decorations
           </span>
           <div style={{ display: "flex", gap: ".5rem" }}>
             <button
@@ -259,7 +261,7 @@ export default function DecorationsClient({
               disabled={page <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
             >
-              Previous
+              {t("Previous")}
             </button>
             <button
               type="button"
@@ -268,7 +270,7 @@ export default function DecorationsClient({
               disabled={page >= totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             >
-              Next
+              {t("Next")}
             </button>
           </div>
         </div>
