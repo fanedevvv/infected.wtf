@@ -16,7 +16,10 @@ const POSSIBLE_REWARDS = [
   { type: "premium_days", title: "Infected Plus", sub: "1-3 days", color: "#fbbf24", highlight: true },
   { type: "badge", title: "Verified", sub: "Badge", color: "#34d399", highlight: true },
 ];
-const REEL_LENGTH = 32;
+// The reel repeats the prize list; it always lands on the copy LAND_CYCLES lists in, so the tile under the
+// pointer is prizes[index] whatever the number of prizes.
+const LAND_CYCLES = 3;
+const REEL_CYCLES = 5;
 
 function PrizeIcon({ type }: { type: string }) {
   if (type === "premium_days") {
@@ -74,7 +77,7 @@ export default function SpinClient({
     }
   }, [now, nextAt]);
 
-  const sequence = Array.from({ length: REEL_LENGTH }, (_, i) => prizes[i % prizes.length]);
+  const sequence = Array.from({ length: prizes.length * REEL_CYCLES }, (_, i) => prizes[i % prizes.length]);
 
   async function spin() {
     if (!canSpin || spinning) return;
@@ -93,7 +96,7 @@ export default function SpinClient({
         return;
       }
 
-      const landingPos = 24 + j.index;
+      const landingPos = prizes.length * LAND_CYCLES + j.index;
       const containerWidth = containerRef.current?.offsetWidth ?? 600;
       const target = landingPos * TILE_WIDTH + TILE_WIDTH / 2 - containerWidth / 2;
 
@@ -107,6 +110,7 @@ export default function SpinClient({
         setCanSpin(false);
         setNextAt(j.nextAt);
         setTokenBal(j.tokens);
+        window.dispatchEvent(new Event("dash:refresh-me"));
         setResult({ label: j.prize.label, type: j.prize.type });
         showToast(`${t("You won")}: ${t(j.prize.label)}!`, "success");
       }, 3400);

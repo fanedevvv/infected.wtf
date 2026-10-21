@@ -65,6 +65,12 @@ export default function DashboardShell({ children, initialMode, initialAccent }:
     });
   }
 
+  // Pages that change the balance/profile (e.g. the daily spin) fire this so the navbar doesn't go stale.
+  useEffect(() => {
+    window.addEventListener("dash:refresh-me", loadMe);
+    return () => window.removeEventListener("dash:refresh-me", loadMe);
+  }, []);
+
   useEffect(() => {
     loadMe();
     loadNotifs();
