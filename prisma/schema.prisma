@@ -57,6 +57,7 @@ model User {
   profileComments       ProfileComment[]
   commentLikes          ProfileCommentLike[]
   reportsFiled          ProfileReport[]      @relation("ReportsFiled")
+  hostedImages          HostedImage[]
   profiles              Profile[]
   redeemCodeUses        RedeemCodeUse[]
   referralsMade         Referral[]           @relation("Referrer")
@@ -570,4 +571,22 @@ model ProfileSkill {
 
   @@index([profileId], map: "fk_ps_profile")
   @@map("profile_skills")
+}
+
+model HostedImage {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  key       String   @unique(map: "uniq_hosted_key") @db.VarChar(16)
+  path      String   @db.VarChar(200)
+  name      String   @db.VarChar(200)
+  mime      String   @db.VarChar(40)
+  size      Int
+  width     Int?
+  height    Int?
+  views     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_hi_user")
+
+  @@index([userId, createdAt], map: "idx_hi_user_created")
+  @@map("hosted_images")
 }

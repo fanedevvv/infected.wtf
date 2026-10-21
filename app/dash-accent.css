@@ -238,3 +238,8 @@ html.dash-custom-accent .pe-skill input[type="range"] { accent-color:var(--dash-
 html.dash-custom-accent .pe-share-target:hover { border-color:var(--dash-accent); }
 html.dash-custom-accent .notif-item.unread { background:color-mix(in srgb, var(--dash-accent) 8%, transparent); }
 html.dash-custom-accent .notif-item.unread .notif-item-title::after { background:var(--dash-accent); }
+html.dash-custom-accent .ih-usage-track span { background:var(--dash-accent); }
+html.dash-custom-accent .ih-drop:hover, html.dash-custom-accent .ih-drop.dragging { border-color:var(--dash-accent); background:color-mix(in srgb, var(--dash-accent) 8%, transparent); }
+html.dash-custom-accent .ih-card-actions button:hover { border-color:var(--dash-accent); }
+html.dash-custom-accent .ih-btn:hover { border-color:var(--dash-accent); }
+html.dash-custom-accent .ih-view-home:hover { color:var(--dash-accent); }
