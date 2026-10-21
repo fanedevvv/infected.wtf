@@ -65,10 +65,10 @@ export default async function SupportPage() {
             <div className="team-card">
               <div className="team-avatar team-avatar-img">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="Zynk" />
+                <img src="https://cdn.discordapp.com/avatars/1232980258584793150/0dd417621c4806975bbbec88a1e37ff1.png?size=256" alt="vincenzoo$" />
               </div>
               <div>
-                <div className="team-name">Zynk</div>
+                <div className="team-name">vincenzoo$</div>
                 <div className="team-role">Developer</div>
                 <span className="team-role-badge role-dev-fane">Developer</span>
               </div>
