@@ -1,5 +1,5 @@
+import { redirect } from "next/navigation";
 import OverviewContent from "./OverviewContent";
-import ProfileInfoPage from "./info/page";
 import EffectsPage from "./effects/page";
 import ShopPage from "./shop/page";
 import MarketplacePage from "./marketplace/page";
@@ -25,7 +25,8 @@ export default async function DashboardPage({
 
   switch (page) {
     case "info":
-      return <ProfileInfoPage searchParams={Promise.resolve(params)} />;
+      // The old Appearance page was replaced by the tile-based editor; keep old links working.
+      redirect("/dashboard?page=editor");
     case "effects":
       return <EffectsPage />;
     case "shop":
