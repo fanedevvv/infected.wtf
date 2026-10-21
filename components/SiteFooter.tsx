@@ -16,6 +16,8 @@ const COLUMNS: { title: string; links: { label: string; href: string; external?:
       { label: "Discord", href: "https://discord.gg/kPx9zWzWez", external: true },
       { label: "Partners", href: "/partners" },
       { label: "Support", href: "/support" },
+      { label: "Docs", href: "https://docs.infected.wtf" },
+      { label: "Status", href: "https://status.infected.wtf" },
     ],
   },
   {

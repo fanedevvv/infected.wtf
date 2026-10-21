@@ -3,7 +3,7 @@ import { prisma } from "./prisma";
 export const RESERVED_SLUGS = new Set([
   "login", "register", "logout", "dashboard", "leaderboard", "admin", "api", "support",
   "terms", "privacy", "banned", "maintenance", "forgot-password", "reset-password", "auth",
-  "assets", "uploads", "favicon.ico", "partners", "site-stats", "stats", "status", "i",
+  "assets", "uploads", "favicon.ico", "partners", "site-stats", "stats", "status", "i", "docs",
 ]);
 
 /** True when `slug` is already used as a page slug, an alias or a username (case-insensitive for aliases). */
