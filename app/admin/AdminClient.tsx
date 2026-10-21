@@ -11,6 +11,7 @@ import SafeImg from "@/components/SafeImg";
 import OwnerTab from "./OwnerTab";
 import ReportsTab from "./ReportsTab";
 import ProjectsReviewTab from "./ProjectsReviewTab";
+import PartnersTab from "./PartnersTab";
 
 type AdminUser = {
   id: number; username: string; isAdmin: boolean; isOwner: boolean; isMod: boolean;
@@ -64,7 +65,7 @@ function RoleBadge({ u }: { u: { isOwner: boolean; isAdmin: boolean; isMod: bool
 
 export default function AdminClient(props: Props) {
   const router = useRouter();
-  const [tab, setTab] = useState<"staff" | "reports" | "projects" | "owner">("staff");
+  const [tab, setTab] = useState<"staff" | "reports" | "projects" | "partners" | "owner">("staff");
   const [pendingProjects, setPendingProjects] = useState<number | null>(null);
   const [openReports, setOpenReports] = useState<number | null>(null);
   const [searchQ, setSearchQ] = useState(props.search);
@@ -232,7 +233,7 @@ export default function AdminClient(props: Props) {
     if (saved === "owner" && props.iAmOwner) setTab("owner");
   }, [props.iAmOwner]);
 
-  function switchTab(t: "staff" | "reports" | "projects" | "owner") {
+  function switchTab(t: "staff" | "reports" | "projects" | "partners" | "owner") {
     setTab(t);
     try { sessionStorage.setItem("adminTab", t); } catch {}
   }
@@ -434,6 +435,12 @@ export default function AdminClient(props: Props) {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
             Projects{pendingProjects ? ` (${pendingProjects})` : ""}
           </button>
+          {(props.iAmAdmin || props.iAmOwner) && (
+            <button className={`admin-tab-btn ${tab === "partners" ? "active" : ""}`} onClick={() => switchTab("partners")}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+              Partners
+            </button>
+          )}
           {props.iAmOwner && (
             <button id="btn-tab-owner" className={`admin-tab-btn ${tab === "owner" ? "active" : ""}`} onClick={() => switchTab("owner")}>
               <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14" style={{ color: "#fbbf24" }}><path d="M5 16L3 5l5.5 5L12 2l3.5 8L21 5l-2 11H5zm14 3H5v2h14v-2z" /></svg>
@@ -578,6 +585,7 @@ export default function AdminClient(props: Props) {
 
       {tab === "reports" && <ReportsTab onOpenCount={setOpenReports} />}
       {tab === "projects" && <ProjectsReviewTab onPendingCount={setPendingProjects} />}
+      {tab === "partners" && (props.iAmAdmin || props.iAmOwner) && <PartnersTab />}
 
       {props.iAmOwner && tab === "owner" && (
         <OwnerTab

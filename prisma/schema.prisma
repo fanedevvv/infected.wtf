@@ -590,3 +590,17 @@ model HostedImage {
   @@index([userId, createdAt], map: "idx_hi_user_created")
   @@map("hosted_images")
 }
+
+model Partner {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(80)
+  description  String?  @db.VarChar(500)
+  image        String?  @db.VarChar(200)
+  url          String   @db.VarChar(300)
+  displayOrder Int      @default(0) @map("display_order")
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at") @db.DateTime(0)
+
+  @@index([active, displayOrder], map: "idx_partners_active_order")
+  @@map("partners")
+}

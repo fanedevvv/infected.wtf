@@ -10,6 +10,7 @@ export default async function PartnersPage() {
   const session = await getSession();
   const user = session ? await prisma.user.findUnique({ where: { id: session.userId }, select: { username: true } }) : null;
   const consent = await getCookieConsent();
+  const partners = await prisma.partner.findMany({ where: { active: true }, orderBy: [{ displayOrder: "asc" }, { id: "asc" }] });
 
   return (
     <>
@@ -29,6 +30,26 @@ export default async function PartnersPage() {
           <p className="support-sub">Three real ways to earn tokens and grow your reach by partnering with the platform — no fine print, no fake payouts.</p>
         </div>
 
+        {partners.length > 0 && (
+          <section className="pp-partners">
+            <h2 className="pp-partners-title">Our partners</h2>
+            <div className="pp-partners-grid">
+              {partners.map((p) => (
+                <a key={p.id} className="pp-partner" href={p.url} target="_blank" rel="noopener">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={p.image ? `/${p.image}` : "/assets/img/default-avatar.png"} alt="" loading="lazy" />
+                  <div className="pp-partner-body">
+                    <b>{p.name}</b>
+                    {p.description && <p>{p.description}</p>}
+                    <span className="pp-partner-link">Visit {new URL(p.url).hostname.replace(/^www\./, "")} ↗</span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <h2 className="pp-partners-title">Grow with us</h2>
         <div className="int-grid" style={{ marginBottom: "2.5rem" }}>
           <div className="int-card" style={{ ["--int-color" as string]: "#7c3aed" }}>
             <div className="int-card-header">

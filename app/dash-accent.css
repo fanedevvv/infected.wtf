@@ -243,3 +243,9 @@ html.dash-custom-accent .ih-drop:hover, html.dash-custom-accent .ih-drop.draggin
 html.dash-custom-accent .ih-card-actions button:hover { border-color:var(--dash-accent); }
 html.dash-custom-accent .ih-btn:hover { border-color:var(--dash-accent); }
 html.dash-custom-accent .ih-view-home:hover { color:var(--dash-accent); }
+html.dash-custom-accent .dc-root { --dc-acc:color-mix(in srgb, var(--dash-accent) 85%, #fff); }
+html.dash-custom-accent .dc-brand em { color:color-mix(in srgb, var(--dash-accent) 45%, #fff); }
+html.dash-custom-accent .dc-body a { color:color-mix(in srgb, var(--dash-accent) 45%, #fff); }
+html.dash-custom-accent .pt-pic:hover { border-color:var(--dash-accent); }
+html.dash-custom-accent .pp-partner:hover { border-color:color-mix(in srgb, var(--dash-accent) 45%, transparent); }
+html.dash-custom-accent .pp-partner-link { color:color-mix(in srgb, var(--dash-accent) 65%, #fff); }
