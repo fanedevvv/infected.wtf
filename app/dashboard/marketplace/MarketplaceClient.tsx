@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { showToast } from "@/lib/toast";
+import EffectText from "@/components/EffectText";
 
 type Theme = {
   id: number;
@@ -10,22 +11,62 @@ type Theme = {
   price: number;
   purchaseCount: number;
   creatorUsername: string;
+  creatorAvatar: string | null;
   isOwner: boolean;
   owned: boolean;
-  preview: { accentColor: string; backgroundColor: string; nameColor: string; bioColor: string; overlayColor: string };
+  preview: {
+    accentColor: string; backgroundColor: string; nameColor: string; bioColor: string; overlayColor: string;
+    backgroundType: string; backgroundValue: string; nameEffect: string; bioEffect: string;
+    avatarShape: string; particleEffect: boolean; cursorTrail: boolean; layoutTemplate: string;
+  };
 };
 
-function SwatchStrip({ preview }: { preview: Theme["preview"] }) {
+// Mini profile mock-up rendered with the theme's own settings, so buyers see the actual look.
+function ThemePreview({ theme }: { theme: Theme }) {
+  const p = theme.preview;
+  const background = p.backgroundType === "color" || p.backgroundType === "gradient" ? p.backgroundValue : p.backgroundColor;
+  const tags = [p.layoutTemplate, p.nameEffect !== "none" && `${p.nameEffect} name`, p.particleEffect && "particles", p.cursorTrail && "cursor trail"].filter(Boolean) as string[];
+
   return (
-    <div className="theme-swatch-strip">
-      {[preview.accentColor, preview.backgroundColor, preview.nameColor, preview.bioColor, preview.overlayColor].map((c, i) => (
-        <span key={i} style={{ background: c }} />
-      ))}
+    <div className="theme-preview" style={{ background, ["--accent" as string]: p.accentColor }}>
+      {p.particleEffect && <div className="theme-preview-particles" />}
+      <div className="theme-preview-card" style={{ background: `color-mix(in srgb, ${p.overlayColor} 85%, transparent)` }}>
+        <div className={`avatar-shape-${p.avatarShape}`}>
+          {theme.creatorAvatar ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img className="avatar-img theme-preview-avatar" src={`/${theme.creatorAvatar}`} alt="" />
+          ) : (
+            <div className="avatar-img theme-preview-avatar" style={{ background: `linear-gradient(135deg, ${p.accentColor}, ${p.nameColor})` }}>
+              {theme.creatorUsername.charAt(0).toUpperCase()}
+            </div>
+          )}
+        </div>
+        <div className="theme-preview-name" style={{ color: p.nameColor }}>
+          <EffectText text={theme.creatorUsername} effect={p.nameEffect} active />
+        </div>
+        <div className="theme-preview-bio" style={{ color: p.bioColor }}>
+          <EffectText text="welcome to my page" effect={p.bioEffect} active />
+        </div>
+        <div className="theme-preview-links">
+          {[0, 1, 2].map((i) => <span key={i} />)}
+        </div>
+      </div>
+      {tags.length > 0 && (
+        <div className="theme-preview-tags">
+          {tags.map((t) => <span key={t}>{t}</span>)}
+        </div>
+      )}
     </div>
   );
 }
 
-function ThemeCard({ theme, onChange, tokens }: { theme: Theme; onChange: () => void; tokens: number }) {
+function PreviewButton({ themeId, profileSlug }: { themeId: number; profileSlug: string }) {
+  return (
+    <a className="int-btn int-btn-manage" href={`/${profileSlug}?previewTheme=${themeId}`} target="_blank" rel="noopener">Preview</a>
+  );
+}
+
+function ThemeCard({ theme, onChange, tokens, profileSlug }: { theme: Theme; onChange: () => void; tokens: number; profileSlug: string }) {
   const [busy, setBusy] = useState(false);
 
   async function buy() {
@@ -66,12 +107,13 @@ function ThemeCard({ theme, onChange, tokens }: { theme: Theme; onChange: () => 
 
   return (
     <div className="theme-card">
-      <SwatchStrip preview={theme.preview} />
+      <ThemePreview theme={theme} />
       <div className="theme-card-body">
         <div className="theme-card-name">{theme.name}</div>
         <div className="theme-card-creator">by @{theme.creatorUsername} · {theme.purchaseCount} sold</div>
         {theme.description && <p className="theme-card-desc">{theme.description}</p>}
         <div className="theme-card-footer">
+          <PreviewButton themeId={theme.id} profileSlug={profileSlug} />
           {theme.owned ? (
             <button className="int-btn int-btn-manage" onClick={apply} disabled={busy}>Apply</button>
           ) : (
@@ -141,7 +183,7 @@ function PublishModal({ onClose, onPublished }: { onClose: () => void; onPublish
   );
 }
 
-export default function MarketplaceClient({ tokens: initialTokens }: { tokens: number; username: string }) {
+export default function MarketplaceClient({ tokens: initialTokens, profileSlug }: { tokens: number; username: string; profileSlug: string }) {
   const [tab, setTab] = useState<"browse" | "mine">("browse");
   const [themes, setThemes] = useState<Theme[]>([]);
   const [myThemes, setMyThemes] = useState<Theme[]>([]);
@@ -205,7 +247,7 @@ export default function MarketplaceClient({ tokens: initialTokens }: { tokens: n
           <p style={{ color: "var(--text-muted)", fontSize: ".85rem" }}>No themes published yet — be the first!</p>
         ) : (
           <div className="theme-grid">
-            {themes.map((t) => <ThemeCard key={t.id} theme={t} onChange={refreshAll} tokens={tokens} />)}
+            {themes.map((t) => <ThemeCard key={t.id} theme={t} onChange={refreshAll} tokens={tokens} profileSlug={profileSlug} />)}
           </div>
         )
       )}
@@ -217,11 +259,12 @@ export default function MarketplaceClient({ tokens: initialTokens }: { tokens: n
           <div className="theme-grid">
             {myThemes.map((t) => (
               <div className="theme-card" key={t.id}>
-                <SwatchStrip preview={t.preview} />
+                <ThemePreview theme={t} />
                 <div className="theme-card-body">
                   <div className="theme-card-name">{t.name}</div>
                   <div className="theme-card-creator">{t.purchaseCount} sold · {t.purchaseCount * Math.floor(t.price / 2)} tokens earned</div>
                   <div className="theme-card-footer">
+                    <PreviewButton themeId={t.id} profileSlug={profileSlug} />
                     <button className="int-btn int-btn-danger" onClick={() => unpublish(t.id)}>Unpublish</button>
                   </div>
                 </div>

@@ -3,12 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { getActiveProfileId } from "@/lib/active-profile";
 import { parseNumberArray, serializeNumberArray } from "@/lib/json-array";
-
-const SNAPSHOT_FIELDS = [
-  "accentColor", "backgroundColor", "nameColor", "bioColor", "overlayColor",
-  "backgroundType", "backgroundValue", "nameEffect", "bioEffect", "profileFont",
-  "avatarShape", "avatarRing", "particleEffect", "cursorTrail", "layoutTemplate", "playlistStyle",
-] as const;
+import { pickThemeSnapshot } from "@/lib/theme-snapshot";
 
 export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
@@ -17,7 +12,7 @@ export async function GET(req: NextRequest) {
   const themes = await prisma.theme.findMany({
     where: mineOnly && user ? { creatorId: user.id } : { active: true },
     orderBy: { purchaseCount: "desc" },
-    include: { creator: { select: { username: true } } },
+    include: { creator: { select: { username: true, profiles: { where: { isPrimary: true }, select: { avatar: true }, take: 1 } } } },
   });
 
   const owned = new Set<number>(parseNumberArray(user?.purchasedThemes));
@@ -30,6 +25,7 @@ export async function GET(req: NextRequest) {
       price: t.price,
       purchaseCount: t.purchaseCount,
       creatorUsername: t.creator.username,
+      creatorAvatar: t.creator.profiles[0]?.avatar ?? null,
       isOwner: user ? t.creatorId === user.id : false,
       owned: owned.has(t.id) || (user ? t.creatorId === user.id : false),
       preview: {
@@ -38,6 +34,14 @@ export async function GET(req: NextRequest) {
         nameColor: t.nameColor,
         bioColor: t.bioColor,
         overlayColor: t.overlayColor,
+        backgroundType: t.backgroundType,
+        backgroundValue: t.backgroundValue,
+        nameEffect: t.nameEffect,
+        bioEffect: t.bioEffect,
+        avatarShape: t.avatarShape,
+        particleEffect: t.particleEffect,
+        cursorTrail: t.cursorTrail,
+        layoutTemplate: t.layoutTemplate,
       },
     })),
   });
@@ -136,9 +140,7 @@ export async function POST(req: NextRequest) {
     }
 
     const activeProfileId = await getActiveProfileId(user.id);
-    const data: Record<string, unknown> = {};
-    for (const f of SNAPSHOT_FIELDS) data[f] = (theme as unknown as Record<string, unknown>)[f];
-    await prisma.profile.update({ where: { id: activeProfileId }, data });
+    await prisma.profile.update({ where: { id: activeProfileId }, data: pickThemeSnapshot(theme) });
 
     return NextResponse.json({ success: true });
   }

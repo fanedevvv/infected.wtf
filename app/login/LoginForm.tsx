@@ -19,10 +19,35 @@ export default function LoginForm({ verified }: { verified: boolean }) {
   const [twoFaCode, setTwoFaCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [forgotOpen, setForgotOpen] = useState(false);
+  const [unverified, setUnverified] = useState(false);
+  const [resend, setResend] = useState<{ text: string; ok: boolean } | null>(null);
+  const [resending, setResending] = useState(false);
+
+  async function resendVerification() {
+    setResending(true);
+    setResend(null);
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ login, password, resendVerification: true }),
+      });
+      const data = await res.json();
+      setResend(data.resent
+        ? { text: "Verification email sent — check your inbox (and spam folder).", ok: true }
+        : { text: data.error || "Something went wrong.", ok: false });
+    } catch {
+      setResend({ text: "Network error. Please try again.", ok: false });
+    } finally {
+      setResending(false);
+    }
+  }
 
   async function submit(e: React.FormEvent, code?: string) {
     e.preventDefault();
     setError("");
+    setUnverified(false);
+    setResend(null);
     setLoading(true);
     try {
       const res = await fetch("/api/auth/login", {
@@ -43,6 +68,7 @@ export default function LoginForm({ verified }: { verified: boolean }) {
           setBanInfo({ permanent, daysLeft, until: data.banUntil });
           return;
         }
+        setUnverified(!!data.unverified);
         setError(data.error || "Something went wrong.");
         return;
       }
@@ -108,7 +134,17 @@ export default function LoginForm({ verified }: { verified: boolean }) {
             </span>
           </div>
         ) : error ? (
-          <div className="alert alert-error">{error}</div>
+          <div className="alert alert-error">
+            {error}
+            {unverified && (
+              <div className="login-resend">
+                <button type="button" className="login-resend-btn" onClick={resendVerification} disabled={resending}>
+                  {resending ? "Sending…" : "Resend verification email"}
+                </button>
+                {resend && <span className={resend.ok ? "login-resend-ok" : "login-resend-err"}>{resend.text}</span>}
+              </div>
+            )}
+          </div>
         ) : null}
 
         <form onSubmit={submit} className="auth-fields">

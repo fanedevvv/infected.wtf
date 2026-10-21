@@ -11,6 +11,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.SITE_URL || "https://infected.wtf"),
   title: "INFECTED.WTF",
   description: "Your bio, your links, your fame.",
   icons: {

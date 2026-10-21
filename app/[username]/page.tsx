@@ -1,3 +1,4 @@
+import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
@@ -8,10 +9,46 @@ import ProfileView from "@/components/ProfileView";
 import { GameIntegration } from "@/components/GameIntegrationCards";
 import { lookupMcServer } from "@/lib/game-lookup";
 import { refreshSpotifyIntegrationForUser } from "@/lib/spotify";
-import { parseStringArray, parseJsonObject } from "@/lib/json-array";
+import { parseStringArray, parseJsonObject, parseNumberArray } from "@/lib/json-array";
+import { pickThemeSnapshot } from "@/lib/theme-snapshot";
+import Link from "next/link";
 
-export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
+async function getEmbedProfile(slug: string) {
+  const profile = await prisma.profile.findUnique({ where: { slug }, include: { user: { select: { username: true, banned: true } } } });
+  return profile && !profile.user.banned ? profile : null;
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
   const { username: slug } = await params;
+  const profile = await getEmbedProfile(slug);
+  if (!profile) return {};
+
+  const title = profile.displayName || profile.user.username;
+  const description = profile.bio || `@${profile.slug} on infected.wtf`;
+  return {
+    title: `${title} | INFECTED.WTF`,
+    description,
+    openGraph: { type: "profile", siteName: "INFECTED.WTF", title, description, url: `/${profile.slug}` },
+    twitter: { card: "summary_large_image", title, description },
+  };
+}
+
+// Discord uses theme-color for the embed's side bar.
+export async function generateViewport({ params }: { params: Promise<{ username: string }> }): Promise<Viewport> {
+  const { username: slug } = await params;
+  const profile = await getEmbedProfile(slug);
+  return profile ? { themeColor: profile.accentColor } : {};
+}
+
+export default async function ProfilePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ username: string }>;
+  searchParams: Promise<{ previewTheme?: string }>;
+}) {
+  const { username: slug } = await params;
+  const { previewTheme } = await searchParams;
 
   const profile = await prisma.profile.findUnique({
     where: { slug },
@@ -32,6 +69,14 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
 
   const viewer = await getCurrentUser();
   const isOwner = viewer?.id === user.id;
+
+  // Owners can try a marketplace theme on their own page via ?previewTheme=<id> without applying it.
+  const previewThemeId = previewTheme ? parseInt(previewTheme, 10) : NaN;
+  const themePreview = isOwner && viewer && !Number.isNaN(previewThemeId)
+    ? await prisma.theme.findUnique({ where: { id: previewThemeId } })
+    : null;
+  const canPreview = !!themePreview && (themePreview.active || themePreview.creatorId === viewer?.id || parseNumberArray(viewer?.purchasedThemes).includes(themePreview.id));
+  const look = canPreview ? ({ ...profile, ...pickThemeSnapshot(themePreview!) } as typeof profile) : profile;
 
   if (!isOwner) {
     const h = await headers();
@@ -89,6 +134,14 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   ]);
 
   return (
+    <>
+    {canPreview && (
+      <div className="theme-preview-bar">
+        <span>Previewing <b>{themePreview!.name}</b> on your profile — nothing is saved</span>
+        <Link href="/dashboard?page=marketplace">Back to marketplace</Link>
+        <Link href={`/${profile.slug}`}>Exit preview</Link>
+      </div>
+    )}
     <ProfileView
       username={profile.slug}
       displayName={profile.displayName || user.username}
@@ -98,23 +151,23 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       age={age}
       avatar={profile.avatar}
       banner={profile.banner}
-      avatarShape={profile.avatarShape}
-      avatarRing={profile.avatarRing as "none" | "normal" | "premium"}
+      avatarShape={look.avatarShape}
+      avatarRing={look.avatarRing as "none" | "normal" | "premium"}
       activeDecoration={profile.activeDecoration}
-      accentColor={profile.accentColor}
-      backgroundColor={profile.backgroundColor}
-      nameColor={profile.nameColor}
-      bioColor={profile.bioColor}
-      overlayColor={profile.overlayColor}
-      backgroundType={profile.backgroundType}
-      backgroundValue={profile.backgroundValue ?? ""}
+      accentColor={look.accentColor}
+      backgroundColor={look.backgroundColor}
+      nameColor={look.nameColor}
+      bioColor={look.bioColor}
+      overlayColor={look.overlayColor}
+      backgroundType={look.backgroundType}
+      backgroundValue={look.backgroundValue ?? ""}
       isPremium={isPremium}
-      particleEffect={!!profile.particleEffect}
-      cursorTrail={!!profile.cursorTrail}
-      nameEffect={profile.nameEffect}
-      bioEffect={profile.bioEffect}
+      particleEffect={!!look.particleEffect}
+      cursorTrail={!!look.cursorTrail}
+      nameEffect={look.nameEffect}
+      bioEffect={look.bioEffect}
       musicTracks={parseStringArray(profile.musicTracks).filter(Boolean)}
-      playlistStyle={profile.playlistStyle}
+      playlistStyle={look.playlistStyle}
       cursorPath={profile.cursorPath}
       views={profile.views ?? 0}
       createdAt={(user.createdAt ?? new Date()).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
@@ -144,7 +197,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
           : null
       }
       gameIntegrations={gameIntegrations}
-      layoutTemplate={profile.layoutTemplate}
+      layoutTemplate={look.layoutTemplate}
       purchasedEffects={purchasedEffects}
       activeCursorEffect={activeEffects.cursor || ""}
       activeAvatarEffect={activeEffects.avatar || ""}
@@ -153,5 +206,6 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       likedByViewer={!!likedByViewer}
       viewerLoggedIn={!!viewer}
     />
+    </>
   );
 }

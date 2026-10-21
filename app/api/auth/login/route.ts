@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { createSession, createPendingTwoFaToken, setPendingTwoFaCookie } from "@/lib/session";
-import { sendNewLoginEmail } from "@/lib/mail";
+import { sendNewLoginEmail, sendVerificationEmail } from "@/lib/mail";
 import { decryptEmail, sha256, emailBlindIndex } from "@/lib/crypto";
 
 function clientIp(req: NextRequest): string {
@@ -55,7 +55,25 @@ export async function POST(req: NextRequest) {
   }
 
   if (!user.emailVerified) {
-    return NextResponse.json({ error: "Please verify your email before signing in. Check your inbox for the verification link." }, { status: 403 });
+    // Credentials are already confirmed here, so it's safe to let the user re-send their own verification mail.
+    if (body.resendVerification) {
+      const last = await prisma.emailVerification.findFirst({ where: { userId: user.id }, orderBy: { createdAt: "desc" } });
+      const secsLeft = last?.createdAt ? Math.max(0, 60 - Math.floor((Date.now() - last.createdAt.getTime()) / 1000)) : 0;
+      if (secsLeft > 0) {
+        return NextResponse.json({ error: `Please wait ${secsLeft}s before requesting another email.`, unverified: true, secsLeft }, { status: 429 });
+      }
+      const token = crypto.randomBytes(32).toString("hex");
+      await prisma.emailVerification.deleteMany({ where: { userId: user.id, used: false } });
+      await prisma.emailVerification.create({
+        data: { userId: user.id, token, expiresAt: new Date(Date.now() + 24 * 3600 * 1000) },
+      });
+      const sent = await sendVerificationEmail(decryptEmail(user.email), user.username, token);
+      if (!sent) {
+        return NextResponse.json({ error: "We couldn't send the email right now. Please try again later.", unverified: true }, { status: 502 });
+      }
+      return NextResponse.json({ success: true, resent: true, unverified: true });
+    }
+    return NextResponse.json({ error: "Please verify your email before signing in. Check your inbox for the verification link.", unverified: true }, { status: 403 });
   }
 
   if (user.banned) {
