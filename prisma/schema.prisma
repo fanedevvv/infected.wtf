@@ -52,6 +52,11 @@ model User {
   notifications         Notification[]
   likesGiven            ProfileLike[]        @relation("LikesGiven")
   likesReceived         ProfileLike[]        @relation("LikesReceived")
+  dislikesGiven         ProfileDislike[]     @relation("DislikesGiven")
+  dislikesReceived      ProfileDislike[]     @relation("DislikesReceived")
+  profileComments       ProfileComment[]
+  commentLikes          ProfileCommentLike[]
+  reportsFiled          ProfileReport[]      @relation("ReportsFiled")
   profiles              Profile[]
   redeemCodeUses        RedeemCodeUse[]
   referralsMade         Referral[]           @relation("Referrer")
@@ -109,6 +114,8 @@ model Profile {
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "profiles_ibfk_1")
   viewsLogs        ViewsLog[]
   profileDomains   ProfileDomain[]
+  comments         ProfileComment[]
+  reports          ProfileReport[]
 
   @@index([userId], map: "idx_profile_user")
   @@map("profiles")
@@ -442,4 +449,65 @@ model EmailTemplate {
   updatedAt          DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("email_templates")
+}
+
+model ProfileDislike {
+  id               Int      @id @default(autoincrement())
+  profileUserId    Int      @map("profile_user_id")
+  dislikerUserId   Int      @map("disliker_user_id")
+  createdAt        DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  dislikerUser     User     @relation("DislikesGiven", fields: [dislikerUserId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_pd_disliker")
+  profileUser      User     @relation("DislikesReceived", fields: [profileUserId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_pd_profile")
+
+  @@unique([profileUserId, dislikerUserId], map: "uniq_profile_disliker")
+  @@index([dislikerUserId], map: "fk_pd_disliker")
+  @@map("profile_dislikes")
+}
+
+model ProfileComment {
+  id        Int                  @id @default(autoincrement())
+  profileId Int                  @map("profile_id")
+  authorId  Int                  @map("author_id")
+  body      String               @db.VarChar(500)
+  likeCount Int                  @default(0) @map("like_count")
+  createdAt DateTime             @default(now()) @map("created_at") @db.DateTime(0)
+  profile   Profile              @relation(fields: [profileId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_pc_profile")
+  author    User                 @relation(fields: [authorId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_pc_author")
+  likes     ProfileCommentLike[]
+
+  @@index([profileId, createdAt], map: "idx_pc_profile_created")
+  @@index([authorId], map: "fk_pc_author")
+  @@map("profile_comments")
+}
+
+model ProfileCommentLike {
+  id        Int            @id @default(autoincrement())
+  commentId Int            @map("comment_id")
+  userId    Int            @map("user_id")
+  createdAt DateTime       @default(now()) @map("created_at") @db.DateTime(0)
+  comment   ProfileComment @relation(fields: [commentId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_pcl_comment")
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_pcl_user")
+
+  @@unique([commentId, userId], map: "uniq_comment_user")
+  @@index([userId], map: "fk_pcl_user")
+  @@map("profile_comment_likes")
+}
+
+model ProfileReport {
+  id         Int       @id @default(autoincrement())
+  profileId  Int       @map("profile_id")
+  reporterId Int?      @map("reporter_id")
+  ipHash     String    @map("ip_hash") @db.VarChar(64)
+  reason     String    @db.VarChar(30)
+  details    String?   @db.VarChar(1000)
+  status     String    @default("open") @db.VarChar(20)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+  resolvedAt DateTime? @map("resolved_at") @db.DateTime(0)
+  profile    Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_pr_profile")
+  reporter   User?     @relation("ReportsFiled", fields: [reporterId], references: [id], onDelete: SetNull, onUpdate: Restrict, map: "fk_pr_reporter")
+
+  @@index([profileId], map: "fk_pr_profile")
+  @@index([reporterId], map: "fk_pr_reporter")
+  @@index([status, createdAt], map: "idx_pr_status_created")
+  @@map("profile_reports")
 }

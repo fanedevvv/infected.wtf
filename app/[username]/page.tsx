@@ -128,9 +128,11 @@ export default async function ProfilePage({
     if (!hadBirthdayThisYear) age -= 1;
   }
 
-  const [likeCount, likedByViewer] = await Promise.all([
+  const [likeCount, likedByViewer, dislikeCount, dislikedByViewer] = await Promise.all([
     prisma.profileLike.count({ where: { profileUserId: user.id } }),
     viewer ? prisma.profileLike.findUnique({ where: { profileUserId_likerUserId: { profileUserId: user.id, likerUserId: viewer.id } } }) : null,
+    prisma.profileDislike.count({ where: { profileUserId: user.id } }),
+    viewer ? prisma.profileDislike.findUnique({ where: { profileUserId_dislikerUserId: { profileUserId: user.id, dislikerUserId: viewer.id } } }) : null,
   ]);
 
   return (
@@ -204,6 +206,8 @@ export default async function ProfilePage({
       activeBgEffect={activeEffects.bg || ""}
       likeCount={likeCount}
       likedByViewer={!!likedByViewer}
+      dislikeCount={dislikeCount}
+      dislikedByViewer={!!dislikedByViewer}
       viewerLoggedIn={!!viewer}
     />
     </>

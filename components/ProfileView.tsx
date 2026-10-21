@@ -12,6 +12,9 @@ import GameIntegrationCards, { GameIntegration } from "./GameIntegrationCards";
 import SpotifyPresenceCard from "./SpotifyPresenceCard";
 import PurchasedEffectsEngine from "./PurchasedEffectsEngine";
 import { DecorationFrame } from "./DecorationSVGs";
+import { BADGE_ICON } from "@/lib/badge-icons";
+import ProfileComments from "./ProfileComments";
+import ReportProfileModal from "./ReportProfileModal";
 
 const PLATFORM_ICON: Record<string, React.ReactNode> = {
   discord: (
@@ -72,30 +75,6 @@ const PLATFORM_COLOR: Record<string, string> = {
   tiktok: "#010101", website: "#555555",
 };
 
-const BADGE_ICON: Record<string, React.ReactNode> = {
-  og: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.09 6.26L21 9.27l-5 4.87 1.18 6.88L12 17.77l-5.18 3.25L8 14.14 3 9.27l6.91-1.01L12 2z" /></svg>,
-  views_master: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" /></svg>,
-  verified: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" /></svg>,
-  owner: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3H5v1h14v-1z" /></svg>,
-  admin: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4l5 2.18V11c0 3.5-2.33 6.79-5 7.93-2.67-1.14-5-4.43-5-7.93V7.18L12 5z" /></svg>,
-  known: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" /></svg>,
-  rich: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z" /></svg>,
-  trapstar: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z" /></svg>,
-  hall_of_fame: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H8v2h8v-2h-3v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" /></svg>,
-  champion: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L9.5 6.5 5 5l2 5H4l2.5 4h11L20 10h-3l2-5-4.5 1.5L12 2z" opacity=".9" /><rect x="7" y="19" width="10" height="2" rx="1" /><rect x="8.5" y="16" width="7" height="2.5" rx=".8" /></svg>,
-  the_killer: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7.58 2 4 5.58 4 10c0 2.84 1.49 5.34 3.73 6.76.18.11.27.31.27.52V19c0 1.1.9 2 2 2v-2h1.5v2h1v-2H14v2c1.1 0 2-.9 2-2v-1.72c0-.21.09-.41.27-.52C18.51 15.34 20 12.84 20 10c0-4.42-3.58-8-8-8zM9 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm6 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" /></svg>,
-  discord: <svg viewBox="0 0 127.14 96.36" fill="currentColor"><path d="M107.7 8.07A105.15 105.15 0 0 0 81.47 0a72.06 72.06 0 0 0-3.36 6.83 97.68 97.68 0 0 0-29.11 0A72.37 72.37 0 0 0 45.64 0a105.89 105.89 0 0 0-26.25 8.09C2.79 32.65-1.71 56.6.54 80.21a105.73 105.73 0 0 0 32.17 16.15 77.7 77.7 0 0 0 6.89-11.11 68.42 68.42 0 0 1-10.85-5.18c.91-.66 1.8-1.34 2.66-2a75.57 75.57 0 0 0 64.32 0c.87.71 1.76 1.39 2.66 2a68.68 68.68 0 0 1-10.87 5.19 77 77 0 0 0 6.89 11.1 105.25 105.25 0 0 0 32.19-16.14c2.64-27.38-4.51-51.11-18.9-72.15zM42.45 65.69C36.18 65.69 31 60 31 53s5-12.74 11.43-12.74S54 46 53.89 53s-5.05 12.69-11.44 12.69zm42.24 0C78.41 65.69 73.25 60 73.25 53s5-12.74 11.44-12.74S96.23 46 96.12 53s-5.04 12.69-11.43 12.69z" /></svg>,
-  booster: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.13 22.19L11.5 18.36C13.07 17.78 14.54 17 15.9 16.09L13.13 22.19M5.64 12.5L1.81 10.87L7.91 8.1C7 9.46 6.22 10.93 5.64 12.5M21.61 2.39C21.61 2.39 16.66.269 11 5.93C8.81 8.12 7.5 10.53 6.65 12.64C6.37 13.39 6.56 14.21 7.11 14.77L9.24 16.89C9.79 17.45 10.61 17.63 11.36 17.35C13.5 16.53 15.88 15.19 18.07 13C23.73 7.34 21.61 2.39 21.61 2.39M14.54 9.46C13.76 8.68 13.76 7.41 14.54 6.63S16.59 5.85 17.37 6.63C18.14 7.41 18.15 8.68 17.37 9.46C16.59 10.24 15.32 10.24 14.54 9.46M8.88 16.53L7.47 15.12L8.88 16.53M6.24 22L9.88 18.36C9.54 18.27 9.21 18.12 8.91 17.91L4.83 22H6.24M2 22H3.41L8.18 17.24L6.76 15.83L2 20.59V22M7 22H8.41L9.5 20.92L8.09 19.5L7 20.59V22Z" /></svg>,
-  lover: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z" /></svg>,
-  fresh: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-5 8z" /></svg>,
-  crew: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.92 5L2 20l5-5h4l8-8-4-4-8 8V7.5L6.92 5zM20 2l2 2-2.5 2.5-2-2L20 2z" /></svg>,
-  billionaire: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z" /></svg>,
-  promoter: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z" /></svg>,
-  promoter_elite: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z" /></svg>,
-  content_creator: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z" /><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9zm3 14a5 5 0 1 1 0-10 5 5 0 0 1 0 10z" /></svg>,
-  designer: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 14c-1.66 0-3 1.34-3 3 0 1.31-1.16 2-2 2 .92 1.22 2.49 2 4 2 2.21 0 4-1.79 4-4 0-1.66-1.34-3-3-3zm13.71-9.37l-1.34-1.34a1 1 0 0 0-1.41 0L9 12.25 11.75 15l8.96-8.96a1 1 0 0 0 0-1.41z" /></svg>,
-};
-
 interface ProfileViewProps {
   username: string;
   displayName: string;
@@ -138,6 +117,8 @@ interface ProfileViewProps {
   activeBgEffect: string;
   likeCount: number;
   likedByViewer: boolean;
+  dislikeCount: number;
+  dislikedByViewer: boolean;
   viewerLoggedIn: boolean;
 }
 
@@ -146,38 +127,50 @@ export default function ProfileView(p: ProfileViewProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [liked, setLiked] = useState(p.likedByViewer);
   const [likeCount, setLikeCount] = useState(p.likeCount);
+  const [disliked, setDisliked] = useState(p.dislikedByViewer);
+  const [dislikeCount, setDislikeCount] = useState(p.dislikeCount);
   const [likeBusy, setLikeBusy] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const spotifyIntegration = p.gameIntegrations.find((it) => it.type === "spotify");
   const gameIntegrationsNoSpotify = p.gameIntegrations.filter((it) => it.type !== "spotify");
 
-  async function toggleLike() {
+  async function rate(action: "like" | "dislike") {
     if (!p.viewerLoggedIn) {
       window.location.href = "/login";
       return;
     }
     if (likeBusy) return;
     setLikeBusy(true);
-    const prevLiked = liked, prevCount = likeCount;
-    setLiked(!prevLiked);
-    setLikeCount(prevLiked ? prevCount - 1 : prevCount + 1);
+    const prev = { liked, likeCount, disliked, dislikeCount };
+    if (action === "like") {
+      setLiked(!liked);
+      setLikeCount(likeCount + (liked ? -1 : 1));
+      if (disliked) { setDisliked(false); setDislikeCount(dislikeCount - 1); }
+    } else {
+      setDisliked(!disliked);
+      setDislikeCount(dislikeCount + (disliked ? -1 : 1));
+      if (liked) { setLiked(false); setLikeCount(likeCount - 1); }
+    }
+    const restore = () => {
+      setLiked(prev.liked); setLikeCount(prev.likeCount);
+      setDisliked(prev.disliked); setDislikeCount(prev.dislikeCount);
+    };
     try {
       const res = await fetch("/api/profile-like", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: p.username }),
+        body: JSON.stringify({ username: p.username, action }),
       });
       const data = await res.json();
       if (data.success) {
-        setLiked(data.liked);
-        setLikeCount(data.count);
+        setLiked(data.liked); setLikeCount(data.count);
+        setDisliked(data.disliked); setDislikeCount(data.dislikeCount);
       } else {
-        setLiked(prevLiked);
-        setLikeCount(prevCount);
+        restore();
       }
     } catch {
-      setLiked(prevLiked);
-      setLikeCount(prevCount);
+      restore();
     }
     setLikeBusy(false);
   }
@@ -453,24 +446,49 @@ export default function ProfileView(p: ProfileViewProps) {
                   <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" /></svg>
                   {p.views.toLocaleString()}
                 </div>
+                <button
+                  className={`profile-like-pill ${liked ? "liked" : ""}`}
+                  onClick={() => rate("like")}
+                  disabled={likeBusy || p.isOwner}
+                  title={p.isOwner ? "Likes" : liked ? "Remove like" : "Like this profile"}
+                >
+                  <svg viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="15" height="15">
+                    <path d="M7 10v12M15 5.88L14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88z" />
+                  </svg>
+                  {likeCount.toLocaleString()}
+                </button>
+                <button
+                  className={`profile-like-pill profile-dislike-pill ${disliked ? "disliked" : ""}`}
+                  onClick={() => rate("dislike")}
+                  disabled={likeBusy || p.isOwner}
+                  title={p.isOwner ? "Dislikes" : disliked ? "Remove dislike" : "Dislike this profile"}
+                >
+                  <svg viewBox="0 0 24 24" fill={disliked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="15" height="15">
+                    <path d="M17 14V2M9 18.12L10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88z" />
+                  </svg>
+                  {dislikeCount.toLocaleString()}
+                </button>
+              </div>
+              <div className="profile-joined">
+                Joined {p.createdAt}
                 {!p.isOwner && (
-                  <button
-                    className={`profile-like-pill ${liked ? "liked" : ""}`}
-                    onClick={toggleLike}
-                    disabled={likeBusy}
-                    title={liked ? "Unlike" : "Like this profile"}
-                  >
-                    <svg viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" width="15" height="15">
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                    </svg>
-                    {likeCount.toLocaleString()}
-                  </button>
+                  <>
+                    <span className="profile-joined-sep">·</span>
+                    <button type="button" className="profile-report-link" onClick={() => setReportOpen(true)}>⚑ Report</button>
+                  </>
                 )}
               </div>
-              <div className="profile-joined">Joined {p.createdAt}</div>
             </div>
           </div>
         </div>
+
+        {entered && (
+          <div className="profile-social">
+            <ProfileComments slug={p.username} viewerLoggedIn={p.viewerLoggedIn} />
+          </div>
+        )}
+
+        {reportOpen && <ReportProfileModal slug={p.username} onClose={() => setReportOpen(false)} />}
 
         {!p.isPremium && (
           <div className="profile-footer">
