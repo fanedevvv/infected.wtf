@@ -236,3 +236,5 @@ html.dash-custom-accent .pe-tile.active { color:var(--dash-accent); background:c
 html.dash-custom-accent .pe-prefix-input:focus-within { border-color:var(--dash-accent); }
 html.dash-custom-accent .pe-skill input[type="range"] { accent-color:var(--dash-accent); }
 html.dash-custom-accent .pe-share-target:hover { border-color:var(--dash-accent); }
+html.dash-custom-accent .notif-item.unread { background:color-mix(in srgb, var(--dash-accent) 8%, transparent); }
+html.dash-custom-accent .notif-item.unread .notif-item-title::after { background:var(--dash-accent); }
