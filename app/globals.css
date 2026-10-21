@@ -649,7 +649,7 @@ body.sidebar-collapsed .navbar-dashboard { left:0; }
     .profile-card--dossier .profile-views-row { justify-content:center; }
 }
 
-.profile-banner-img { display:block; width:calc(100% + var(--card-pad-x) * 2); height:160px; background-size:contain; background-position:center; background-repeat:no-repeat; background-color:#000; margin:calc(var(--card-pad-top) * -1) calc(var(--card-pad-x) * -1) 1.25rem; border-radius:18px 18px 0 0; }
+.profile-banner-img { display:block; width:calc(100% + var(--card-pad-x) * 2); height:160px; background-size:cover; background-position:center; background-repeat:no-repeat; background-color:#000; margin:calc(var(--card-pad-top) * -1) calc(var(--card-pad-x) * -1) 1.25rem; border-radius:18px 18px 0 0; }
 .avatar-wrapper { position:relative; display:inline-block; margin-bottom:.75rem; }
 .avatar-wrapper--with-banner { margin-top:-40px; }
 .avatar-wrapper--with-banner .avatar-img { border:3px solid rgba(6,6,16,0.88); }
@@ -775,7 +775,7 @@ body.sidebar-collapsed .navbar-dashboard { left:0; }
 .cursor-trail { border-radius:50%; position:fixed; pointer-events:none; z-index:9998; opacity:0; mix-blend-mode:screen; }
 
 @media (max-width:520px) {
-    .profile-card { max-width:100%; padding:1.5rem .75rem 1.25rem; }
+    .profile-card { max-width:100%; padding:1.5rem .75rem 1.25rem; --card-pad-x:.75rem; --card-pad-top:1.5rem; }
     .profile-username { font-size:1.4rem; }
     .avatar-img { width:76px; height:76px; }
     .vol-slider { width:70px; }
@@ -3129,7 +3129,7 @@ body:has(.unsaved-bar.visible) .toast-container { bottom: calc(1.5rem + 58px); }
 .avatar-decoration-anchor { position: relative; display: inline-block; }
 .pav-effect-wrap { position: absolute; left: 50%; top: 50%; width: 200px; height: 200px; margin-left: -100px; margin-top: -124px; pointer-events: none; z-index: 4; }
 .pav-canvas { display: block; width: 100%; height: 100%; }
-.decoration-frame { position: absolute; inset: -38%; pointer-events: none; z-index: 3; }
+.decoration-frame { position: absolute; inset: -10%; pointer-events: none; z-index: 3; }
 .decoration-svg { width: 100%; height: 100%; overflow: visible; }
 .decoration-raster { width: 100%; height: 100%; object-fit: contain; display: block; }
 .decoration-preview-avatar { position: relative; width: 84px; height: 84px; border-radius: 50%; flex-shrink: 0; }
