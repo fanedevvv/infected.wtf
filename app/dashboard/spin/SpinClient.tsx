@@ -7,11 +7,23 @@ import { useT } from "@/lib/i18n/client";
 type PrizeInfo = { label: string; color: string; type: string };
 
 const TILE_WIDTH = 116;
+
+// Summary of what the reel can land on (mirrors SPIN_PRIZES in lib/spin.ts).
+const POSSIBLE_REWARDS = [
+  { type: "tokens", title: "Tokens", sub: "10-100", color: "#9ca3af", highlight: false },
+  { type: "tokens", title: "Tokens+", sub: "250", color: "#f97316", highlight: false },
+  { type: "decoration", title: "Decoration", sub: "Random", color: "#c084fc", highlight: true },
+  { type: "premium_days", title: "Infected Plus", sub: "1-3 days", color: "#fbbf24", highlight: true },
+  { type: "badge", title: "Verified", sub: "Badge", color: "#34d399", highlight: true },
+];
 const REEL_LENGTH = 32;
 
 function PrizeIcon({ type }: { type: string }) {
   if (type === "premium_days") {
     return <svg viewBox="0 0 24 24" fill="currentColor" width="26" height="26"><path d="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2L12 16.6 5.7 21l2.3-7.2-6-4.6h7.6z" /></svg>;
+  }
+  if (type === "decoration") {
+    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="26" height="26"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4.5" /></svg>;
   }
   if (type === "badge") {
     return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="26" height="26"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" /></svg>;
@@ -96,7 +108,7 @@ export default function SpinClient({
         setNextAt(j.nextAt);
         setTokenBal(j.tokens);
         setResult({ label: j.prize.label, type: j.prize.type });
-        showToast(`You won: ${j.prize.label}!`, "success");
+        showToast(`${t("You won")}: ${t(j.prize.label)}!`, "success");
       }, 3400);
     } catch {
       showToast(t("Network error"), "error");
@@ -109,7 +121,7 @@ export default function SpinClient({
       <div className="section-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
         <div>
           <h2>{t("Daily Spin")}</h2>
-          <p>{t("Spin once every 24 hours for a chance at tokens, Infected Plus days, or a badge")}</p>
+          <p>{t("Spin once every 24 hours for a chance at tokens, a decoration, Infected Plus days, or a badge")}</p>
         </div>
         <div className="shop-token-bal"><span>{tokenBal.toLocaleString()} tokens</span></div>
       </div>
@@ -125,19 +137,36 @@ export default function SpinClient({
             {sequence.map((p, i) => (
               <div key={i} className="spin-tile" style={{ ["--sc" as string]: p.color }}>
                 <PrizeIcon type={p.type} />
-                <span>{p.label}</span>
+                <span>{t(p.label)}</span>
               </div>
             ))}
           </div>
         </div>
 
         {result && !spinning && (
-          <div className="spin-result">{t("You won")}{" "}<strong style={{ color: "var(--accent)" }}>{result.label}</strong>!</div>
+          <div className="spin-result">{t("You won")}{" "}<strong style={{ color: "var(--accent)" }}>{t(result.label)}</strong>!</div>
         )}
 
         <button type="button" className="spin-btn" disabled={!canSpin || spinning} onClick={spin}>
-          {spinning ? "Spinning…" : canSpin ? "Spin now" : `Next spin in ${nextAt ? fmtCountdown(nextAt - now) : "--:--:--"}`}
+          {spinning ? t("Spinning…") : canSpin ? t("Spin now") : t("Next spin in {time}", { time: nextAt ? fmtCountdown(nextAt - now) : "--:--:--" })}
         </button>
+      </div>
+
+      <div className="dash-card spin-rewards">
+        <h3>{t("Possible rewards")}</h3>
+        <div className="spin-rewards-list">
+          {POSSIBLE_REWARDS.map((r) => (
+            <div className="spin-reward" key={r.title}>
+              <span className="spin-reward-icon" style={{ color: r.color, background: `color-mix(in srgb, ${r.color} 16%, transparent)` }}>
+                <PrizeIcon type={r.type} />
+              </span>
+              <div>
+                <b>{t(r.title)}</b>
+                <span style={{ color: r.highlight ? r.color : undefined }}>{t(r.sub)}</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </>
   );

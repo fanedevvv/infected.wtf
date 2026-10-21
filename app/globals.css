@@ -3663,3 +3663,11 @@ body:has(.unsaved-bar.visible) .toast-container { bottom: calc(1.5rem + 58px); }
 .pe-share-og { width:100%; max-width:420px; border-radius:12px; border:1px solid rgba(255,255,255,.1); margin:.4rem 0 .6rem; display:block; }
 @media (max-width:1100px) { .pe-layout { grid-template-columns:1fr; } .pe-side { order:-1; } .pe-side-sticky { position:static; } .pe-preview--desktop .pe-preview-frame { max-width:100%; } }
 @media (max-width:640px) { .pe-share-grid { grid-template-columns:1fr; } .pe-skill { grid-template-columns:1fr 1fr; } .pe-skill-level { text-align:left; } }
+.spin-rewards h3 { font-size:1.15rem; font-weight:800; margin:0 0 1rem; }
+.spin-rewards-list { display:flex; flex-direction:column; gap:.6rem; }
+.spin-reward { display:flex; align-items:center; gap:.9rem; padding:.85rem .9rem; border-radius:16px; background:rgba(255,255,255,.035); border:1px solid rgba(255,255,255,.05); }
+.spin-reward-icon { width:48px; height:48px; border-radius:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.spin-reward-icon svg { width:24px; height:24px; }
+.spin-reward div { display:flex; flex-direction:column; gap:.1rem; min-width:0; }
+.spin-reward b { font-size:.98rem; font-weight:800; color:#fff; }
+.spin-reward span { font-size:.85rem; color:rgba(255,255,255,.5); }

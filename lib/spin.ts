@@ -1,7 +1,11 @@
 export type SpinPrize =
   | { type: "tokens"; amount: number; label: string; weight: number; color: string }
   | { type: "premium_days"; amount: number; label: string; weight: number; color: string }
-  | { type: "badge"; id: "verified"; label: string; weight: number; color: string };
+  | { type: "badge"; id: "verified"; label: string; weight: number; color: string }
+  | { type: "decoration"; label: string; weight: number; color: string };
+
+// Given instead of a decoration when the winner already owns every one.
+export const DECORATION_FALLBACK_TOKENS = 150;
 
 export const SPIN_PRIZES: SpinPrize[] = [
   { type: "tokens", amount: 10, label: "10 Tokens", weight: 30, color: "#9ca3af" },
@@ -9,6 +13,7 @@ export const SPIN_PRIZES: SpinPrize[] = [
   { type: "tokens", amount: 50, label: "50 Tokens", weight: 18, color: "#34d399" },
   { type: "tokens", amount: 100, label: "100 Tokens", weight: 12, color: "#a78bfa" },
   { type: "premium_days", amount: 1, label: "1 Day Infected Plus", weight: 8, color: "#fbbf24" },
+  { type: "decoration", label: "Random Decoration", weight: 7, color: "#c084fc" },
   { type: "tokens", amount: 250, label: "250 Tokens", weight: 4, color: "#f97316" },
   { type: "premium_days", amount: 3, label: "3 Days Infected Plus", weight: 2, color: "#facc15" },
   { type: "badge", id: "verified", label: "Verified Badge", weight: 1, color: "#34d399" },
