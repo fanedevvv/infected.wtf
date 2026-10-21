@@ -77,14 +77,4 @@ ALTER TABLE `profile_reports` ADD CONSTRAINT `fk_pr_profile` FOREIGN KEY (`profi
 
 -- AddForeignKey
 ALTER TABLE `profile_reports` ADD CONSTRAINT `fk_pr_reporter` FOREIGN KEY (`reporter_id`) REFERENCES `users`(`id`) ON DELETE SET NULL ON UPDATE RESTRICT;
-┌─────────────────────────────────────────────────────────┐
-│  Update available 6.19.3 -> 8.0.0-rc.24                 │
-│                                                         │
-│  This is a major update - please follow the guide at    │
-│  https://pris.ly/d/major-version-upgrade                │
-│                                                         │
-│  Run the following to update                            │
-│    npm i --save-dev prisma@latest                       │
-│    npm i @prisma/client@latest                          │
-└─────────────────────────────────────────────────────────┘
 
