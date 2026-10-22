@@ -452,6 +452,7 @@ export default function ProfileView(p: ProfileViewProps) {
                   <SpotifyPresenceCard
                     key={`${spotifyIntegration.data.nowPlaying?.trackName || "none"}-${spotifyIntegration.data.lastSyncAt}`}
                     data={spotifyIntegration.data}
+                    slug={p.username}
                   />
                 )}
                 <GameIntegrationCards integrations={gameIntegrationsNoSpotify} />

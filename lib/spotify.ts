@@ -12,11 +12,15 @@ type SpotifyImage = { url?: string };
 type SpotifyArtist = { name?: string };
 type SpotifyAlbum = { name?: string; images?: SpotifyImage[] };
 type SpotifyTrack = {
+  type?: "track" | "episode";
   name?: string;
   duration_ms?: number;
   artists?: SpotifyArtist[];
   album?: SpotifyAlbum;
   external_urls?: { spotify?: string };
+  // Podcast episodes carry their own images and the show instead of album/artists.
+  images?: SpotifyImage[];
+  show?: { name?: string; publisher?: string; images?: SpotifyImage[] };
 };
 
 type SpotifyNowPlayingResponse = {
@@ -58,6 +62,8 @@ export type SpotifyPublicData = {
     trackUrl: string;
     progressMs: number;
     durationMs: number;
+    /** When progressMs was read (ms epoch), so viewers can extrapolate the bar accurately. */
+    syncedAt?: number;
   } | null;
   recentTracks: SpotifyRecentTrack[];
   topTracks: SpotifyTopTrack[];
@@ -140,7 +146,8 @@ async function fetchSpotifyProfile(accessToken: string) {
 }
 
 async function fetchNowPlaying(accessToken: string): Promise<SpotifyPublicData["nowPlaying"]> {
-  const res = await fetch("https://api.spotify.com/v1/me/player/currently-playing", {
+  // Without additional_types, podcasts come back with item=null and look like "nothing playing".
+  const res = await fetch("https://api.spotify.com/v1/me/player/currently-playing?additional_types=track,episode", {
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "User-Agent": "BioLink/1.0",
@@ -154,16 +161,18 @@ async function fetchNowPlaying(accessToken: string): Promise<SpotifyPublicData["
   const data = (await res.json()) as SpotifyNowPlayingResponse;
   const item = data.item;
   if (!item?.name) return null;
+  const episode = item.type === "episode";
 
   return {
     isPlaying: Boolean(data.is_playing),
     trackName: String(item.name || ""),
-    artists: (item.artists || []).map((a) => a.name).filter(Boolean).join(", "),
-    albumName: String(item.album?.name || ""),
-    albumImage: String(item.album?.images?.[0]?.url || ""),
+    artists: episode ? String(item.show?.publisher || item.show?.name || "") : (item.artists || []).map((a) => a.name).filter(Boolean).join(", "),
+    albumName: String((episode ? item.show?.name : item.album?.name) || ""),
+    albumImage: String((episode ? item.images?.[0]?.url || item.show?.images?.[0]?.url : item.album?.images?.[0]?.url) || ""),
     trackUrl: String(item.external_urls?.spotify || ""),
     progressMs: Number(data.progress_ms || 0),
     durationMs: Number(item.duration_ms || 0),
+    syncedAt: Date.now(),
   };
 }
 
@@ -318,4 +327,38 @@ export async function refreshSpotifyIntegrationForUser(userId: number, force = f
 
   await prisma.integration.update({ where: { id: row.id }, data: { data: JSON.stringify(nextData) } });
   return toSpotifyPublicData(nextData);
+}
+
+const nowPlayingChecked = new Map<number, number>();
+
+/**
+ * Just the current track, for the live card on profiles (polled by visitors). Throttled to one Spotify call
+ * per user every 10s; the rest of the snapshot (recent/top tracks) keeps its slower refresh.
+ */
+export async function refreshSpotifyNowPlaying(userId: number): Promise<SpotifyPublicData["nowPlaying"] | undefined> {
+  const row = await prisma.integration.findUnique({ where: { userId_type: { userId, type: "spotify" } } });
+  if (!row?.data || !row.visible) return undefined;
+  const stored = parseStoredData(row.data);
+  if (Date.now() - (nowPlayingChecked.get(userId) ?? 0) < 10_000 || !stored.refreshToken) return stored.nowPlaying ?? null;
+  nowPlayingChecked.set(userId, Date.now());
+
+  let accessToken = String(stored.accessToken || "");
+  let expiresAt = Number(stored.expiresAt || 0);
+  let refreshToken = String(stored.refreshToken);
+  try {
+    if (!accessToken || !expiresAt || Date.now() > expiresAt - 20_000) {
+      const refreshed = await refreshSpotifyToken(refreshToken);
+      accessToken = refreshed.access_token;
+      expiresAt = Date.now() + refreshed.expires_in * 1000;
+      if (refreshed.refresh_token) refreshToken = refreshed.refresh_token;
+    }
+    const nowPlaying = await fetchNowPlaying(accessToken);
+    await prisma.integration.update({
+      where: { id: row.id },
+      data: { data: JSON.stringify({ ...stored, nowPlaying, accessToken, refreshToken, expiresAt }) },
+    });
+    return nowPlaying;
+  } catch {
+    return stored.nowPlaying ?? null;
+  }
 }

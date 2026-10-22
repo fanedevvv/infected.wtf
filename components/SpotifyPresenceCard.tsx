@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SpotifyIcon } from "@/components/IntegrationIcons";
 
 type SpotifyTrack = {
@@ -20,6 +20,7 @@ type SpotifyNowPlaying = {
   trackUrl: string;
   progressMs: number;
   durationMs: number;
+  syncedAt?: number;
 };
 
 type SpotifyTopTrack = {
@@ -47,29 +48,45 @@ function fmt(ms: number) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-export default function SpotifyPresenceCard({ data }: { data: SpotifyData }) {
-  const base = data.nowPlaying?.progressMs || 0;
-  const max = data.nowPlaying?.durationMs || 0;
-  const [tick, setTick] = useState(0);
+const POLL_MS = 15_000;
+
+export default function SpotifyPresenceCard({ data, slug }: { data: SpotifyData; slug: string }) {
+  const [nowPlaying, setNowPlaying] = useState<SpotifyNowPlaying | null>(data.nowPlaying);
+  // Snapshots from before syncedAt existed are treated as read when the page loaded.
+  const [fallbackSync] = useState(() => Date.now());
+  const [now, setNow] = useState(() => Date.now());
+  const refetchedFor = useRef<string | null>(null);
+
+  async function refresh() {
+    try {
+      const res = await fetch(`/api/integrations/spotify/now?slug=${encodeURIComponent(slug)}`, { cache: "no-store" });
+      const j = await res.json();
+      if (j.success) setNowPlaying(j.nowPlaying);
+    } catch {}
+  }
 
   useEffect(() => {
-    if (!data.nowPlaying?.isPlaying || !max) return;
-    const t = setInterval(() => {
-      setTick((v) => v + 1);
-    }, 1000);
-    return () => clearInterval(t);
-  }, [data.nowPlaying?.isPlaying, max]);
+    const poll = setInterval(refresh, POLL_MS);
+    const tick = setInterval(() => setNow(Date.now()), 1000);
+    return () => { clearInterval(poll); clearInterval(tick); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
 
-  const progress = useMemo(() => {
-    if (!data.nowPlaying) return base;
-    if (!data.nowPlaying.isPlaying || !max) return base;
-    return Math.min(max, base + tick * 1000);
-  }, [base, data.nowPlaying, max, tick]);
+  const max = nowPlaying?.durationMs || 0;
+  const base = nowPlaying?.progressMs || 0;
+  const progress = nowPlaying?.isPlaying && max ? Math.min(max, base + (now - (nowPlaying.syncedAt ?? fallbackSync))) : base;
+  const pct = max ? Math.max(0, Math.min(100, (progress / max) * 100)) : 0;
 
-  const pct = useMemo(() => {
-    if (!max) return 0;
-    return Math.max(0, Math.min(100, (progress / max) * 100));
-  }, [progress, max]);
+  // When the song should have ended, ask again right away instead of waiting for the next poll.
+  useEffect(() => {
+    if (!nowPlaying?.isPlaying || !max || progress < max) return;
+    const key = `${nowPlaying.trackUrl}-${nowPlaying.syncedAt}`;
+    if (refetchedFor.current === key) return;
+    refetchedFor.current = key;
+    const id = setTimeout(refresh, 1500);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progress, max, nowPlaying]);
 
   return (
     <div className="spotify-presence-card">
@@ -78,7 +95,7 @@ export default function SpotifyPresenceCard({ data }: { data: SpotifyData }) {
           <div className="sp-spotify-icon"><SpotifyIcon size={16} /></div>
           <div>
             <div className="sp-title">Spotify</div>
-            <div className="sp-subtitle">{data.nowPlaying?.isPlaying ? "Listening now" : "Last activity"}</div>
+            <div className="sp-subtitle">{nowPlaying?.isPlaying ? "Listening now" : "Last activity"}</div>
           </div>
         </div>
         <a href={data.profileUrl || "https://open.spotify.com"} target="_blank" rel="noopener noreferrer" className="sp-open-link">
@@ -86,19 +103,19 @@ export default function SpotifyPresenceCard({ data }: { data: SpotifyData }) {
         </a>
       </div>
 
-      {data.nowPlaying ? (
+      {nowPlaying ? (
         <div className="sp-now-row">
           <div className="sp-cover-wrap">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={data.nowPlaying.albumImage || data.avatarUrl || "/assets/img/default-avatar.png"} alt="" className="sp-cover" />
-            {data.nowPlaying.isPlaying && <span className="sp-live-dot" />}
+            <img src={nowPlaying.albumImage || data.avatarUrl || "/assets/img/default-avatar.png"} alt="" className="sp-cover" />
+            {nowPlaying.isPlaying && <span className="sp-live-dot" />}
           </div>
           <div className="sp-now-info">
-            <a href={data.nowPlaying.trackUrl || data.profileUrl || "#"} target="_blank" rel="noopener noreferrer" className="sp-track-name">
-              {data.nowPlaying.trackName}
+            <a href={nowPlaying.trackUrl || data.profileUrl || "#"} target="_blank" rel="noopener noreferrer" className="sp-track-name">
+              {nowPlaying.trackName}
             </a>
-            <div className="sp-artists">{data.nowPlaying.artists}</div>
-            <div className="sp-album">{data.nowPlaying.albumName}</div>
+            <div className="sp-artists">{nowPlaying.artists}</div>
+            <div className="sp-album">{nowPlaying.albumName}</div>
             {max > 0 && (
               <>
                 <div className="sp-progress-track"><span className="sp-progress-fill" style={{ width: `${pct}%` }} /></div>
