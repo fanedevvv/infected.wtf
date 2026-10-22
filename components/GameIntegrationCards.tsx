@@ -1,4 +1,5 @@
 import { ValorantIcon, TwitchIcon, SpotifyIcon, GithubIcon } from "@/components/IntegrationIcons";
+import { openSteamInApp } from "@/lib/app-links";
 
 export type GameIntegration =
   | { type: "steam"; data: { steamId64: string; personaName: string; avatarUrl: string; profileUrl: string } }
@@ -54,15 +55,12 @@ const COLORS: Record<string, string> = {
 };
 
 function GameCardShell({ type, href, children }: { type: string; href?: string; children: React.ReactNode }) {
-  const Tag = href ? "a" : "div";
+  const style = { ["--int-color" as string]: COLORS[type] };
+  if (!href) return <div className="game-int-card" style={style}>{children}</div>;
   return (
-    <Tag
-      className="game-int-card"
-      style={{ ["--int-color" as string]: COLORS[type] }}
-      {...(href ? { href, target: "_blank", rel: "noopener noreferrer" } : {})}
-    >
+    <a className="game-int-card" style={style} href={href} target="_blank" rel="noopener noreferrer" onClick={(e) => openSteamInApp(e, href)}>
       {children}
-    </Tag>
+    </a>
   );
 }
 

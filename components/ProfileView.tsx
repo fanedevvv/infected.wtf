@@ -13,6 +13,7 @@ import SpotifyPresenceCard from "./SpotifyPresenceCard";
 import PurchasedEffectsEngine from "./PurchasedEffectsEngine";
 import { DecorationFrame } from "./DecorationSVGs";
 import { BADGE_ICON } from "@/lib/badge-icons";
+import { openSteamInApp } from "@/lib/app-links";
 import ProfileComments from "./ProfileComments";
 import ProfileProjects, { type ProfileProjectCard } from "./ProfileProjects";
 import ReportProfileModal from "./ReportProfileModal";
@@ -416,6 +417,7 @@ export default function ProfileView(p: ProfileViewProps) {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={(e) => openSteamInApp(e, link.url)}
                     className="social-icon"
                     data-tooltip={link.platform[0].toUpperCase() + link.platform.slice(1)}
                     style={{ ["--platform-color" as string]: PLATFORM_COLOR[link.platform] || "#555" }}
