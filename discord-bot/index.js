@@ -256,11 +256,21 @@ app.get('/presence/:id', async (req, res) => {
       success: true,
       data: {
         status: presence?.status || 'offline',
+        clientStatus: presence?.clientStatus || null,
         activities: (presence?.activities || []).map(a => ({
           name: a.name,
           type: a.type,
           details: a.details || null,
           state: a.state || null,
+          url: a.url || null,
+          applicationId: a.applicationId || null,
+          start: a.timestamps?.start ? a.timestamps.start.getTime() : null,
+          end: a.timestamps?.end ? a.timestamps.end.getTime() : null,
+          largeImage: a.assets?.largeImageURL({ size: 256 }) || null,
+          largeText: a.assets?.largeText || null,
+          smallImage: a.assets?.smallImageURL({ size: 64 }) || null,
+          smallText: a.assets?.smallText || null,
+          emoji: a.emoji ? { name: a.emoji.name, url: a.emoji.id ? a.emoji.imageURL() : null } : null,
         })),
       },
     });

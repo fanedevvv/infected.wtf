@@ -37,12 +37,14 @@ export async function GET(req: NextRequest) {
         discordUsername: discordUser.username,
         discordGlobalName: discordUser.global_name,
         discordAvatar: discordUser.avatar,
+        data: JSON.stringify({ premiumType: discordUser.premium_type ?? 0 }),
       },
       update: {
         discordUserId: discordUser.id,
         discordUsername: discordUser.username,
         discordGlobalName: discordUser.global_name,
         discordAvatar: discordUser.avatar,
+        data: JSON.stringify({ premiumType: discordUser.premium_type ?? 0 }),
       },
     });
 

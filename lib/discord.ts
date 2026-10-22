@@ -44,6 +44,8 @@ export async function getDiscordUser(accessToken: string) {
     username: string;
     global_name: string | null;
     avatar: string | null;
+    /** Only visible to the user's own OAuth token: 0 none, 1 Classic, 2 Nitro, 3 Basic. */
+    premium_type?: number;
   }>;
 }
 
