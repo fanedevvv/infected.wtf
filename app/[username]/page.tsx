@@ -11,6 +11,7 @@ import { lookupMcServer } from "@/lib/game-lookup";
 import { refreshSpotifyIntegrationForUser } from "@/lib/spotify";
 import { parseStringArray, parseJsonObject, parseNumberArray } from "@/lib/json-array";
 import { pickThemeSnapshot } from "@/lib/theme-snapshot";
+import { getWeatherForLocation } from "@/lib/weather";
 import Link from "next/link";
 
 const DRAFT_STRING_FIELDS = ["displayName", "bio", "location", "job", "layoutTemplate", "playlistStyle"] as const;
@@ -162,11 +163,12 @@ export default async function ProfilePage({
     ? { slug: bestFriendRow.friend.slug, displayName: bestFriendRow.friend.displayName || bestFriendRow.friend.user.username, avatar: bestFriendRow.friend.avatar }
     : null;
 
-  const [likeCount, likedByViewer, dislikeCount, dislikedByViewer] = await Promise.all([
+  const [likeCount, likedByViewer, dislikeCount, dislikedByViewer, weather] = await Promise.all([
     prisma.profileLike.count({ where: { profileUserId: user.id } }),
     viewer ? prisma.profileLike.findUnique({ where: { profileUserId_likerUserId: { profileUserId: user.id, likerUserId: viewer.id } } }) : null,
     prisma.profileDislike.count({ where: { profileUserId: user.id } }),
     viewer ? prisma.profileDislike.findUnique({ where: { profileUserId_dislikerUserId: { profileUserId: user.id, dislikerUserId: viewer.id } } }) : null,
+    getWeatherForLocation(look.location),
   ]);
 
   return (
@@ -245,6 +247,7 @@ export default async function ProfilePage({
       likedByViewer={!!likedByViewer}
       dislikeCount={dislikeCount}
       dislikedByViewer={!!dislikedByViewer}
+      weather={weather}
       viewerLoggedIn={!!viewer}
       autoEnter={embed === "1" && isOwner}
     />

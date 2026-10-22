@@ -17,6 +17,7 @@ import { openSteamInApp } from "@/lib/app-links";
 import ProfileComments from "./ProfileComments";
 import ProfileProjects, { type ProfileProjectCard } from "./ProfileProjects";
 import ReportProfileModal from "./ReportProfileModal";
+import WeatherWidget from "./WeatherWidget";
 
 const PLATFORM_ICON: Record<string, React.ReactNode> = {
   discord: (
@@ -124,6 +125,7 @@ interface ProfileViewProps {
   likedByViewer: boolean;
   dislikeCount: number;
   dislikedByViewer: boolean;
+  weather: { tempC: number; code: number; description: string; location: string } | null;
   viewerLoggedIn: boolean;
   /** Skip the "click to enter" splash (used by the dashboard's live preview). */
   autoEnter?: boolean;
@@ -428,8 +430,11 @@ export default function ProfileView(p: ProfileViewProps) {
               </div>
             )}
 
-            {(p.discordInt || p.discordServerInt || p.gameIntegrations.length > 0) && (
+            {(p.discordInt || p.discordServerInt || p.gameIntegrations.length > 0 || p.weather) && (
               <div className="integrations-grid fade-in-d3">
+                {p.weather && (
+                  <WeatherWidget tempC={p.weather.tempC} code={p.weather.code} description={p.weather.description} location={p.weather.location} />
+                )}
                 {p.discordInt && (
                   <DiscordPresenceCard
                     discordUserId={p.discordInt.discordUserId}
