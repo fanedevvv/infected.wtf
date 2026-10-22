@@ -40,7 +40,28 @@ const FLAG_BADGES: { bit: number; key: string; label: string; hash: string }[] =
 ];
 const NITRO_BADGE = { key: "nitro", label: "Nitro Subscriber", icon: badgeIcon("2ba85e8026a8614b640c2837bcdfe21b") };
 
-const cache = new Map<string, { at: number; data: DiscordProfile | null }>();
+// Server Booster badge tiers by months boosted. Bots can only see boosts of our own server (premium_since).
+const BOOST_TIERS: { months: number; hash: string }[] = [
+  { months: 24, hash: "ec92202290b48d0879b7413d2dde3bab" },
+  { months: 18, hash: "7142225d31238f6387d9f09efaa02759" },
+  { months: 15, hash: "cb3ae83c15e970e8f3d410bc62cb8b99" },
+  { months: 12, hash: "991c9f39ee33d7537d9f408c3e53141e" },
+  { months: 9, hash: "996b3e870e8a22ce519b3a50e6bdd52f" },
+  { months: 6, hash: "df199d2050d3ed4ebf84d64ae83989f8" },
+  { months: 3, hash: "72bed924410c304dbe3d00a6e593ff59" },
+  { months: 2, hash: "0e4080d1d333bc7ad29ef6528b6f2fb7" },
+  { months: 1, hash: "51040c70d4f20a921ad6674ff86fc95c" },
+];
+
+function boostBadge(premiumSince: string | null): DiscordBadge | null {
+  if (!premiumSince) return null;
+  const since = new Date(premiumSince);
+  const months = Math.floor((Date.now() - since.getTime()) / (30.44 * 86400000));
+  const tier = BOOST_TIERS.find((t) => months >= t.months) ?? BOOST_TIERS[BOOST_TIERS.length - 1];
+  return { key: "boost", label: `Server boosting since ${since.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`, icon: badgeIcon(tier.hash) };
+}
+
+const cache = new Map<string, { at: number; data: DiscordProfile | null; boost: DiscordBadge | null }>();
 
 function cdnImage(kind: "avatars" | "banners", id: string, hash: string, size: number) {
   return `${CDN}/${kind}/${id}/${hash}.${hash.startsWith("a_") ? "gif" : "png"}?size=${size}`;
@@ -70,20 +91,29 @@ export async function getDiscordProfile(id: string, premiumType = 0): Promise<Di
   let raw: RawUser | null = null;
   if (hit && Date.now() - hit.at < CACHE_MS) {
     if (!hit.data) return null;
-    return withNitro(hit.data, premiumType);
+    return withExtras(hit.data, premiumType, hit.boost);
   }
 
   const token = process.env.DISCORD_BOT_TOKEN;
   if (!token) return null;
-  try {
-    const res = await fetch(`${API}/users/${id}`, { headers: { Authorization: `Bot ${token}` }, signal: AbortSignal.timeout(6000) });
-    if (res.ok) raw = await res.json();
-  } catch {}
+  const guildId = process.env.DISCORD_GUILD_ID;
+  const headers = { Authorization: `Bot ${token}` };
+  const [fetchedUser, boost] = await Promise.all([
+    fetch(`${API}/users/${id}`, { headers, signal: AbortSignal.timeout(6000) })
+      .then(async (r) => (r.ok ? ((await r.json()) as RawUser) : null))
+      .catch(() => null),
+    guildId
+      ? fetch(`${API}/guilds/${guildId}/members/${id}`, { headers, signal: AbortSignal.timeout(6000) })
+          .then(async (r) => (r.ok ? boostBadge(((await r.json()) as { premium_since?: string | null }).premium_since ?? null) : null))
+          .catch(() => null)
+      : null,
+  ]);
+  raw = fetchedUser;
 
   if (!raw) {
     // Keep serving a stale copy rather than blanking the card on a transient error.
-    if (hit?.data) return withNitro(hit.data, premiumType);
-    cache.set(id, { at: Date.now(), data: null });
+    if (hit?.data) return withExtras(hit.data, premiumType, hit.boost);
+    cache.set(id, { at: Date.now(), data: null, boost: null });
     return null;
   }
 
@@ -104,12 +134,14 @@ export async function getDiscordProfile(id: string, premiumType = 0): Promise<Di
     badges: FLAG_BADGES.filter((b) => flags & b.bit).map((b) => ({ key: b.key, label: b.label, icon: badgeIcon(b.hash) })),
     createdAt: snowflakeDate(raw.id),
   };
-  cache.set(id, { at: Date.now(), data });
-  return withNitro(data, premiumType);
+  cache.set(id, { at: Date.now(), data, boost });
+  return withExtras(data, premiumType, boost);
 }
 
-function withNitro(p: DiscordProfile, premiumType: number): DiscordProfile {
-  return premiumType > 0 ? { ...p, badges: [NITRO_BADGE, ...p.badges] } : p;
+/** Nitro and boost come after account badges, the way Discord orders them. */
+function withExtras(p: DiscordProfile, premiumType: number, boost: DiscordBadge | null): DiscordProfile {
+  const extra = [premiumType > 0 ? NITRO_BADGE : null, boost].filter((b): b is DiscordBadge => !!b);
+  return extra.length ? { ...p, badges: [...p.badges, ...extra] } : p;
 }
 
 const appIconCache = new Map<string, string | null>();
