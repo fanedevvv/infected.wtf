@@ -3,7 +3,7 @@ import { parseStringArray, serializeStringArray } from "./json-array";
 const DISCORD_API = "https://discord.com/api/v10";
 
 // Must match a Redirect registered on the Discord application (OAuth2 → Redirects) character for character.
-const DISCORD_REDIRECT_URI = () => `${process.env.SITE_URL}/integrations/discord/callback`;
+const DISCORD_REDIRECT_URI = () => `${process.env.SITE_URL}/api/integrations/discord/callback`;
 
 export function getDiscordAuthorizeUrl(state: string): string {
   const redirectUri = DISCORD_REDIRECT_URI();
