@@ -3901,3 +3901,13 @@ body:has(.unsaved-bar.visible) .toast-container { bottom: calc(1.5rem + 58px); }
 .dpc-since svg { color:#5865f2; }
 .dpc-open { font-size:.74rem; font-weight:700; padding:.32rem .65rem; border-radius:8px; background:#5865f2; color:#fff; text-decoration:none; }
 .dpc-open:hover { background:#4752c4; }
+
+/* ── Steam: connect by profile code ── */
+.steam-alt-toggle { margin-top:.6rem; background:none; border:none; padding:0; color:#66c0f4; font:inherit; font-size:.8rem; font-weight:600; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+.steam-alt { margin-top:.8rem; padding:.85rem; border-radius:12px; background:rgba(102,192,244,.06); border:1px solid rgba(102,192,244,.25); display:flex; flex-direction:column; gap:.55rem; font-size:.82rem; color:rgba(255,255,255,.75); }
+.steam-alt p { margin:0; }
+.steam-alt ol { margin:0; padding-left:1.1rem; display:flex; flex-direction:column; gap:.4rem; }
+.steam-alt-who { display:flex; align-items:center; gap:.55rem; color:#fff; }
+.steam-alt-who img { width:32px; height:32px; border-radius:6px; }
+.steam-alt-code { display:inline-flex; align-items:center; gap:.5rem; margin-top:.3rem; padding:.4rem .7rem; border-radius:8px; border:1px dashed rgba(102,192,244,.6); background:rgba(0,0,0,.3); color:#fff; font-family:var(--font-mono); font-size:.95rem; font-weight:800; letter-spacing:.06em; cursor:pointer; }
+.steam-alt-code span { font-family:var(--font-sans); font-size:.68rem; font-weight:700; letter-spacing:0; color:#66c0f4; text-transform:uppercase; }

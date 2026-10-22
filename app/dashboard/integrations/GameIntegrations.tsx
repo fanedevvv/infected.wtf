@@ -16,6 +16,7 @@ function GameCard({
   fields,
   connectHref,
   renderPreview,
+  extraConnect,
 }: {
   type: string;
   title: string;
@@ -25,6 +26,8 @@ function GameCard({
   fields?: { name: string; placeholder: string }[];
   connectHref?: string;
   renderPreview: (data: Record<string, unknown>) => React.ReactNode;
+  /** Alternative way to connect, shown under the main button; calls back with the saved integration data. */
+  extraConnect?: (onConnected: (data: Record<string, unknown>) => void) => React.ReactNode;
 }) {
   const t = useT();
   const [integration, setIntegration] = useState<IntegrationRow>(null);
@@ -115,6 +118,7 @@ function GameCard({
               <div className="int-card-footer">
                 <a href={connectHref} className="int-btn int-btn-primary">{icon}{" "}{t("Connect")}{" "}{title}</a>
               </div>
+              {extraConnect?.((data) => { setIntegration({ data, visible: true }); showToast(`${title} connected!`, "success"); })}
             </>
           ) : formOpen ? (
             <div className="int-connect-form">
@@ -144,6 +148,85 @@ function GameCard({
   );
 }
 
+/** Connect Steam without logging in: prove the profile is yours with a code in its summary. */
+function SteamCodeConnect({ onConnected }: { onConnected: (data: Record<string, unknown>) => void }) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  const [profile, setProfile] = useState("");
+  const [pending, setPending] = useState<{ steamId64: string; personaName: string; avatarUrl: string; isPublic: boolean; code: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  async function call(body: Record<string, unknown>) {
+    setBusy(true);
+    setError("");
+    try {
+      const res = await fetch("/api/integrations/steam/verify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      return await res.json();
+    } catch {
+      return { success: false, error: "Network error." };
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function start() {
+    const d = await call({ action: "start", profile });
+    if (d.success) setPending(d);
+    else setError(t(d.error || "Something went wrong."));
+  }
+
+  async function verify() {
+    if (!pending) return;
+    const d = await call({ action: "verify", steamId64: pending.steamId64 });
+    if (d.success) onConnected(d.data);
+    else setError(d.error || "Something went wrong.");
+  }
+
+  if (!open) {
+    return <button type="button" className="steam-alt-toggle" onClick={() => setOpen(true)}>{t("Connect without logging in")}</button>;
+  }
+
+  return (
+    <div className="steam-alt">
+      {!pending ? (
+        <>
+          <p>{t("Paste your Steam profile link — you'll prove it's yours from the Steam app, no password needed.")}</p>
+          <input className="form-control" placeholder="steamcommunity.com/id/yourname" value={profile} onChange={(e) => setProfile(e.target.value)} />
+          {error && <div className="int-error">{error}</div>}
+          <button type="button" className="int-btn int-btn-primary" onClick={start} disabled={busy || !profile.trim()}>{busy ? "…" : t("Continue")}</button>
+        </>
+      ) : (
+        <>
+          <div className="steam-alt-who">
+            {pending.avatarUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={pending.avatarUrl} alt="" />
+            )}
+            <b>{pending.personaName}</b>
+          </div>
+          <ol>
+            <li>{t("In the Steam app open your profile → Edit Profile.")}</li>
+            <li>{t("Paste this code anywhere in your Summary and save:")}
+              <button type="button" className="steam-alt-code" onClick={() => navigator.clipboard?.writeText(pending.code).then(() => showToast(t("Copied!"), "success")).catch(() => {})}>
+                {pending.code} <span>{t("Copy")}</span>
+              </button>
+            </li>
+            {!pending.isPublic && <li>{t("Set your profile privacy to Public (you can change it back later).")}</li>}
+            <li>{t("Come back here and press Verify. You can remove the code afterwards.")}</li>
+          </ol>
+          {error && <div className="int-error">{error}</div>}
+          <div style={{ display: "flex", gap: ".4rem", flexWrap: "wrap" }}>
+            <button type="button" className="int-btn int-btn-primary" onClick={verify} disabled={busy}>{busy ? t("Checking…") : t("Verify")}</button>
+            <a className="int-btn int-btn-outline" href={`https://steamcommunity.com/profiles/${pending.steamId64}/edit/info`} target="_blank" rel="noopener noreferrer">{t("Open Steam profile")}</a>
+            <button type="button" className="int-btn int-btn-outline" onClick={() => { setPending(null); setError(""); }}>{t("Back")}</button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function GameIntegrations() {
   const t = useT();
   return (
@@ -161,6 +244,7 @@ export default function GameIntegrations() {
           color="#66c0f4"
           icon={<SteamIcon />}
           connectHref="/api/integrations/steam/connect"
+          extraConnect={(onConnected) => <SteamCodeConnect onConnected={onConnected} />}
           renderPreview={(d) => (
             <div className="int-preview-generic">
               <div className="int-preview-avatar">

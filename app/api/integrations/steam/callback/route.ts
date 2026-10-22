@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-helpers";
-import { parseJsonObject } from "@/lib/json-array";
 import { verifyLinkToken } from "@/lib/link-token";
-
-function xmlTag(xml: string, tag: string): string {
-  const m = xml.match(new RegExp(`<${tag}><!\\[CDATA\\[(.*?)\\]\\]></${tag}>`)) || xml.match(new RegExp(`<${tag}>(.*?)</${tag}>`));
-  return m ? m[1] : "";
-}
+import { fetchSteamProfile, linkSteam } from "@/lib/steam";
 
 /** Shown when the login finished inside the Steam app (no infected.wtf session there to redirect into). */
 function appDonePage(ok: boolean, message: string) {
@@ -56,27 +50,10 @@ export async function GET(req: NextRequest) {
   }
   if (!verifyOk) return fail("steam_failed");
 
-  let personaName = "";
-  let avatarUrl = "";
-  try {
-    const profRes = await fetch(`https://steamcommunity.com/profiles/${steamId64}/?xml=1`, { cache: "no-store" });
-    const xml = await profRes.text();
-    personaName = xmlTag(xml, "steamID") || steamId64;
-    avatarUrl = xmlTag(xml, "avatarFull") || xmlTag(xml, "avatarMedium") || "";
-  } catch {
-    personaName = steamId64;
-  }
-
-  const steamRows = await prisma.integration.findMany({ where: { type: "steam" } });
-  const existing = steamRows.find((row) => parseJsonObject<{ steamId64?: string }>(row.data)?.steamId64 === steamId64);
-  if (existing && existing.userId !== user.id) return fail("already_linked");
-
-  const steamData = JSON.stringify({ steamId64, personaName, avatarUrl, profileUrl: `https://steamcommunity.com/profiles/${steamId64}` });
-  await prisma.integration.upsert({
-    where: { userId_type: { userId: user.id, type: "steam" } },
-    create: { userId: user.id, type: "steam", visible: true, data: steamData },
-    update: { visible: true, data: steamData },
-  });
+  const profile = await fetchSteamProfile({ steamId64 });
+  const personaName = profile?.personaName || steamId64;
+  const result = await linkSteam(user.id, { steamId64, personaName, avatarUrl: profile?.avatarUrl || "" });
+  if (result === "already_linked") return fail("already_linked");
 
   if (inApp) return appDonePage(true, `Your Steam account${personaName ? ` (${personaName.replace(/[<>&"]/g, "")})` : ""} is now on your profile. You can go back to your browser.`);
   return NextResponse.redirect(`${siteUrl}/dashboard?page=integrations&connected=steam`);
