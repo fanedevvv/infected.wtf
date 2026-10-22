@@ -3455,6 +3455,20 @@ body:has(.unsaved-bar.visible) .toast-container { bottom: calc(1.5rem + 58px); }
 .pc-empty { text-align:center; color:rgba(255,255,255,.4); font-size:.85rem; padding:1rem 0; margin:0; }
 .pc-more { align-self:center; margin-top:.3rem; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); color:#fff; border-radius:9px; padding:.45rem 1rem; font:inherit; font-size:.8rem; cursor:pointer; }
 .pc-more:hover { background:rgba(255,255,255,.1); }
+
+.pc-item--pinned { border-color:color-mix(in srgb, var(--accent) 45%, transparent); background:color-mix(in srgb, var(--accent) 6%, rgba(255,255,255,.035)); }
+.pc-pinned-tag { display:inline-flex; align-items:center; gap:.3rem; font-size:.68rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--accent); margin-bottom:.45rem; }
+.pc-reply-btn, .pc-pin-btn { background:none; border:none; padding:0; color:rgba(255,255,255,.5); font:inherit; font-size:.76rem; font-weight:600; cursor:pointer; transition:color .15s; }
+.pc-reply-btn:hover, .pc-pin-btn:hover { color:#fff; }
+.pc-pin-btn { color:color-mix(in srgb, var(--accent) 75%, rgba(255,255,255,.5)); }
+.pc-reply-form { margin-top:.6rem; display:flex; flex-direction:column; gap:.45rem; }
+.pc-input--reply { min-height:50px; font-size:.84rem; }
+.pc-cancel { background:none; border:none; padding:0; color:rgba(255,255,255,.4); font:inherit; font-size:.78rem; cursor:pointer; margin-right:auto; }
+.pc-cancel:hover { color:#fff; }
+.pc-show-replies { display:inline-flex; align-items:center; gap:.35rem; margin-top:.6rem; background:none; border:none; padding:0; color:var(--accent); font:inherit; font-size:.78rem; font-weight:700; cursor:pointer; }
+.pc-replies { display:flex; flex-direction:column; gap:.5rem; margin-top:.55rem; padding-left:1.1rem; border-left:2px solid rgba(255,255,255,.08); }
+.pc-item--reply { padding:.6rem .8rem; }
+.pc-item--reply .pc-avatar { width:24px; height:24px; }
 @media (max-width:600px) { .pc-section { padding:1.1rem 1rem; } }
 
 .rp-overlay { position:fixed; inset:0; z-index:100001; display:flex; align-items:center; justify-content:center; padding:1rem; background:rgba(0,0,0,.65); backdrop-filter:blur(6px); }
