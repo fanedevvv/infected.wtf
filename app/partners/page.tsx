@@ -99,7 +99,7 @@ export default async function PartnersPage() {
             </div>
             <p className="int-card-desc">Got a Discord server, a stream, or a community you&apos;d like to partner with us? Reach out on our Discord and tell the team about your audience.</p>
             <div className="int-card-footer">
-              <a href="https://discord.gg/kPx9zWzWez" target="_blank" rel="noopener noreferrer" className="int-btn int-btn-outline" style={{ ["--int-color" as string]: "#5865f2" }}>
+              <a href="https://infected.wtf/discord" target="_blank" rel="noopener noreferrer" className="int-btn int-btn-outline" style={{ ["--int-color" as string]: "#5865f2" }}>
                 Message us on Discord
               </a>
             </div>

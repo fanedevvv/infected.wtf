@@ -15,7 +15,7 @@ export type DocPage = {
   body: ReactNode;
 };
 
-export const DISCORD_INVITE = "https://discord.gg/kPx9zWzWez";
+export const DISCORD_INVITE = "https://infected.wtf/discord";
 export const SITE = "https://infected.wtf";
 
 const H2 = ({ id, children }: { id: string; children: ReactNode }) => <h2 id={id}>{children}</h2>;

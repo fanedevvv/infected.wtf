@@ -30,7 +30,7 @@ export function HomeNavLinks({ user }: { user?: { username: string } | null }) {
         <Link href="/leaderboard">Leaderboard</Link>
         <Link href="/dashboard?page=shop">Shop</Link>
         <Link href="/partners">Partners</Link>
-        <a href="https://discord.gg/kPx9zWzWez" target="_blank" rel="noreferrer">Discord</a>
+        <a href="https://infected.wtf/discord" target="_blank" rel="noreferrer">Discord</a>
       </div>
 
       <div className="navbar-actions">
@@ -61,7 +61,7 @@ export function HomeNavLinks({ user }: { user?: { username: string } | null }) {
           <Link href="/leaderboard" onClick={close}>Leaderboard</Link>
           <Link href="/dashboard?page=shop" onClick={close}>Shop</Link>
           <Link href="/partners" onClick={close}>Partners</Link>
-          <a href="https://discord.gg/kPx9zWzWez" target="_blank" rel="noreferrer" onClick={close}>Discord</a>
+          <a href="https://infected.wtf/discord" target="_blank" rel="noreferrer" onClick={close}>Discord</a>
           {user ? (
             <Link href="/dashboard" className="btn btn-primary btn-sm" onClick={close}>Dashboard</Link>
           ) : (
@@ -117,7 +117,7 @@ export function Faq() {
       description={
         <>
           Can&apos;t find what you&apos;re looking for? Ask us on{" "}
-          <a href="https://discord.gg/kPx9zWzWez" target="_blank" rel="noreferrer" className="font-medium text-foreground underline-offset-4 hover:underline">Discord</a>.
+          <a href="https://infected.wtf/discord" target="_blank" rel="noreferrer" className="font-medium text-foreground underline-offset-4 hover:underline">Discord</a>.
         </>
       }
     />

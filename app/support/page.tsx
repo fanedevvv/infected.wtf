@@ -41,7 +41,7 @@ export default async function SupportPage() {
           <div className="discord-cta-body">
             <div className="discord-cta-title">Join the INFECTED.WTF Discord</div>
             <div className="discord-cta-desc">Get help with your account, report bugs, suggest features, or just hang out with the community. Our developers are active and respond quickly.</div>
-            <a href="https://discord.gg/kPx9zWzWez" target="_blank" rel="noopener noreferrer" className="discord-btn">
+            <a href="https://infected.wtf/discord" target="_blank" rel="noopener noreferrer" className="discord-btn">
               <DiscordIcon size={16} fill="currentColor" />
               Join Discord Server
             </a>

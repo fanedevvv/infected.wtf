@@ -31,7 +31,7 @@ export default function PublicNavbar({ user, active }: { user?: { username: stri
         </Link>
         <Link href="/dashboard?page=shop">Shop</Link>
         <Link href="/partners">Partners</Link>
-        <a href="https://discord.gg/kPx9zWzWez" target="_blank" rel="noreferrer">Discord</a>
+        <a href="https://infected.wtf/discord" target="_blank" rel="noreferrer">Discord</a>
 
       </div>
 
@@ -66,7 +66,7 @@ export default function PublicNavbar({ user, active }: { user?: { username: stri
         </Link>
         <Link href="/dashboard?page=shop" onClick={close}>Shop</Link>
         <Link href="/partners" onClick={close}>Partners</Link>
-        <a href="https://discord.gg/kPx9zWzWez" target="_blank" rel="noreferrer" onClick={close}>Discord</a>
+        <a href="https://infected.wtf/discord" target="_blank" rel="noreferrer" onClick={close}>Discord</a>
         {user ? (
           <Link href="/dashboard" className="btn btn-primary btn-sm" onClick={close}>Dashboard</Link>
         ) : (
