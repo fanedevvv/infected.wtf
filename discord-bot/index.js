@@ -1,7 +1,6 @@
 require('dotenv').config();
 
 const express = require('express');
-const mysql = require('mysql2/promise');
 const {
   Client,
   GatewayIntentBits,
@@ -20,10 +19,6 @@ const {
   API_KEY,
   SITE_URL,
   PORT,
-  DB_HOST,
-  DB_USER,
-  DB_PASS,
-  DB_NAME,
 } = process.env;
 
 // badge id (as used in profiles.badges on the site) -> Discord role id, read from env.
@@ -109,32 +104,12 @@ async function logToChannel(text) {
   }
 }
 
-// ── DB pool (used only for the Discord → site ban sync direction) ──────────────
-const pool = mysql.createPool({
-  host: DB_HOST || 'localhost',
-  user: DB_USER,
-  password: DB_PASS,
-  database: DB_NAME || 'biolink',
-  waitForConnections: true,
-  connectionLimit: 5,
-});
-
+// Discord → site ban sync goes through the site's internal API, so the bot needs no database access
+// (it can run in its own container on the panel).
 async function setSiteBanStateByDiscordId(discordId, banned) {
-  const [rows] = await pool.query(
-    `SELECT u.id FROM users u
-     JOIN integrations i ON i.user_id = u.id AND i.type = 'discord'
-     WHERE i.discord_user_id = ? LIMIT 1`,
-    [discordId]
-  );
-  if (!rows.length) return null;
-  const userId = rows[0].id;
-  await pool.query(
-    banned
-      ? 'UPDATE users SET banned=1, ban_until=NULL WHERE id=?'
-      : 'UPDATE users SET banned=0, ban_until=NULL WHERE id=?',
-    [userId]
-  );
-  return userId;
+  const result = await callSite('set_ban_by_discord', { discord_id: discordId, banned });
+  if (!result?.success) throw new Error(result?.error || 'site unreachable');
+  return result.user_id || null;
 }
 
 // Discord → site: someone gets banned/unbanned directly on the server
@@ -393,7 +368,11 @@ app.post('/unban', async (req, res) => {
   }
 });
 
-const port = Number(PORT) || 4001;
-app.listen(port, '127.0.0.1', () => {
-  console.log(`[api] Listening on http://127.0.0.1:${port}`);
+// Inside a Pterodactyl container the panel assigns the port (SERVER_PORT) and the API must listen on all
+// interfaces to be reachable through the published port; elsewhere stay on loopback.
+const inPanel = !!process.env.P_SERVER_UUID;
+const port = Number(PORT || process.env.SERVER_PORT) || 4001;
+const host = process.env.BIND_HOST || (inPanel ? '0.0.0.0' : '127.0.0.1');
+app.listen(port, host, () => {
+  console.log(`[api] Listening on http://${host}:${port}`);
 });

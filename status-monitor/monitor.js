@@ -87,8 +87,9 @@ const GROUPS = [
       { id: "imagehost", name: "Image host", check: httpCheck(`${SITE}/uploads/i/status-probe.png`) },
       { id: "api", name: "API", check: httpCheck(`${SITE}/api/marketplace`, (s) => s === 200, { bodyTest: (b) => b.includes('"themes"') }) },
       { id: "database", name: "Database", check: tcpCheck(db.host, db.port) },
-      // The bot's internal API answers 401 without a key — any HTTP answer means it's alive.
-      { id: "discord", name: "Discord bot", check: httpCheck("http://127.0.0.1:4001/", (s) => s > 0) },
+      // The bot runs in its own Pterodactyl container (panel.acsr.ro); its internal API answers 401 without a
+      // key, so any HTTP answer means it's alive.
+      { id: "discord", name: "Discord bot", check: httpCheck(env.DISCORD_BOT_URL || "http://127.0.0.1:4001/", (s) => s > 0) },
       { id: "email", name: "Email delivery", check: tcpCheck("127.0.0.1", 25, /^220/) },
     ],
   },

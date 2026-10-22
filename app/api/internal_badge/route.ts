@@ -57,6 +57,16 @@ export async function POST(req: NextRequest) {
     return ok(`Unregistered badge '${badgeKey}'.`);
   }
 
+  // ── Discord → site ban sync: someone was banned/unbanned directly on the Discord server ──
+  if (action === "set_ban_by_discord") {
+    const discordId = String(input.discord_id || "").trim();
+    if (!/^\d{17,20}$/.test(discordId)) return err("Invalid discord_id.");
+    const integration = await prisma.integration.findFirst({ where: { type: "discord", discordUserId: discordId }, select: { userId: true } });
+    if (!integration) return ok(`No user linked with discord_id=${discordId} — skipped.`, { user_id: null });
+    await prisma.user.update({ where: { id: integration.userId }, data: { banned: !!input.banned, banUntil: null } });
+    return ok(input.banned ? "Banned." : "Unbanned.", { user_id: integration.userId });
+  }
+
   // ── Member badge grant/revoke (existing behavior, generalized to dynamic badges) ──
   const badgeId = String(input.badge_id || "").trim();
   const discordId = String(input.discord_id || "").trim();
