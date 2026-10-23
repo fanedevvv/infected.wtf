@@ -4043,22 +4043,22 @@ body:has(.unsaved-bar.visible) .toast-container { bottom: calc(1.5rem + 58px); }
 .im-drawer .pc-section { background:none; border:none; padding:0; backdrop-filter:none; }
 
 @media (max-width:900px) {
-  .im-grid, .im-grid:not(:has(.im-sidenav)) { grid-template-columns:minmax(0,1fr); grid-template-areas:"avatar" "content"; gap:1.2rem; align-items:start; padding:4.5rem 1.25rem 11rem; }
+  .im-grid, .im-grid:not(:has(.im-sidenav)) { grid-template-columns:minmax(0,1fr); grid-template-areas:"avatar" "content"; gap:1.2rem; align-items:start; padding:4.5rem 1.25rem 13rem; }
   .im-sidenav { display:none; }
   .im-avatar-col { justify-content:flex-start; }
   .im-avatar .avatar-img { width:150px; height:150px; border-radius:24px; }
   .im-name { font-size:2.4rem; }
   .im-socials { gap:1.4rem; }
-  .im-bestfriend { top:auto; bottom:12.5rem; transform:none; width:62px; height:62px; right:1rem; }
+  .im-bestfriend { top:auto; bottom:9.6rem; transform:none; width:62px; height:62px; right:1rem; }
   .im-tabbar { display:flex; position:fixed; left:5.2rem; right:1rem; bottom:1.2rem; z-index:120; padding:.3rem; gap:.2rem; border-radius:18px; background:var(--im-panel); border:1px solid rgba(255,255,255,.08); backdrop-filter:blur(14px); }
   .im-tabbar button { flex:1; display:flex; align-items:center; justify-content:center; gap:.35rem; padding:.65rem .4rem; border:none; border-radius:14px; background:none; color:rgba(255,255,255,.5); font:inherit; font-size:.82rem; font-weight:600; text-transform:lowercase; cursor:pointer; }
   .im-tabbar button.active { background:rgba(255,255,255,.07); color:var(--accent); }
   .im-chat { width:54px; height:54px; }
   .im-votes { bottom:5.4rem; right:1rem; min-width:170px; }
-  .im-flag { bottom:8.6rem; right:1rem; width:42px; height:42px; }
+  .im-flag { bottom:5.4rem; right:calc(1rem + 170px + .5rem); width:42px; height:42px; }
   .im-root:not(:has(.im-tabbar)) .im-votes { bottom:1.2rem; }
-  .im-root:not(:has(.im-tabbar)) .im-flag { bottom:4.4rem; }
-  .im-root:not(:has(.im-tabbar)) .im-bestfriend { bottom:8.4rem; }
+  .im-root:not(:has(.im-tabbar)) .im-flag { bottom:1.2rem; }
+  .im-root:not(:has(.im-tabbar)) .im-bestfriend { bottom:5.4rem; }
   .im-brand { bottom:auto; top:1.5rem; }
   .im-drawer { width:100%; border-left:none; }
 }
