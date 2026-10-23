@@ -1244,7 +1244,8 @@ input[type="color"] { width:40px; height:32px; border-radius:8px; border:2px sol
 .theme-preview-tags { position:absolute; left:.5rem; bottom:.45rem; display:flex; flex-wrap:wrap; gap:.25rem; }
 .theme-preview-tags span { font-size:.56rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:rgba(255,255,255,.75); background:rgba(0,0,0,.45); padding:.12rem .4rem; border-radius:6px; backdrop-filter:blur(4px); }
 .theme-card-body { padding:.9rem 1rem 1rem; display:flex; flex-direction:column; gap:.35rem; }
-.theme-card-name { font-size:.92rem; font-weight:700; color:#fff; }
+.theme-card-name { font-size:.92rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:.45rem; }
+.theme-card-status-badge { font-size:.62rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:#ff8080; background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.3); padding:.15rem .5rem; border-radius:6px; }
 .theme-card-creator { font-size:.7rem; color:rgba(255,255,255,.4); }
 .theme-card-desc { font-size:.76rem; color:rgba(255,255,255,.5); line-height:1.4; margin:0; }
 .theme-card-footer { margin-top:.5rem; display:flex; gap:.4rem; flex-wrap:wrap; }

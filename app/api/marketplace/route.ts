@@ -4,6 +4,27 @@ import { getCurrentUser } from "@/lib/auth-helpers";
 import { getActiveProfileId } from "@/lib/active-profile";
 import { parseNumberArray, serializeNumberArray } from "@/lib/json-array";
 import { pickThemeSnapshot } from "@/lib/theme-snapshot";
+import { copyFile, mkdir } from "fs/promises";
+import { existsSync } from "fs";
+import path from "path";
+import crypto from "crypto";
+
+const UPLOADS_ROOT = path.join(process.cwd(), "public", "uploads");
+
+/** Themes need their own copy of an image/video background — it must survive
+ *  the creator later replacing or deleting their live profile background
+ *  (which deletes that file). Returns the new relative path, or null if the
+ *  source file is missing (caller falls back to downgrading to particles). */
+async function copyBackgroundForTheme(relPath: string): Promise<string | null> {
+  const src = path.join(process.cwd(), "public", relPath);
+  if (!existsSync(src)) return null;
+  const ext = path.extname(relPath) || "";
+  const fname = `theme_${Date.now()}_${crypto.randomBytes(6).toString("hex")}${ext}`;
+  const dir = path.join(UPLOADS_ROOT, "theme-backgrounds");
+  await mkdir(dir, { recursive: true });
+  await copyFile(src, path.join(dir, fname));
+  return `uploads/theme-backgrounds/${fname}`;
+}
 
 export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
@@ -28,6 +49,7 @@ export async function GET(req: NextRequest) {
       creatorAvatar: t.creator.profiles[0]?.avatar ?? null,
       isOwner: user ? t.creatorId === user.id : false,
       owned: owned.has(t.id) || (user ? t.creatorId === user.id : false),
+      active: t.active,
       preview: {
         accentColor: t.accentColor,
         backgroundColor: t.backgroundColor,
@@ -64,7 +86,23 @@ export async function POST(req: NextRequest) {
     const profile = await prisma.profile.findUnique({ where: { id: activeProfileId } });
     if (!profile) return NextResponse.json({ success: false, error: "Profile not found." }, { status: 400 });
 
-    const isShareableBg = ["particles", "color", "gradient"].includes(profile.backgroundType);
+    // Particles/color/gradient are just values, shared as-is. An uploaded
+    // image/video background gets its own copy under uploads/theme-backgrounds/
+    // so it keeps working for every buyer even if the creator later changes
+    // or deletes their own live background (which deletes that file).
+    let themeBackgroundType = profile.backgroundType;
+    let themeBackgroundValue = profile.backgroundValue;
+    let downgradedBackground = false;
+    if (["image", "video"].includes(profile.backgroundType)) {
+      const copied = profile.backgroundValue ? await copyBackgroundForTheme(profile.backgroundValue) : null;
+      if (copied) {
+        themeBackgroundValue = copied;
+      } else {
+        themeBackgroundType = "particles";
+        themeBackgroundValue = "#050507";
+        downgradedBackground = true;
+      }
+    }
 
     const theme = await prisma.theme.create({
       data: {
@@ -77,8 +115,8 @@ export async function POST(req: NextRequest) {
         nameColor: profile.nameColor,
         bioColor: profile.bioColor,
         overlayColor: profile.overlayColor,
-        backgroundType: isShareableBg ? profile.backgroundType : "particles",
-        backgroundValue: isShareableBg ? profile.backgroundValue : "#050507",
+        backgroundType: themeBackgroundType,
+        backgroundValue: themeBackgroundValue,
         nameEffect: profile.nameEffect,
         bioEffect: profile.bioEffect,
         profileFont: profile.profileFont,
@@ -91,7 +129,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true, themeId: theme.id, downgradedBackground: !isShareableBg });
+    return NextResponse.json({ success: true, themeId: theme.id, downgradedBackground });
   }
 
   if (action === "buy") {
@@ -145,12 +183,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
   }
 
-  if (action === "unpublish") {
+  if (action === "unpublish" || action === "republish") {
     const themeId = parseInt(String(body.themeId || ""), 10);
     const theme = await prisma.theme.findUnique({ where: { id: themeId } });
     if (!theme || theme.creatorId !== user.id) return NextResponse.json({ success: false, error: "Theme not found." }, { status: 400 });
-    await prisma.theme.update({ where: { id: themeId }, data: { active: false } });
-    return NextResponse.json({ success: true });
+    await prisma.theme.update({ where: { id: themeId }, data: { active: action === "republish" } });
+    return NextResponse.json({ success: true, active: action === "republish" });
   }
 
   return NextResponse.json({ success: false, error: "Unknown action." }, { status: 400 });

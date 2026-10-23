@@ -15,6 +15,7 @@ type Theme = {
   creatorAvatar: string | null;
   isOwner: boolean;
   owned: boolean;
+  active: boolean;
   preview: {
     accentColor: string; backgroundColor: string; nameColor: string; bioColor: string; overlayColor: string;
     backgroundType: string; backgroundValue: string; nameEffect: string; bioEffect: string;
@@ -25,11 +26,19 @@ type Theme = {
 // Mini profile mock-up rendered with the theme's own settings, so buyers see the actual look.
 function ThemePreview({ theme }: { theme: Theme }) {
   const p = theme.preview;
+  const isImageBg = p.backgroundType === "image" || p.backgroundType === "video";
   const background = p.backgroundType === "color" || p.backgroundType === "gradient" ? p.backgroundValue : p.backgroundColor;
   const tags = [p.layoutTemplate, p.nameEffect !== "none" && `${p.nameEffect} name`, p.particleEffect && "particles", p.cursorTrail && "cursor trail"].filter(Boolean) as string[];
 
   return (
-    <div className="theme-preview" style={{ background, ["--accent" as string]: p.accentColor }}>
+    <div
+      className="theme-preview"
+      style={{
+        background,
+        ...(isImageBg ? { backgroundImage: `url(/${p.backgroundValue})`, backgroundSize: "cover", backgroundPosition: "center" } : {}),
+        ["--accent" as string]: p.accentColor,
+      }}
+    >
       {p.particleEffect && <div className="theme-preview-particles" />}
       <div className="theme-preview-card" style={{ background: `color-mix(in srgb, ${p.overlayColor} 85%, transparent)` }}>
         <div className={`avatar-shape-${p.avatarShape}`}>
@@ -220,16 +229,18 @@ export default function MarketplaceClient({ tokens: initialTokens, profileSlug }
     await Promise.all([loadBrowse(), loadMine(), refreshTokens()]);
   }
 
-  async function unpublish(id: number) {
-    if (!confirm(t("Unpublish this theme? It will no longer be sold, but past buyers keep it."))) return;
+  async function toggleActive(id: number, makeActive: boolean) {
+    if (!makeActive && !confirm(t("Unpublish this theme? It will no longer be sold, but past buyers keep it."))) return;
     const res = await fetch("/api/marketplace", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "unpublish", themeId: id }),
+      body: JSON.stringify({ action: makeActive ? "republish" : "unpublish", themeId: id }),
     });
     const j = await res.json();
-    if (j.success) { showToast(t("Theme unpublished."), "success"); loadMine(); loadBrowse(); }
-    else showToast(j.error || "Error", "error");
+    if (j.success) {
+      showToast(makeActive ? t("Theme republished — back on the marketplace.") : t("Theme unpublished."), "success");
+      loadMine(); loadBrowse();
+    } else showToast(j.error || "Error", "error");
   }
 
   return (
@@ -266,11 +277,18 @@ export default function MarketplaceClient({ tokens: initialTokens, profileSlug }
               <div className="theme-card" key={th.id}>
                 <ThemePreview theme={th} />
                 <div className="theme-card-body">
-                  <div className="theme-card-name">{th.name}</div>
+                  <div className="theme-card-name">
+                    {th.name}
+                    {!th.active && <span className="theme-card-status-badge">{t("Unpublished")}</span>}
+                  </div>
                   <div className="theme-card-creator">{t("{sold} sold · {earned} tokens earned", { sold: th.purchaseCount, earned: th.purchaseCount * Math.floor(th.price / 2) })}</div>
                   <div className="theme-card-footer">
                     <PreviewButton themeId={th.id} profileSlug={profileSlug} />
-                    <button className="int-btn int-btn-danger" onClick={() => unpublish(th.id)}>{t("Unpublish")}</button>
+                    {th.active ? (
+                      <button className="int-btn int-btn-danger" onClick={() => toggleActive(th.id, false)}>{t("Unpublish")}</button>
+                    ) : (
+                      <button className="int-btn" onClick={() => toggleActive(th.id, true)}>{t("Republish")}</button>
+                    )}
                   </div>
                 </div>
               </div>
