@@ -12,6 +12,7 @@ import { refreshSpotifyIntegrationForUser } from "@/lib/spotify";
 import { parseStringArray, parseJsonObject, parseNumberArray } from "@/lib/json-array";
 import { pickThemeSnapshot } from "@/lib/theme-snapshot";
 import { getWeatherForLocation } from "@/lib/weather";
+import { getTimezoneForLocation } from "@/lib/timezone";
 import { applyEmbedVariables } from "@/lib/social-embed";
 import Link from "next/link";
 
@@ -174,13 +175,15 @@ export default async function ProfilePage({
     ? { slug: bestFriendRow.friend.slug, displayName: bestFriendRow.friend.displayName || bestFriendRow.friend.user.username, avatar: bestFriendRow.friend.avatar }
     : null;
 
-  const [likeCount, likedByViewer, dislikeCount, dislikedByViewer, weather] = await Promise.all([
+  const [likeCount, likedByViewer, dislikeCount, dislikedByViewer, weather, clockTimezone] = await Promise.all([
     prisma.profileLike.count({ where: { profileUserId: user.id } }),
     viewer ? prisma.profileLike.findUnique({ where: { profileUserId_likerUserId: { profileUserId: user.id, likerUserId: viewer.id } } }) : null,
     prisma.profileDislike.count({ where: { profileUserId: user.id } }),
     viewer ? prisma.profileDislike.findUnique({ where: { profileUserId_dislikerUserId: { profileUserId: user.id, dislikerUserId: viewer.id } } }) : null,
-    getWeatherForLocation(look.location),
+    profile.showWeather ? getWeatherForLocation(look.location) : Promise.resolve(null),
+    profile.showClock ? getTimezoneForLocation(look.location) : Promise.resolve(null),
   ]);
+  const clock = clockTimezone && look.location ? { timezone: clockTimezone, format24h: profile.clock24h, location: look.location } : null;
 
   return (
     <>
@@ -260,6 +263,7 @@ export default async function ProfilePage({
       dislikeCount={dislikeCount}
       dislikedByViewer={!!dislikedByViewer}
       weather={weather}
+      clock={clock}
       viewerLoggedIn={!!viewer}
       autoEnter={embed === "1" && isOwner}
     />

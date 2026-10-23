@@ -8,6 +8,7 @@ import DiscordServerCard from "./DiscordServerCard";
 import GameIntegrationCards from "./GameIntegrationCards";
 import SpotifyPresenceCard from "./SpotifyPresenceCard";
 import WeatherWidget from "./WeatherWidget";
+import ClockWidget from "./ClockWidget";
 import ProfileProjects from "./ProfileProjects";
 import ProfileComments from "./ProfileComments";
 import { DecorationFrame } from "./DecorationSVGs";
@@ -213,9 +214,10 @@ export default function ProfileClassic({
             </div>
           )}
 
-          {(p.discordInt || p.discordServerInt || p.gameIntegrations.length > 0 || p.weather) && (
+          {(p.discordInt || p.discordServerInt || p.gameIntegrations.length > 0 || p.weather || p.clock) && (
             <div className="integrations-grid fade-in-d3">
               {p.weather && <WeatherWidget tempC={p.weather.tempC} code={p.weather.code} description={p.weather.description} location={p.weather.location} />}
+              {p.clock && <ClockWidget timezone={p.clock.timezone} format24h={p.clock.format24h} location={p.clock.location} />}
               {p.discordInt && (
                 <DiscordPresenceCard discordUserId={p.discordInt.discordUserId} discordUsername={p.discordInt.discordUsername} discordGlobalName={p.discordInt.discordGlobalName} discordAvatar={p.discordInt.discordAvatar} />
               )}

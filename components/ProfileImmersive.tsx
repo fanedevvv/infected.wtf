@@ -15,6 +15,7 @@ import { PLATFORM_ICON } from "./platform-icons";
 import { BADGE_ICON } from "@/lib/badge-icons";
 import { openSteamInApp } from "@/lib/app-links";
 import { profileFontFamily, googleFontsHref } from "@/lib/profile-fonts";
+import ClockWidget from "./ClockWidget";
 import type { ProfileViewProps } from "./ProfileView";
 
 type Tab = "home" | "widgets" | "projects";
@@ -92,7 +93,7 @@ export default function ProfileImmersive({
 }) {
   const spotify = p.gameIntegrations.find((it) => it.type === "spotify");
   const games = p.gameIntegrations.filter((it) => it.type !== "spotify");
-  const hasWidgets = !!(p.discordInt || p.discordServerInt || games.length > 0 || p.weather || spotify);
+  const hasWidgets = !!(p.discordInt || p.discordServerInt || games.length > 0 || p.weather || p.clock || spotify);
   const tabs: Tab[] = ["home", ...(hasWidgets ? (["widgets"] as Tab[]) : []), ...(p.projects.length ? (["projects"] as Tab[]) : [])];
   const spotifyLive = useSpotifyLive(spotify?.type === "spotify" ? spotify.data.nowPlaying : null, p.username, spotify?.type === "spotify");
   const [tab, setTab] = useState<Tab>("home");
@@ -331,6 +332,7 @@ function Widgets({
   return (
     <div className="im-widgets">
       {p.weather && <WeatherWidget tempC={p.weather.tempC} code={p.weather.code} description={p.weather.description} location={p.weather.location} />}
+      {p.clock && <ClockWidget timezone={p.clock.timezone} format24h={p.clock.format24h} location={p.clock.location} />}
       {p.discordInt && (
         <DiscordPresenceCard
           discordUserId={p.discordInt.discordUserId}

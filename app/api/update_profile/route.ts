@@ -76,6 +76,14 @@ export async function POST(req: NextRequest) {
     return ok("Track removed!");
   }
 
+  if (action === "set_widget_toggles") {
+    const showWeather = form.get("show_weather") === "1";
+    const showClock = form.get("show_clock") === "1";
+    const clock24h = form.get("clock_24h") === "1";
+    await prisma.profile.updateMany({ where: { id: activeProfileId }, data: { showWeather, showClock, clock24h } });
+    return ok("Saved!");
+  }
+
   if (action === "set_playlist_style") {
     let playlistStyle = String(form.get("playlist_style") || "glow").trim();
     if (!["glow", "compact", "vinyl"].includes(playlistStyle)) playlistStyle = "glow";

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import ProfileInfoForm, { type ProfileInfoFormProps } from "../info/ProfileInfoForm";
 import { EDITOR_TILES, type EditorTile } from "./tiles";
-import { AliasesPanel, BestFriendPanel, SharingPanel, SkillsPanel, SocialEmbedPanel } from "./ExtraPanels";
+import { AliasesPanel, BestFriendPanel, SharingPanel, SkillsPanel, SocialEmbedPanel, WeatherClockPanel } from "./ExtraPanels";
 import { useT } from "@/lib/i18n/client";
 
 type SaveState = { dirty: boolean; saving: boolean; save: () => void; reset: () => void };
@@ -132,12 +132,18 @@ export default function ProfileEditor({
   panel,
   formProps,
   views,
+  showWeather,
+  showClock,
+  clock24h,
 }: {
   tile: EditorTile;
   slug: string;
   panel: React.ReactNode;
   formProps: ProfileInfoFormProps;
   views: number;
+  showWeather: boolean;
+  showClock: boolean;
+  clock24h: boolean;
 }) {
   const t = useT();
   const router = useRouter();
@@ -236,6 +242,9 @@ export default function ProfileEditor({
           )}
 
           {pending && activeTile !== tile && <p className="pe-loading">{t("Loading…")}</p>}
+          {activeTile === "widgets" && (
+            <WeatherClockPanel location={formProps.location} showWeather={showWeather} showClock={showClock} clock24h={clock24h} />
+          )}
           {panelForTile && <div className="pe-server-panel">{panelForTile}</div>}
         </div>
 

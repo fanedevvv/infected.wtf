@@ -397,3 +397,74 @@ export function SocialEmbedPanel({
     </div>
   );
 }
+
+/* ───────────── Weather & Clock widget toggles ───────────── */
+
+export function WeatherClockPanel({
+  location, showWeather: initShowWeather, showClock: initShowClock, clock24h: initClock24h,
+}: {
+  location: string;
+  showWeather: boolean;
+  showClock: boolean;
+  clock24h: boolean;
+}) {
+  const t = useT();
+  const [showWeather, setShowWeather] = useState(initShowWeather);
+  const [showClock, setShowClock] = useState(initShowClock);
+  const [clock24h, setClock24h] = useState(initClock24h);
+  const [saving, setSaving] = useState(false);
+
+  async function save(next: { showWeather: boolean; showClock: boolean; clock24h: boolean }) {
+    setSaving(true);
+    try {
+      const fd = new FormData();
+      fd.set("action", "set_widget_toggles");
+      fd.set("show_weather", next.showWeather ? "1" : "0");
+      fd.set("show_clock", next.showClock ? "1" : "0");
+      fd.set("clock_24h", next.clock24h ? "1" : "0");
+      const res = await fetch("/api/update_profile", { method: "POST", body: fd });
+      const d = await json<{ success: boolean }>(res);
+      if (!d.success) showToast(t("Error"), "error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function toggle(key: "showWeather" | "showClock" | "clock24h") {
+    const next = { showWeather, showClock, clock24h, [key]: !{ showWeather, showClock, clock24h }[key] };
+    if (key === "showWeather") setShowWeather(next.showWeather);
+    if (key === "showClock") setShowClock(next.showClock);
+    if (key === "clock24h") setClock24h(next.clock24h);
+    save(next);
+  }
+
+  if (!location) {
+    return (
+      <div className="dash-card">
+        <h3 style={{ fontSize: "1.05rem", fontWeight: 700, marginBottom: ".3rem" }}>{t("Weather & Clock")}</h3>
+        <p className="pe-hint">{t("Set a location in your Profile tab first — these widgets follow it.")}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="dash-card">
+      <h3 style={{ fontSize: "1.05rem", fontWeight: 700, marginBottom: ".2rem" }}>{t("Weather & Clock")}</h3>
+      <p className="pe-hint" style={{ marginBottom: "1rem" }}>{t("The time and weather follow your location:")} {location}</p>
+
+      <label className="se-toggle-row">
+        <span>{t("Show weather")}</span>
+        <span className={`se-toggle ${showWeather ? "on" : ""}`} onClick={() => toggle("showWeather")}><span className="se-toggle-dot" /></span>
+      </label>
+      <label className="se-toggle-row">
+        <span>{t("Show clock")}</span>
+        <span className={`se-toggle ${showClock ? "on" : ""}`} onClick={() => toggle("showClock")}><span className="se-toggle-dot" /></span>
+      </label>
+      <label className="se-toggle-row">
+        <span>{t("24-hour format")}</span>
+        <span className={`se-toggle ${clock24h ? "on" : ""}`} onClick={() => toggle("clock24h")}><span className="se-toggle-dot" /></span>
+      </label>
+      {saving && <p className="pe-hint">{t("Saving…")}</p>}
+    </div>
+  );
+}

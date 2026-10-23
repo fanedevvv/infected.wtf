@@ -60,6 +60,7 @@ export interface ProfileViewProps {
   dislikeCount: number;
   dislikedByViewer: boolean;
   weather: { tempC: number; code: number; description: string; location: string } | null;
+  clock: { timezone: string; format24h: boolean; location: string } | null;
   viewerLoggedIn: boolean;
   /** Skip the "click to enter" splash (used by the dashboard's live preview). */
   autoEnter?: boolean;
