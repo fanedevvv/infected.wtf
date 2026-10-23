@@ -36,6 +36,7 @@ export interface ProfileViewProps {
   bioEffect: string;
   musicTracks: string[];
   playlistStyle: string;
+  profileFont: string;
   views: number;
   createdAt: string;
   isOwner: boolean;

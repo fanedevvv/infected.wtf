@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { showToast } from "@/lib/toast";
 import { useT } from "@/lib/i18n/client";
+import { PROFILE_FONTS, googleFontsHref } from "@/lib/profile-fonts";
 
-const FONTS = ["Syne", "Outfit", "Space Mono", "Rajdhani", "Orbitron", "Bebas Neue", "Exo 2", "Josefin Sans"];
 const LAYOUT_TEMPLATES = ["classic", "editorial", "terminal", "banner", "compact", "aurora", "cinematic", "dossier"] as const;
 const PREMIUM_LAYOUT_TEMPLATES = ["aurora", "cinematic", "dossier"] as const;
 
@@ -334,6 +334,16 @@ export default function ProfileInfoForm(props: Props) {
 
   async function selectPlaylistStyle(style: string) {
     setPlaylistStyle(style);
+  }
+
+  function selectFont(id: string) {
+    const def = PROFILE_FONTS.find((f) => f.id === id);
+    if (!def) return;
+    if (def.premium && !props.isPremium) {
+      showToast(t("This font is an Infected Plus feature."), "error");
+      return;
+    }
+    setFont(id);
   }
 
   async function selectLayoutTemplate(tpl: string) {
@@ -696,15 +706,21 @@ export default function ProfileInfoForm(props: Props) {
 
       {show("fonts") && (
         <div className="dash-card">
+          {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+          <link rel="stylesheet" href={googleFontsHref(PROFILE_FONTS.map((f) => f.id)) || undefined} />
           <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: ".25rem" }}>{t("Typography")}</h3>
           <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>{t("Font selection")}</p>
-          <div className="font-radio-list">
-            {FONTS.map((f) => (
-              <div key={f} className={`font-radio-row ${f === font ? "active" : ""}`} onClick={() => setFont(f)}>
-                <span style={{ fontFamily: `'${f}', sans-serif` }}>{f}</span>
-                <span className={`font-radio-dot ${f === font ? "checked" : ""}`} />
-              </div>
-            ))}
+          <div className="font-grid">
+            {PROFILE_FONTS.map((f) => {
+              const locked = f.premium && !props.isPremium;
+              return (
+                <div key={f.id} className={`font-card ${f.id === font ? "active" : ""} ${locked ? "locked" : ""}`} onClick={() => selectFont(f.id)}>
+                  {locked && <span className="font-card-lock">🔒</span>}
+                  <span className="font-card-sample" style={{ fontFamily: f.family ? `'${f.id}', sans-serif` : "inherit" }}>Aa</span>
+                  <span className="font-card-label">{t(f.label)}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

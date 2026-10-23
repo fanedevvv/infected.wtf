@@ -7,6 +7,7 @@ import { requireUser } from "@/lib/auth-helpers";
 import { destroySession } from "@/lib/session";
 import { getActiveProfileId } from "@/lib/active-profile";
 import { parseStringArray, serializeStringArray, parseJsonObject } from "@/lib/json-array";
+import { isKnownFont, isPremiumFont, DEFAULT_PROFILE_FONT } from "@/lib/profile-fonts";
 
 function ok(message = "OK") {
   return NextResponse.json({ success: true, message });
@@ -25,7 +26,6 @@ async function deleteFile(relPath: string | null | undefined) {
   }
 }
 
-const ALLOWED_FONTS = ["Syne", "Outfit", "Space Mono", "Rajdhani", "Orbitron", "Bebas Neue", "Exo 2", "Josefin Sans"];
 const ALLOWED_TEXT_EFFECTS = ["none", "glow", "rainbow", "shake", "glitch", "scramble", "shine", "typewriter", "flip"];
 const ALLOWED_LAYOUTS = ["classic", "editorial", "terminal", "banner", "compact", "aurora", "cinematic", "dossier"];
 const PREMIUM_LAYOUTS = ["aurora", "cinematic", "dossier"];
@@ -114,13 +114,14 @@ export async function POST(req: NextRequest) {
       const parsed = new Date(birthDateRaw + "T00:00:00Z");
       if (!Number.isNaN(parsed.getTime()) && parsed <= new Date()) birthDate = parsed;
     }
-    let font = String(form.get("profile_font") || "Syne").trim();
-    if (!ALLOWED_FONTS.includes(font)) font = "Syne";
+    const isPremium = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date());
+    let font = String(form.get("profile_font") || DEFAULT_PROFILE_FONT).trim();
+    if (!isKnownFont(font)) font = DEFAULT_PROFILE_FONT;
+    if (isPremiumFont(font) && !isPremium) font = DEFAULT_PROFILE_FONT;
     let playlistStyle = String(form.get("playlist_style") || "glow").trim();
     if (!["glow", "compact", "vinyl"].includes(playlistStyle)) playlistStyle = "glow";
     let layoutTemplate = String(form.get("layout_template") || "classic").trim();
     if (!ALLOWED_LAYOUTS.includes(layoutTemplate)) layoutTemplate = "classic";
-    const isPremium = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date());
     if (PREMIUM_LAYOUTS.includes(layoutTemplate) && !isPremium) layoutTemplate = "classic";
     let avatar = String(form.get("avatar") || "").trim();
     if (avatar && !/^uploads\/avatars\/[a-zA-Z0-9_\-.]+$/.test(avatar)) avatar = "";

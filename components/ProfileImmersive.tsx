@@ -14,6 +14,7 @@ import { DecorationFrame } from "./DecorationSVGs";
 import { PLATFORM_ICON } from "./platform-icons";
 import { BADGE_ICON } from "@/lib/badge-icons";
 import { openSteamInApp } from "@/lib/app-links";
+import { profileFontFamily, googleFontsHref } from "@/lib/profile-fonts";
 import type { ProfileViewProps } from "./ProfileView";
 
 type Tab = "home" | "widgets" | "projects";
@@ -114,7 +115,11 @@ export default function ProfileImmersive({
   ].filter(Boolean) as { key: string; icon: React.ReactNode; text: string }[];
 
   return (
-    <div className={`im-root ${entered ? "im-entered" : ""}`}>
+    <div className={`im-root ${entered ? "im-entered" : ""}`} style={profileFontFamily(p.profileFont) ? { fontFamily: profileFontFamily(p.profileFont)! } : undefined}>
+      {googleFontsHref([p.profileFont]) && (
+        // eslint-disable-next-line @next/next/no-page-custom-font
+        <link rel="stylesheet" href={googleFontsHref([p.profileFont])!} />
+      )}
       <div className="im-views" title="Profile views">
         <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" /></svg>
         {p.views.toLocaleString()}

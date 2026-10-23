@@ -206,6 +206,7 @@ export default async function ProfilePage({
       bioEffect={look.bioEffect}
       musicTracks={embed === "1" && isOwner ? [] : parseStringArray(profile.musicTracks).filter(Boolean)}
       playlistStyle={look.playlistStyle}
+      profileFont={look.profileFont || "Syne"}
       cursorPath={profile.cursorPath}
       views={profile.views ?? 0}
       createdAt={(user.createdAt ?? new Date()).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
