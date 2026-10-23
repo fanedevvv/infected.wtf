@@ -90,6 +90,11 @@ export default async function ProfileInfoPage({
                   backgroundType={profile.backgroundType || "particles"}
                   backgroundValue={profile.backgroundValue || "#050507"}
                   musicTracks={[parseStringArray(profile.musicTracks)[0] ?? null]}
+                  musicTrackTitle={profile.musicTrackTitle || ""}
+                  musicTrackArtist={profile.musicTrackArtist || ""}
+                  musicArtworkUrl={profile.musicArtworkUrl || ""}
+                  musicLyricsSynced={profile.musicLyricsSynced || ""}
+                  musicShowLyrics={profile.musicShowLyrics}
                   playlistStyle={profile.playlistStyle}
                   layoutTemplate={profile.layoutTemplate}
                   isPremium={isPremium}

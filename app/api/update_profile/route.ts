@@ -72,8 +72,32 @@ export async function POST(req: NextRequest) {
     const row = await prisma.profile.findFirst({ where: { id: activeProfileId }, select: { musicTracks: true } });
     const existing = parseStringArray(row?.musicTracks);
     await deleteFile(existing[0]);
-    await prisma.profile.updateMany({ where: { id: activeProfileId }, data: { musicTracks: serializeStringArray([]) } });
+    await prisma.profile.updateMany({
+      where: { id: activeProfileId },
+      data: {
+        musicTracks: serializeStringArray([]),
+        musicTrackTitle: null,
+        musicTrackArtist: null,
+        musicArtworkUrl: null,
+        musicLyricsSynced: null,
+        musicShowLyrics: false,
+      },
+    });
     return ok("Track removed!");
+  }
+
+  if (action === "set_music_metadata") {
+    const trackTitle = String(form.get("track_title") || "").trim().slice(0, 150) || null;
+    const trackArtist = String(form.get("track_artist") || "").trim().slice(0, 150) || null;
+    const artworkUrl = String(form.get("artwork_url") || "").trim().slice(0, 500) || null;
+    const lyricsSynced = String(form.get("lyrics_synced") || "").trim() || null;
+    const showLyrics = form.get("show_lyrics") === "1";
+    if (artworkUrl && !/^https:\/\//i.test(artworkUrl)) return err("Invalid artwork URL.");
+    await prisma.profile.updateMany({
+      where: { id: activeProfileId },
+      data: { musicTrackTitle: trackTitle, musicTrackArtist: trackArtist, musicArtworkUrl: artworkUrl, musicLyricsSynced: lyricsSynced, musicShowLyrics: showLyrics },
+    });
+    return ok("Saved!");
   }
 
   if (action === "set_widget_toggles") {

@@ -1,22 +1,68 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+type LyricLine = { time: number; text: string };
+
+function parseLrc(lrc: string): LyricLine[] {
+  const lines: LyricLine[] = [];
+  for (const raw of lrc.split("\n")) {
+    const match = raw.match(/^\[(\d{2}):(\d{2})(?:[.:](\d{1,3}))?\](.*)$/);
+    if (!match) continue;
+    const minutes = parseInt(match[1], 10);
+    const seconds = parseInt(match[2], 10);
+    const frac = match[3] ? parseFloat(`0.${match[3]}`) : 0;
+    const text = match[4].trim();
+    if (text) lines.push({ time: minutes * 60 + seconds + frac, text });
+  }
+  return lines.sort((a, b) => a.time - b.time);
+}
 
 export default function MusicPlayer({
   tracks,
   style,
   active,
+  artworkUrl,
+  trackTitle,
+  trackArtist,
+  lyricsSynced,
+  showLyrics,
 }: {
   tracks: string[];
   style: string;
   active: boolean;
+  artworkUrl?: string | null;
+  trackTitle?: string | null;
+  trackArtist?: string | null;
+  lyricsSynced?: string | null;
+  showLyrics?: boolean;
 }) {
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(0.35);
   const [muted, setMuted] = useState(false);
+  const [lyricIdx, setLyricIdx] = useState(-1);
   const audioRef = useRef<HTMLAudioElement>(null);
   const startedRef = useRef(false);
+
+  const lyricLines = useMemo(() => (lyricsSynced ? parseLrc(lyricsSynced) : []), [lyricsSynced]);
+  const lyricsActive = !!(showLyrics && lyricLines.length > 0 && index === 0);
+
+  useEffect(() => {
+    if (!lyricsActive || !audioRef.current) return;
+    const el = audioRef.current;
+    const onTimeUpdate = () => {
+      const t = el.currentTime;
+      let i = -1;
+      for (let n = 0; n < lyricLines.length; n++) {
+        if (lyricLines[n].time <= t) i = n;
+        else break;
+      }
+      setLyricIdx(i);
+    };
+    el.addEventListener("timeupdate", onTimeUpdate);
+    return () => el.removeEventListener("timeupdate", onTimeUpdate);
+  }, [lyricsActive, lyricLines]);
 
   useEffect(() => {
     if (active && !startedRef.current && audioRef.current) {
@@ -73,7 +119,10 @@ export default function MusicPlayer({
   }
 
   if (tracks.length === 0) return null;
-  const trackName = (tracks[index].split("/").pop() || "").replace(/\.[^.]+$/, "");
+  const hasMeta = index === 0 && !!trackTitle;
+  const trackName = hasMeta ? `${trackTitle}${trackArtist ? ` · ${trackArtist}` : ""}` : (tracks[index].split("/").pop() || "").replace(/\.[^.]+$/, "");
+  const showArtwork = index === 0 && !!artworkUrl;
+  const currentLyric = lyricsActive ? lyricLines[lyricIdx]?.text : null;
 
   const playIcon = (
     <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M8 5v14l11-7z" /></svg>
@@ -100,6 +149,10 @@ export default function MusicPlayer({
     return (
       <div className="music-player music-player--compact">
         {audioEl}
+        {showArtwork && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={artworkUrl!} alt="" className="mp-artwork mp-artwork--compact" />
+        )}
         {tracks.length > 1 && <button className="mp-nav" onClick={prev} title="Previous">{prevIcon}</button>}
         <button className="mp-play" onClick={togglePlay} title={playing ? "Pause" : "Play"}>{playing ? pauseIcon : playIcon}</button>
         {tracks.length > 1 && <button className="mp-nav" onClick={next} title="Next">{nextIcon}</button>}
@@ -108,6 +161,7 @@ export default function MusicPlayer({
             {tracks.map((_, i) => <span key={i} className={`mp-dot ${i === index ? "active" : ""}`} />)}
           </div>
         )}
+        {currentLyric && <span className="mp-lyric mp-lyric--compact">{currentLyric}</span>}
       </div>
     );
   }
@@ -117,10 +171,15 @@ export default function MusicPlayer({
       <div className="music-player music-player--vinyl">
         {audioEl}
         <button className={`mp-vinyl-disc ${playing ? "spinning" : ""}`} onClick={togglePlay} title={playing ? "Pause" : "Play"}>
+          {showArtwork ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={artworkUrl!} alt="" className="mp-vinyl-art" />
+          ) : null}
           <span className="mp-vinyl-hole" />
         </button>
         <div className="mp-vinyl-info">
           <span className="mp-vinyl-track">{trackName}</span>
+          {currentLyric && <span className="mp-lyric mp-lyric--vinyl">{currentLyric}</span>}
           {tracks.length > 1 && (
             <div className="mp-vinyl-controls">
               <button className="mp-nav" onClick={prev} title="Previous">{prevIcon}</button>
@@ -137,6 +196,10 @@ export default function MusicPlayer({
     <div className="music-player music-player--glow">
       {audioEl}
       <div className="mp-glow-row">
+        {showArtwork && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={artworkUrl!} alt="" className="mp-artwork mp-artwork--glow" />
+        )}
         {tracks.length > 1 && <button className="mp-nav" onClick={prev} title="Previous">{prevIcon}</button>}
         <button className="mp-play" onClick={togglePlay} title={playing ? "Pause" : "Play"}>{playing ? pauseIcon : playIcon}</button>
         {tracks.length > 1 && <button className="mp-nav" onClick={next} title="Next">{nextIcon}</button>}
@@ -149,7 +212,8 @@ export default function MusicPlayer({
           onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
         />
       </div>
-      {tracks.length > 1 && <span className="mp-glow-track">{trackName}</span>}
+      {(tracks.length > 1 || hasMeta) && <span className="mp-glow-track">{trackName}</span>}
+      {currentLyric && <span className="mp-lyric mp-lyric--glow">{currentLyric}</span>}
     </div>
   );
 }

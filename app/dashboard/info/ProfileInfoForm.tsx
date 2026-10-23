@@ -16,6 +16,11 @@ type Props = {
   backgroundType: string;
   backgroundValue: string;
   musicTracks: (string | null)[];
+  musicTrackTitle: string;
+  musicTrackArtist: string;
+  musicArtworkUrl: string;
+  musicLyricsSynced: string;
+  musicShowLyrics: boolean;
   playlistStyle: string;
   layoutTemplate: string;
   isPremium: boolean;
@@ -50,6 +55,14 @@ export default function ProfileInfoForm(props: Props) {
   const [bgType, setBgType] = useState(props.backgroundType);
   const [bgValue, setBgValue] = useState(props.backgroundValue);
   const [musicTracks, setMusicTracks] = useState<(string | null)[]>(props.musicTracks);
+  const [trackTitle, setTrackTitle] = useState(props.musicTrackTitle);
+  const [trackArtist, setTrackArtist] = useState(props.musicTrackArtist);
+  const [artworkUrl, setArtworkUrl] = useState(props.musicArtworkUrl);
+  const [lyricsSynced, setLyricsSynced] = useState(props.musicLyricsSynced);
+  const [showLyrics, setShowLyrics] = useState(props.musicShowLyrics);
+  const [findingArtwork, setFindingArtwork] = useState(false);
+  const [findingLyrics, setFindingLyrics] = useState(false);
+  const [musicMetaSaving, setMusicMetaSaving] = useState(false);
   const [playlistStyle, setPlaylistStyle] = useState(props.playlistStyle);
   const [layoutTemplate, setLayoutTemplate] = useState(props.layoutTemplate);
   const [cursorPath, setCursorPath] = useState(props.cursorPath);
@@ -325,6 +338,11 @@ export default function ProfileInfoForm(props: Props) {
       const j = await r.json();
       if (j.success) {
         setMusicTracks((t) => { const n = [...t]; n[slot - 1] = null; return n; });
+        setTrackTitle("");
+        setTrackArtist("");
+        setArtworkUrl("");
+        setLyricsSynced("");
+        setShowLyrics(false);
         showToast(t("Track removed!"), "success");
       } else showToast(j.error || "Error", "error");
     } catch {
@@ -334,6 +352,75 @@ export default function ProfileInfoForm(props: Props) {
 
   async function selectPlaylistStyle(style: string) {
     setPlaylistStyle(style);
+  }
+
+  async function saveMusicMetadata(overrides?: { artworkUrl?: string; lyricsSynced?: string; showLyrics?: boolean }) {
+    setMusicMetaSaving(true);
+    const fd = new FormData();
+    fd.append("action", "set_music_metadata");
+    fd.append("track_title", trackTitle);
+    fd.append("track_artist", trackArtist);
+    fd.append("artwork_url", overrides?.artworkUrl ?? artworkUrl);
+    fd.append("lyrics_synced", overrides?.lyricsSynced ?? lyricsSynced);
+    fd.append("show_lyrics", (overrides?.showLyrics ?? showLyrics) ? "1" : "0");
+    try {
+      const res = await fetch("/api/update_profile", { method: "POST", body: fd });
+      const j = await res.json();
+      if (j.success) showToast(t("Saved!"), "success");
+      else showToast(j.error || "Error", "error");
+    } catch {
+      showToast(t("Network error"), "error");
+    } finally {
+      setMusicMetaSaving(false);
+    }
+  }
+
+  async function findArtwork() {
+    if (!trackTitle.trim()) { showToast(t("Enter a track title first."), "error"); return; }
+    setFindingArtwork(true);
+    try {
+      const res = await fetch("/api/music/lookup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: trackTitle, artist: trackArtist }) });
+      const j = await res.json();
+      if (j.success && j.artworkUrl) {
+        setArtworkUrl(j.artworkUrl);
+        await saveMusicMetadata({ artworkUrl: j.artworkUrl });
+        showToast(t("Artwork found!"), "success");
+      } else {
+        showToast(t("Couldn't find artwork for that track."), "error");
+      }
+    } catch {
+      showToast(t("Network error"), "error");
+    } finally {
+      setFindingArtwork(false);
+    }
+  }
+
+  async function findLyrics() {
+    if (!trackTitle.trim()) { showToast(t("Enter a track title first."), "error"); return; }
+    setFindingLyrics(true);
+    try {
+      const res = await fetch("/api/music/lookup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: trackTitle, artist: trackArtist }) });
+      const j = await res.json();
+      if (j.success && j.lyricsSynced) {
+        setLyricsSynced(j.lyricsSynced);
+        await saveMusicMetadata({ lyricsSynced: j.lyricsSynced });
+        showToast(t("Synced lyrics found!"), "success");
+      } else if (j.success && j.found?.lyrics) {
+        showToast(t("Only plain lyrics exist for this track (no synced timing)."), "error");
+      } else {
+        showToast(t("Couldn't find lyrics for that track."), "error");
+      }
+    } catch {
+      showToast(t("Network error"), "error");
+    } finally {
+      setFindingLyrics(false);
+    }
+  }
+
+  async function toggleShowLyrics() {
+    const next = !showLyrics;
+    setShowLyrics(next);
+    await saveMusicMetadata({ showLyrics: next });
   }
 
   function selectFont(id: string) {
@@ -610,6 +697,40 @@ export default function ProfileInfoForm(props: Props) {
               );
             })}
           </div>
+
+          {musicTracks[0] && (
+            <div className="dash-card" style={{ marginTop: "1.25rem", background: "rgba(255,255,255,.02)" }}>
+              <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: ".25rem" }}>{t("Track Info & Lyrics")}</h3>
+              <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1rem" }}>{t("Find real artwork and synced lyrics for your profile track")}</p>
+
+              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginBottom: "1rem" }}>
+                {artworkUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={artworkUrl} alt="" style={{ width: 72, height: 72, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />
+                )}
+                <div style={{ display: "flex", flexDirection: "column", gap: ".5rem", flex: 1, minWidth: 200 }}>
+                  <input className="form-control" placeholder={t("Track title")} value={trackTitle} onChange={(e) => setTrackTitle(e.target.value)} onBlur={() => saveMusicMetadata()} />
+                  <input className="form-control" placeholder={t("Artist")} value={trackArtist} onChange={(e) => setTrackArtist(e.target.value)} onBlur={() => saveMusicMetadata()} />
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: ".6rem", flexWrap: "wrap", marginBottom: "1rem" }}>
+                <button type="button" className="int-btn int-btn-outline" onClick={findArtwork} disabled={findingArtwork || musicMetaSaving}>
+                  {findingArtwork ? t("Searching…") : t("Find track artwork")}
+                </button>
+                <button type="button" className="int-btn int-btn-outline" onClick={findLyrics} disabled={findingLyrics || musicMetaSaving}>
+                  {findingLyrics ? t("Searching…") : t("Find lyrics")}
+                </button>
+              </div>
+
+              {lyricsSynced && (
+                <label style={{ display: "flex", alignItems: "center", gap: ".5rem", fontSize: ".85rem", color: "var(--text-muted)", cursor: "pointer" }}>
+                  <input type="checkbox" checked={showLyrics} onChange={toggleShowLyrics} />
+                  {t("Show synced lyrics on profile")}
+                </label>
+              )}
+            </div>
+          )}
 
           <div className="form-group" style={{ marginTop: "1.25rem", maxWidth: 320 }}>
             <label>{t("Custom Cursor")}</label>

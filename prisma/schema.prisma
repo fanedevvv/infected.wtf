@@ -93,6 +93,11 @@ model Profile {
   overlayColor     String    @default("#060610") @map("overlay_color") @db.VarChar(7)
   musicTracks      String?   @map("music_tracks") @db.LongText
   playlistStyle    String    @default("glow") @map("playlist_style") @db.VarChar(20)
+  musicTrackTitle  String?   @map("music_track_title") @db.VarChar(150)
+  musicTrackArtist String?   @map("music_track_artist") @db.VarChar(150)
+  musicArtworkUrl  String?   @map("music_artwork_url") @db.VarChar(500)
+  musicLyricsSynced String?  @map("music_lyrics_synced") @db.LongText
+  musicShowLyrics  Boolean   @default(false) @map("music_show_lyrics")
   layoutTemplate   String    @default("modern") @map("layout_template") @db.VarChar(20)
   cursorPath       String?   @map("cursor_path") @db.VarChar(500)
   cursorTrail      Boolean?  @default(false) @map("cursor_trail")

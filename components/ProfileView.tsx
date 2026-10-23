@@ -37,6 +37,11 @@ export interface ProfileViewProps {
   bioEffect: string;
   musicTracks: string[];
   playlistStyle: string;
+  musicTrackTitle?: string | null;
+  musicTrackArtist?: string | null;
+  musicArtworkUrl?: string | null;
+  musicLyricsSynced?: string | null;
+  musicShowLyrics?: boolean;
   profileFont: string;
   views: number;
   createdAt: string;
@@ -174,7 +179,16 @@ export default function ProfileView(p: ProfileViewProps) {
           />
         )}
         {p.musicTracks.length > 0 && (
-          <MusicPlayer tracks={p.musicTracks} style={p.playlistStyle} active={entered} />
+          <MusicPlayer
+            tracks={p.musicTracks}
+            style={p.playlistStyle}
+            active={entered}
+            artworkUrl={p.musicArtworkUrl}
+            trackTitle={p.musicTrackTitle}
+            trackArtist={p.musicTrackArtist}
+            lyricsSynced={p.musicLyricsSynced}
+            showLyrics={p.musicShowLyrics}
+          />
         )}
 
         {/* "modern" is the full-bleed sidebar+tabs layout (lethal.wtf-style); every

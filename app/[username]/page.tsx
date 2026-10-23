@@ -220,6 +220,11 @@ export default async function ProfilePage({
       bioEffect={look.bioEffect}
       musicTracks={embed === "1" && isOwner ? [] : parseStringArray(profile.musicTracks).filter(Boolean)}
       playlistStyle={look.playlistStyle}
+      musicTrackTitle={profile.musicTrackTitle}
+      musicTrackArtist={profile.musicTrackArtist}
+      musicArtworkUrl={profile.musicArtworkUrl}
+      musicLyricsSynced={profile.musicShowLyrics ? profile.musicLyricsSynced : null}
+      musicShowLyrics={profile.musicShowLyrics}
       profileFont={look.profileFont || "Syne"}
       cursorPath={profile.cursorPath}
       views={profile.views ?? 0}
