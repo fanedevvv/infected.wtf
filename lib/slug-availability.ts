@@ -2,7 +2,7 @@ import { prisma } from "./prisma";
 
 export const RESERVED_SLUGS = new Set([
   "login", "register", "logout", "dashboard", "leaderboard", "admin", "api", "support",
-  "terms", "privacy", "banned", "maintenance", "forgot-password", "reset-password", "auth",
+  "terms", "privacy", "rules", "banned", "maintenance", "forgot-password", "reset-password", "auth",
   "assets", "uploads", "favicon.ico", "partners", "site-stats", "stats", "status", "i", "docs", "discord", "integrations",
 ]);
 

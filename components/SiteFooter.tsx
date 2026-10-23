@@ -23,6 +23,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; external?:
   {
     title: "Legal",
     links: [
+      { label: "Rules", href: "/rules" },
       { label: "Terms", href: "/terms" },
       { label: "Privacy", href: "/privacy" },
     ],
