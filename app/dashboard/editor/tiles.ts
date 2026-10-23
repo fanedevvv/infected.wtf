@@ -1,6 +1,6 @@
 export type EditorTile =
   | "profile" | "look" | "background" | "effects" | "music" | "links"
-  | "widgets" | "badges" | "aliases" | "bestfriend" | "sharing" | "skills";
+  | "widgets" | "badges" | "aliases" | "bestfriend" | "sharing" | "skills" | "social";
 
 // `form` lists the ProfileInfoForm sections a tile shows above its own panel.
 export const EDITOR_TILES: { id: EditorTile; label: string; desc: string; form: string[]; icon: string }[] = [
@@ -15,5 +15,6 @@ export const EDITOR_TILES: { id: EditorTile; label: string; desc: string; form: 
   { id: "aliases", label: "Aliases", desc: "Extra names that lead to this page", form: [], icon: "M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" },
   { id: "bestfriend", label: "Best Friend", desc: "Feature one profile on your page", form: [], icon: "M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" },
   { id: "sharing", label: "Sharing", desc: "Share your page anywhere", form: [], icon: "M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" },
+  { id: "social", label: "Social preview", desc: "Design your own Discord/Twitter embed card", form: [], icon: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" },
   { id: "skills", label: "Skills", desc: "Show what you're good at", form: [], icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" },
 ];

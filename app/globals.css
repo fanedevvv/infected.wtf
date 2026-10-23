@@ -4057,3 +4057,26 @@ body:has(.unsaved-bar.visible) .toast-container { bottom: calc(1.5rem + 58px); }
 .sp-compact-progress { display:flex; align-items:center; gap:.6rem; margin-top:.35rem; font-size:.7rem; color:rgba(255,255,255,.45); font-variant-numeric:tabular-nums; }
 .sp-compact-progress .sp-progress-track { flex:1; margin:0; }
 .sp-compact-progress .sp-progress-fill { background:var(--accent); }
+
+/* ── Social preview panel (Discord/Twitter embed customization) ── */
+.se-head { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:1.1rem; }
+.se-toggle-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.2rem 0 1rem; font-size:.9rem; color:var(--text); cursor:pointer; }
+.se-toggle { position:relative; width:42px; height:24px; border-radius:999px; background:rgba(255,255,255,.12); flex-shrink:0; transition:background .15s; }
+.se-toggle.on { background:var(--accent); }
+.se-toggle-dot { position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:#fff; transition:left .15s; }
+.se-toggle.on .se-toggle-dot { left:21px; }
+.se-vars { display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.5rem; }
+.se-var-chip { font-size:.72rem; font-family:var(--font-mono); padding:.25rem .55rem; border-radius:6px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); color:rgba(255,255,255,.65); cursor:pointer; }
+.se-var-chip:hover { border-color:var(--accent); color:#fff; }
+.se-color-modes { display:flex; align-items:center; gap:.5rem; margin-top:.4rem; }
+.se-color-mode-btn { padding:.45rem 1rem; border-radius:999px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.03); color:rgba(255,255,255,.6); font:inherit; font-size:.82rem; font-weight:600; cursor:pointer; }
+.se-color-mode-btn.active { border-color:var(--accent); background:rgba(124,58,237,.12); color:#fff; }
+.se-color-input { width:36px; height:36px; padding:0; border:none; border-radius:8px; background:none; cursor:pointer; }
+.se-preview-label { font-size:.78rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em; margin:1.5rem 0 .6rem; }
+.se-discord-card { background:#2b2d31; border-left:4px solid var(--accent); border-radius:4px; padding:.9rem 1rem; max-width:430px; }
+.se-discord-site { font-size:.72rem; color:#949ba4; margin-bottom:.3rem; }
+.se-discord-title { font-size:.95rem; font-weight:700; margin-bottom:.4rem; line-height:1.3; }
+.se-discord-desc { font-size:.82rem; color:#dbdee1; line-height:1.4; margin-bottom:.7rem; }
+.se-discord-footer { display:flex; align-items:center; gap:.5rem; }
+.se-discord-footer img { width:20px; height:20px; border-radius:50%; object-fit:cover; }
+.se-discord-footer span { font-size:.75rem; color:#949ba4; font-weight:600; }

@@ -114,6 +114,13 @@ model Profile {
   isPrimary        Boolean   @default(true) @map("is_primary")
   decorationsOwned String?   @map("decorations_owned") @db.LongText
   activeDecoration String?   @map("active_decoration") @db.VarChar(30)
+  socialEmbedEnabled     Boolean @default(false) @map("social_embed_enabled")
+  socialEmbedTitle       String? @map("social_embed_title") @db.VarChar(100)
+  socialEmbedDescription String? @map("social_embed_description") @db.VarChar(300)
+  socialEmbedColorMode   String  @default("page") @map("social_embed_color_mode") @db.VarChar(10)
+  socialEmbedColorCustom String? @map("social_embed_color_custom") @db.VarChar(7)
+  socialEmbedImage       String? @map("social_embed_image") @db.VarChar(300)
+  socialEmbedSpoiler     Boolean @default(false) @map("social_embed_spoiler")
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "profiles_ibfk_1")
   viewsLogs        ViewsLog[]
   profileDomains   ProfileDomain[]

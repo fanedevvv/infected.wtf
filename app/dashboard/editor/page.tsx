@@ -51,6 +51,7 @@ export default async function EditorPage({ searchParams }: { searchParams: Promi
     <ProfileEditor
       tile={tile}
       slug={profile.slug}
+      views={profile.views ?? 0}
       panel={await serverPanel(tile, { error: params.error, connected: params.connected })}
       formProps={{
         tab: "",

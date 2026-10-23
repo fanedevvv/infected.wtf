@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { showToast } from "@/lib/toast";
 import { useT } from "@/lib/i18n/client";
+import { EMBED_VARIABLES, applyEmbedVariables } from "@/lib/social-embed";
 
 const SITE = "infected.wtf";
 
@@ -252,6 +253,145 @@ export function SharingPanel({ slug }: { slug: string }) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="pe-share-og" src={`/${slug}/opengraph-image`} alt="" />
           <a className="btn btn-secondary btn-sm" href={`/${slug}/opengraph-image`} download={`${slug}-card.png`}>{t("Download card")}</a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ───────────── Social preview (Discord/Twitter embed) ───────────── */
+
+type EmbedState = {
+  enabled: boolean;
+  title: string;
+  description: string;
+  colorMode: "page" | "custom" | "none";
+  colorCustom: string;
+};
+
+export function SocialEmbedPanel({
+  isPremium, username, displayName, bio, views, accentColor, avatar,
+}: {
+  isPremium: boolean;
+  username: string;
+  displayName: string;
+  bio: string;
+  views: number;
+  accentColor: string;
+  avatar: string | null;
+}) {
+  const t = useT();
+  const [state, setState] = useState<EmbedState>({ enabled: false, title: "", description: "", colorMode: "page", colorCustom: accentColor });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/social-embed").then(json<{ success: boolean; embed?: Record<string, unknown> }>).then((d) => {
+      if (d.success && d.embed) {
+        setState({
+          enabled: !!d.embed.socialEmbedEnabled,
+          title: (d.embed.socialEmbedTitle as string) || "",
+          description: (d.embed.socialEmbedDescription as string) || "",
+          colorMode: ((d.embed.socialEmbedColorMode as string) || "page") as EmbedState["colorMode"],
+          colorCustom: (d.embed.socialEmbedColorCustom as string) || accentColor,
+        });
+      }
+    }).finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function save() {
+    if (state.enabled && !isPremium) {
+      showToast(t("Custom social previews are an Infected Plus feature."), "error");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch("/api/social-embed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          enabled: state.enabled, title: state.title, description: state.description,
+          colorMode: state.colorMode, colorCustom: state.colorCustom,
+        }),
+      });
+      const d = await json<{ success: boolean; error?: string }>(res);
+      if (d.success) showToast(t("Saved! Discord/Twitter may cache the old preview for a bit."), "success");
+      else showToast(d.error || t("Error"), "error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const previewData = { username, displayName, bio, views };
+  const previewTitle = applyEmbedVariables(state.title || displayName, previewData);
+  const previewDesc = applyEmbedVariables(state.description || bio || `@${username} on infected.wtf`, previewData);
+  const previewColor = state.colorMode === "none" ? "rgba(255,255,255,.15)" : state.colorMode === "custom" ? state.colorCustom : accentColor;
+
+  if (loading) return <div className="dash-card"><p className="pe-hint">{t("Loading…")}</p></div>;
+
+  return (
+    <div className="dash-card">
+      <div className="se-head">
+        <div>
+          <h3 style={{ fontSize: "1.05rem", fontWeight: 700, margin: 0 }}>{t("Social preview")}</h3>
+          <p className="pe-hint" style={{ margin: ".2rem 0 0" }}>{t("Customize the card Discord and other apps show when your link is pasted.")}</p>
+        </div>
+        {!isPremium && <span className="template-card-badge pro">{t("PRO")}</span>}
+      </div>
+
+      <label className="se-toggle-row">
+        <span>{t("Use a custom social preview")}</span>
+        <span className={`se-toggle ${state.enabled ? "on" : ""}`} onClick={() => setState((s) => ({ ...s, enabled: !s.enabled }))}>
+          <span className="se-toggle-dot" />
+        </span>
+      </label>
+
+      {state.enabled && (
+        <>
+          <div className="form-group">
+            <label>{t("Title")}</label>
+            <input className="form-control" value={state.title} placeholder={displayName} maxLength={100} onChange={(e) => setState((s) => ({ ...s, title: e.target.value }))} />
+          </div>
+          <div className="form-group">
+            <label>{t("Description")}</label>
+            <textarea className="form-control" rows={2} value={state.description} placeholder={bio || `@${username} on infected.wtf`} maxLength={300} onChange={(e) => setState((s) => ({ ...s, description: e.target.value }))} />
+          </div>
+          <div className="se-vars">
+            {EMBED_VARIABLES.map((v) => (
+              <button key={v.token} type="button" className="se-var-chip" title={v.desc} onClick={() => setState((s) => ({ ...s, description: s.description + v.token }))}>
+                {v.token}
+              </button>
+            ))}
+          </div>
+
+          <label style={{ display: "block", marginTop: "1rem" }}>{t("Accent color")}</label>
+          <div className="se-color-modes">
+            {(["page", "custom", "none"] as const).map((m) => (
+              <button key={m} type="button" className={`se-color-mode-btn ${state.colorMode === m ? "active" : ""}`} onClick={() => setState((s) => ({ ...s, colorMode: m }))}>
+                {m === "page" ? t("Page colour") : m === "custom" ? t("Custom") : t("None")}
+              </button>
+            ))}
+            {state.colorMode === "custom" && (
+              <input type="color" value={state.colorCustom} onChange={(e) => setState((s) => ({ ...s, colorCustom: e.target.value }))} className="se-color-input" />
+            )}
+          </div>
+        </>
+      )}
+
+      <button type="button" className="btn btn-primary btn-sm" style={{ marginTop: "1.2rem" }} disabled={saving} onClick={save}>
+        {saving ? t("Saving…") : t("Save changes")}
+      </button>
+
+      <div className="se-preview-label">{t("Live preview")}</div>
+      <div className="se-discord-card" style={{ borderLeftColor: previewColor }}>
+        <div className="se-discord-site">infected.wtf</div>
+        <div className="se-discord-title" style={{ color: previewColor === "rgba(255,255,255,.15)" ? "#fff" : previewColor }}>{previewTitle}</div>
+        <div className="se-discord-desc">{previewDesc}</div>
+        <div className="se-discord-footer">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={avatar ? `/${avatar}` : "/assets/img/default-avatar.png"} alt="" />
+          <span>INFECTED.WTF</span>
         </div>
       </div>
     </div>

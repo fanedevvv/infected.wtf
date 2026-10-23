@@ -12,6 +12,7 @@ import { refreshSpotifyIntegrationForUser } from "@/lib/spotify";
 import { parseStringArray, parseJsonObject, parseNumberArray } from "@/lib/json-array";
 import { pickThemeSnapshot } from "@/lib/theme-snapshot";
 import { getWeatherForLocation } from "@/lib/weather";
+import { applyEmbedVariables } from "@/lib/social-embed";
 import Link from "next/link";
 
 const DRAFT_STRING_FIELDS = ["displayName", "bio", "location", "job", "layoutTemplate", "playlistStyle"] as const;
@@ -39,11 +40,21 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
   const profile = await getEmbedProfile(slug);
   if (!profile) return {};
 
-  const title = profile.displayName || profile.user.username;
-  const description = profile.bio || `@${profile.slug} on infected.wtf`;
+  const displayName = profile.displayName || profile.user.username;
+  const vars = { username: profile.slug, displayName, bio: profile.bio || "", views: profile.views ?? 0 };
+  const title = profile.socialEmbedEnabled && profile.socialEmbedTitle
+    ? applyEmbedVariables(profile.socialEmbedTitle, vars)
+    : displayName;
+  const description = profile.socialEmbedEnabled && profile.socialEmbedDescription
+    ? applyEmbedVariables(profile.socialEmbedDescription, vars)
+    : profile.bio || `@${profile.slug} on infected.wtf`;
+  const themeColor = profile.socialEmbedEnabled
+    ? profile.socialEmbedColorMode === "none" ? undefined : profile.socialEmbedColorMode === "custom" ? profile.socialEmbedColorCustom || undefined : profile.accentColor
+    : undefined;
   return {
     title: `${title} | INFECTED.WTF`,
     description,
+    ...(themeColor ? { other: { "theme-color": themeColor } } : {}),
     openGraph: { type: "profile", siteName: "INFECTED.WTF", title, description, url: `/${profile.slug}` },
     twitter: { card: "summary_large_image", title, description },
   };

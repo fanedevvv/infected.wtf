@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import ProfileInfoForm, { type ProfileInfoFormProps } from "../info/ProfileInfoForm";
 import { EDITOR_TILES, type EditorTile } from "./tiles";
-import { AliasesPanel, BestFriendPanel, SharingPanel, SkillsPanel } from "./ExtraPanels";
+import { AliasesPanel, BestFriendPanel, SharingPanel, SkillsPanel, SocialEmbedPanel } from "./ExtraPanels";
 import { useT } from "@/lib/i18n/client";
 
 type SaveState = { dirty: boolean; saving: boolean; save: () => void; reset: () => void };
@@ -131,11 +131,13 @@ export default function ProfileEditor({
   slug,
   panel,
   formProps,
+  views,
 }: {
   tile: EditorTile;
   slug: string;
   panel: React.ReactNode;
   formProps: ProfileInfoFormProps;
+  views: number;
 }) {
   const t = useT();
   const router = useRouter();
@@ -221,6 +223,17 @@ export default function ProfileEditor({
           {activeTile === "bestfriend" && <BestFriendPanel onChange={() => setReloadKey((k) => k + 1)} />}
           {activeTile === "sharing" && <SharingPanel slug={slug} />}
           {activeTile === "skills" && <SkillsPanel onSaved={() => setReloadKey((k) => k + 1)} />}
+          {activeTile === "social" && (
+            <SocialEmbedPanel
+              isPremium={formProps.isPremium}
+              username={slug}
+              displayName={formProps.displayName || slug}
+              bio={formProps.bio}
+              views={views}
+              accentColor={formProps.accentColor}
+              avatar={formProps.avatar}
+            />
+          )}
 
           {pending && activeTile !== tile && <p className="pe-loading">{t("Loading…")}</p>}
           {panelForTile && <div className="pe-server-panel">{panelForTile}</div>}
