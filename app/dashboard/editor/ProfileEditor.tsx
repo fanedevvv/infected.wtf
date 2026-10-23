@@ -8,7 +8,13 @@ import { AliasesPanel, BestFriendPanel, SharingPanel, SkillsPanel } from "./Extr
 import { useT } from "@/lib/i18n/client";
 
 type SaveState = { dirty: boolean; saving: boolean; save: () => void; reset: () => void };
-type Device = "desktop" | "phone";
+type Device = "desktop" | "tablet" | "phone";
+
+const FRAME_SIZE: Record<Device, { w: number; h: number }> = {
+  desktop: { w: 1280, h: 800 },
+  tablet: { w: 834, h: 1024 },
+  phone: { w: 390, h: 780 },
+};
 
 function encodeDraft(draft: Record<string, string>) {
   const bytes = new TextEncoder().encode(JSON.stringify(draft));
@@ -17,14 +23,23 @@ function encodeDraft(draft: Record<string, string>) {
   return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-/** Renders the live profile in an iframe scaled down to fit, so position:fixed layers behave like the real page. */
-function LivePreview({ slug, draft, device, reloadKey }: { slug: string; draft: Record<string, string>; device: Device; reloadKey: number }) {
+/**
+ * Side-by-side "Live" (what's actually saved and public) vs "Draft" (your
+ * unsaved edits) — both iframes stay mounted, a draggable handle clips the
+ * draft one so you can drag across the whole page to compare, instead of
+ * flipping between two separate views.
+ */
+function ComparisonPreview({ slug, draft, device, reloadKey }: { slug: string; draft: Record<string, string>; device: Device; reloadKey: number }) {
   const t = useT();
   const boxRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.4);
-  const [src, setSrc] = useState(`/${slug}?embed=1`);
-  const frameWidth = device === "desktop" ? 1280 : 390;
-  const frameHeight = device === "desktop" ? 800 : 780;
+  const [draftSrc, setDraftSrc] = useState(`/${slug}?embed=1`);
+  const [split, setSplit] = useState(50);
+  const [dragging, setDragging] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+  const { w: frameWidth, h: frameHeight } = FRAME_SIZE[device];
+  const liveSrc = `/${slug}?embed=1`;
 
   useEffect(() => {
     const box = boxRef.current;
@@ -38,20 +53,75 @@ function LivePreview({ slug, draft, device, reloadKey }: { slug: string; draft: 
 
   // Debounced so typing in the bio doesn't reload the frame on every keystroke.
   useEffect(() => {
-    const id = setTimeout(() => setSrc(`/${slug}?embed=1&draft=${encodeDraft(draft)}&r=${reloadKey}`), 600);
+    const id = setTimeout(() => setDraftSrc(`/${slug}?embed=1&draft=${encodeDraft(draft)}&r=${reloadKey}`), 600);
     return () => clearTimeout(id);
   }, [slug, draft, reloadKey]);
 
+  const updateSplitFromPointer = useCallback((clientX: number) => {
+    const el = frameRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const pct = ((clientX - rect.left) / rect.width) * 100;
+    setSplit(Math.max(0, Math.min(100, pct)));
+  }, []);
+
+  useEffect(() => {
+    if (!dragging) return;
+    const onMove = (e: MouseEvent | TouchEvent) => {
+      const x = "touches" in e ? e.touches[0]?.clientX : e.clientX;
+      if (x != null) updateSplitFromPointer(x);
+    };
+    const onUp = () => setDragging(false);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("touchmove", onMove);
+    window.addEventListener("mouseup", onUp);
+    window.addEventListener("touchend", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("touchend", onUp);
+    };
+  }, [dragging, updateSplitFromPointer]);
+
+  function toggleFullscreen() {
+    const box = boxRef.current;
+    if (!box) return;
+    if (!document.fullscreenElement) {
+      box.requestFullscreen?.().then(() => setFullscreen(true)).catch(() => {});
+    } else {
+      document.exitFullscreen?.().then(() => setFullscreen(false)).catch(() => {});
+    }
+  }
+
   return (
-    <div className={`pe-preview pe-preview--${device}`} ref={boxRef}>
-      <div className="pe-preview-frame" style={{ width: frameWidth * scale, height: frameHeight * scale }}>
-        <iframe
-          key={device}
-          src={src}
-          title={t("Live preview")}
-          style={{ width: frameWidth, height: frameHeight, transform: `scale(${scale})`, transformOrigin: "0 0" }}
-        />
+    <div className={`pe-preview pe-preview--${device} ${fullscreen ? "pe-preview--fullscreen" : ""}`} ref={boxRef}>
+      <div className="pe-compare-bar">
+        <span className="pe-compare-pill pe-compare-pill--live">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20" /></svg>
+          {t("Live")}
+        </span>
+        <button type="button" className="pe-fullscreen-btn" onClick={toggleFullscreen} title={t("Fullscreen")}>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m11-5v3a2 2 0 0 1-2 2h-3" /></svg>
+        </button>
+        <span className="pe-compare-pill pe-compare-pill--draft">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" /></svg>
+          {t("Draft")}
+        </span>
       </div>
+
+      <div className="pe-preview-frame" ref={frameRef} style={{ width: frameWidth * scale, height: frameHeight * scale }}>
+        <iframe key={`live-${device}`} src={liveSrc} title={t("Live")} style={{ width: frameWidth, height: frameHeight, transform: `scale(${scale})`, transformOrigin: "0 0" }} />
+        <div className="pe-compare-draft-layer" style={{ clipPath: `inset(0 0 0 ${split}%)` }}>
+          <iframe key={`draft-${device}`} src={draftSrc} title={t("Draft")} style={{ width: frameWidth, height: frameHeight, transform: `scale(${scale})`, transformOrigin: "0 0" }} />
+        </div>
+        <div className="pe-compare-handle" style={{ left: `${split}%` }} onMouseDown={() => setDragging(true)} onTouchStart={() => setDragging(true)}>
+          <span className="pe-compare-handle-grip">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="8 7 3 12 8 17" /><polyline points="16 7 21 12 16 17" /></svg>
+          </span>
+        </div>
+      </div>
+      <p className="pe-compare-hint">{t("Drag the handle to compare what you've saved with what visitors see now.")}</p>
     </div>
   );
 }
@@ -105,9 +175,15 @@ export default function ProfileEditor({
 
       <div className="pe-toolbar">
         <div className="pe-device">
-          {(["desktop", "phone"] as Device[]).map((d) => (
-            <button key={d} type="button" className={device === d ? "active" : ""} onClick={() => setDevice(d)}>
-              {d === "desktop" ? t("Desktop") : t("Phone")}
+          {(["desktop", "tablet", "phone"] as Device[]).map((d) => (
+            <button key={d} type="button" className={device === d ? "active" : ""} onClick={() => setDevice(d)} title={d === "desktop" ? t("Desktop") : d === "tablet" ? t("Tablet") : t("Phone")}>
+              {d === "desktop" ? (
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="4" width="20" height="13" rx="2" /><path d="M8 21h8M12 17v4" /></svg>
+              ) : d === "tablet" ? (
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2"><rect x="5" y="2" width="14" height="20" rx="2" /><path d="M12 18h.01" /></svg>
+              ) : (
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2"><rect x="7" y="2" width="10" height="20" rx="2" /><path d="M12 18h.01" /></svg>
+              )}
             </button>
           ))}
         </div>
@@ -153,7 +229,7 @@ export default function ProfileEditor({
         <aside className="pe-side">
           <div className="pe-side-sticky">
             <div className="pe-side-label">{t("Live preview")}</div>
-            <LivePreview slug={slug} draft={draft} device={device} reloadKey={reloadKey} />
+            <ComparisonPreview slug={slug} draft={draft} device={device} reloadKey={reloadKey} />
           </div>
         </aside>
       </div>
