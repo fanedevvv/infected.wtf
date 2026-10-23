@@ -52,6 +52,20 @@ export async function lookupGithub(username: string) {
   };
 }
 
+export async function lookupPinterest(url: string) {
+  const data = (await fetchJson(`https://www.pinterest.com/oembed.json?url=${encodeURIComponent(url)}`)) as
+    | { title?: string; author_name?: string; author_url?: string; thumbnail_url?: string }
+    | null;
+  if (!data?.title) return null;
+  return {
+    title: data.title,
+    authorName: data.author_name || "",
+    profileUrl: data.author_url || url,
+    thumbnailUrl: data.thumbnail_url || "",
+    url,
+  };
+}
+
 export async function lookupMcServer(host: string) {
   const cleanHost = host.trim().replace(/^https?:\/\//, "").split("/")[0];
   if (!cleanHost || !/^[a-zA-Z0-9.\-:]+$/.test(cleanHost)) return null;

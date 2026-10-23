@@ -1,4 +1,4 @@
-import { ValorantIcon, TwitchIcon, SpotifyIcon, GithubIcon } from "@/components/IntegrationIcons";
+import { ValorantIcon, TwitchIcon, SpotifyIcon, GithubIcon, PinterestIcon } from "@/components/IntegrationIcons";
 import { openSteamInApp } from "@/lib/app-links";
 
 export type GameIntegration =
@@ -9,6 +9,7 @@ export type GameIntegration =
   | { type: "valorant"; data: { riotId: string; tagLine: string; region: string } }
   | { type: "twitch"; data: { username: string } }
   | { type: "github"; data: { username: string; name: string; avatarUrl: string; profileUrl: string; publicRepos: number; followers: number } }
+  | { type: "pinterest"; data: { title: string; authorName: string; profileUrl: string; thumbnailUrl: string; url: string } }
   | {
       type: "spotify";
       data: {
@@ -52,6 +53,7 @@ const COLORS: Record<string, string> = {
   twitch: "#9146ff",
   spotify: "#1db954",
   github: "#f0f6fc",
+  pinterest: "#e60023",
 };
 
 function GameCardShell({ type, href, children }: { type: string; href?: string; children: React.ReactNode }) {
@@ -163,6 +165,20 @@ export default function GameIntegrationCards({ integrations }: { integrations: G
               <div className="game-int-info">
                 <div className="game-int-name">{it.data.name || it.data.username}</div>
                 <div className="game-int-sub">{it.data.publicRepos} repos · {it.data.followers} followers</div>
+              </div>
+            </GameCardShell>
+          );
+        }
+        if (it.type === "pinterest") {
+          return (
+            <GameCardShell key="pinterest" type="pinterest" href={it.data.url}>
+              <div className="game-int-icon">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {it.data.thumbnailUrl ? <img src={it.data.thumbnailUrl} alt="" /> : <PinterestIcon size={18} />}
+              </div>
+              <div className="game-int-info">
+                <div className="game-int-name">{it.data.title}</div>
+                <div className="game-int-sub">Pinterest{it.data.authorName ? ` · ${it.data.authorName}` : ""}</div>
               </div>
             </GameCardShell>
           );

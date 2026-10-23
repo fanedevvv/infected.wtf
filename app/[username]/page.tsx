@@ -129,7 +129,7 @@ export default async function ProfilePage({
   const discordServerInt = integration && integration.discordServerId && integration.discordServerVisible ? integration : null;
 
   const gameRows = await prisma.integration.findMany({
-    where: { userId: user.id, visible: true, type: { in: ["steam", "roblox", "minecraft", "mcserver", "valorant", "twitch", "spotify", "github"] } },
+    where: { userId: user.id, visible: true, type: { in: ["steam", "roblox", "minecraft", "mcserver", "valorant", "twitch", "spotify", "github", "pinterest"] } },
   });
   const spotifySnapshot = gameRows.some((row) => row.type === "spotify")
     ? await refreshSpotifyIntegrationForUser(user.id).catch(() => null)
