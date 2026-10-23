@@ -649,6 +649,49 @@ body.sidebar-collapsed .navbar-dashboard { left:0; }
     .profile-card--dossier .profile-views-row { justify-content:center; }
 }
 
+/* ── Layout: Social (premium) — sidebar + tabbed main area, lethal.wtf-style ── */
+.profile-wrapper--social { align-items:flex-start; padding:2.5rem 1rem; }
+.social-shell {
+    width:100%; max-width:980px; margin:0 auto; display:flex; align-items:stretch; gap:0;
+    background:color-mix(in srgb, var(--profile-overlay, #060610) 88%, transparent);
+    border:1px solid rgba(255,255,255,.07); border-radius:18px; overflow:hidden;
+    backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px);
+    box-shadow:0 16px 50px rgba(0,0,0,.75), 0 0 0 1px rgba(255,255,255,.04) inset;
+}
+.social-sidebar {
+    position:relative; flex:0 0 280px; display:flex; flex-direction:column; align-items:center; text-align:center;
+    padding:2.25rem 1.5rem; border-right:1px solid rgba(255,255,255,.07);
+}
+.social-edit-btn { position:static; margin-bottom:1rem; }
+.social-sidebar .avatar-wrapper { margin-bottom:.9rem; }
+.social-username { font-size:.8rem; color:rgba(255,255,255,.4); margin-top:-.3rem; margin-bottom:.6rem; }
+.social-badges { margin-bottom:.6rem; }
+.social-bio { max-width:100%; }
+.social-meta { display:flex; flex-direction:column; align-items:center; gap:.35rem; margin:.6rem 0; }
+.social-views-row { justify-content:center; flex-wrap:wrap; }
+.social-joined { justify-content:center; }
+.social-sidebar .social-icons { justify-content:center; }
+
+.social-main { flex:1; min-width:0; display:flex; flex-direction:column; padding:1.5rem 1.75rem; }
+.social-tabs { display:flex; gap:.4rem; border-bottom:1px solid rgba(255,255,255,.08); margin-bottom:1.25rem; }
+.social-tab-btn {
+    background:none; border:none; padding:.6rem .9rem; font:inherit; font-size:.85rem; font-weight:700;
+    color:rgba(255,255,255,.45); cursor:pointer; position:relative; transition:color .15s;
+}
+.social-tab-btn:hover { color:rgba(255,255,255,.8); }
+.social-tab-btn.active { color:#fff; }
+.social-tab-btn.active::after { content:""; position:absolute; left:.9rem; right:.9rem; bottom:-1px; height:2px; background:var(--accent); border-radius:2px; }
+.social-tab-content { flex:1; min-width:0; }
+.social-tab-empty { color:rgba(255,255,255,.35); font-size:.85rem; text-align:center; padding:2rem 0; margin:0; }
+.social-widgets-grid, .social-skills { margin:0; }
+
+@media (max-width:720px) {
+    .social-shell { flex-direction:column; }
+    .social-sidebar { flex:none; width:100%; border-right:none; border-bottom:1px solid rgba(255,255,255,.07); padding:1.75rem 1.25rem; }
+    .social-main { padding:1.25rem; }
+    .social-tabs { justify-content:center; }
+}
+
 .profile-banner-img { display:block; width:calc(100% + var(--card-pad-x) * 2); height:160px; background-size:cover; background-position:center; background-repeat:no-repeat; background-color:#000; margin:calc(var(--card-pad-top) * -1) calc(var(--card-pad-x) * -1) 1.25rem; border-radius:18px 18px 0 0; }
 .avatar-wrapper { position:relative; display:inline-block; margin-bottom:.75rem; }
 .avatar-wrapper--with-banner { margin-top:-40px; }
@@ -1538,6 +1581,12 @@ input[type="color"] { width:40px; height:32px; border-radius:8px; border:2px sol
 .tpl-dot { width:20px; height:20px; border-radius:50%; background:rgba(255,255,255,.15); }
 .tpl-line { width:100%; height:6px; border-radius:3px; background:rgba(255,255,255,.15); }
 .tpl-line.short { width:60%; }
+.template-card-preview-inner.tpl-social { flex-direction:row; align-items:stretch; width:92%; gap:.5rem; }
+.template-card-preview-inner.tpl-social .tpl-social-side { flex:0 0 30%; display:flex; flex-direction:column; align-items:center; gap:.3rem; padding-right:.4rem; border-right:1.5px solid rgba(255,255,255,.15); }
+.template-card-preview-inner.tpl-social .tpl-social-main { flex:1; display:flex; flex-direction:column; gap:.3rem; justify-content:center; }
+.template-card-preview-inner.tpl-social .tpl-social-tabs { display:flex; gap:.25rem; margin-bottom:.15rem; }
+.template-card-preview-inner.tpl-social .tpl-social-tab { width:14px; height:4px; border-radius:2px; background:var(--accent); opacity:.4; }
+.template-card-preview-inner.tpl-social .tpl-social-tab.active { opacity:1; }
 .template-card-name { font-size:1rem; font-weight:700; color:#fff; }
 .template-card-badge { position:absolute; top:1rem; right:1rem; font-size:.62rem; font-weight:800; letter-spacing:.05em; padding:.15rem .5rem; border-radius:6px; }
 .template-card-badge.free { background:rgba(124,58,237,.15); color:var(--accent); }

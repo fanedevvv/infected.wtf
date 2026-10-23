@@ -18,6 +18,7 @@ import ProfileComments from "./ProfileComments";
 import ProfileProjects, { type ProfileProjectCard } from "./ProfileProjects";
 import ReportProfileModal from "./ReportProfileModal";
 import WeatherWidget from "./WeatherWidget";
+import ProfileViewSocial from "./ProfileViewSocial";
 
 const PLATFORM_ICON: Record<string, React.ReactNode> = {
   discord: (
@@ -78,7 +79,7 @@ const PLATFORM_COLOR: Record<string, string> = {
   tiktok: "#010101", website: "#555555",
 };
 
-interface ProfileViewProps {
+export interface ProfileViewProps {
   username: string;
   displayName: string;
   bio: string | null;
@@ -234,7 +235,7 @@ export default function ProfileView(p: ProfileViewProps) {
         ? { backgroundImage: `url(/${p.backgroundValue})`, backgroundSize: "cover", backgroundPosition: "center" }
         : { background: p.backgroundColor };
 
-  const PREMIUM_LAYOUTS = ["aurora", "cinematic", "dossier"];
+  const PREMIUM_LAYOUTS = ["aurora", "cinematic", "dossier", "social"];
   const effectiveLayout = PREMIUM_LAYOUTS.includes(p.layoutTemplate) && !p.isPremium ? "classic" : p.layoutTemplate;
 
   const paletteVars = {
@@ -284,12 +285,25 @@ export default function ProfileView(p: ProfileViewProps) {
           <MusicPlayer tracks={p.musicTracks} style={p.playlistStyle} active={entered} />
         )}
 
-        {p.isOwner && (
+        {p.isOwner && effectiveLayout !== "social" && (
           <div className="edit-profile-btn">
             <Link href="/dashboard" className="btn btn-secondary btn-sm">✏ Edit</Link>
           </div>
         )}
 
+        {effectiveLayout === "social" ? (
+          <ProfileViewSocial
+            p={p}
+            entered={entered}
+            liked={liked}
+            likeCount={likeCount}
+            disliked={disliked}
+            dislikeCount={dislikeCount}
+            likeBusy={likeBusy}
+            onRate={rate}
+            onReport={() => setReportOpen(true)}
+          />
+        ) : (
         <div className={`profile-wrapper profile-wrapper--${effectiveLayout}`}>
           <div className={`profile-card profile-card--${effectiveLayout}`} ref={cardRef}>
             {p.banner && (
@@ -516,10 +530,11 @@ export default function ProfileView(p: ProfileViewProps) {
             </div>
           </div>
         </div>
+        )}
 
         {entered && (
           <div className="profile-social">
-            {p.projects.length > 0 && <ProfileProjects projects={p.projects} />}
+            {p.projects.length > 0 && effectiveLayout !== "social" && <ProfileProjects projects={p.projects} />}
             <ProfileComments slug={p.username} viewerLoggedIn={p.viewerLoggedIn} />
           </div>
         )}

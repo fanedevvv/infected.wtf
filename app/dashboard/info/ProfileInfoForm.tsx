@@ -5,8 +5,8 @@ import { showToast } from "@/lib/toast";
 import { useT } from "@/lib/i18n/client";
 
 const FONTS = ["Syne", "Outfit", "Space Mono", "Rajdhani", "Orbitron", "Bebas Neue", "Exo 2", "Josefin Sans"];
-const LAYOUT_TEMPLATES = ["classic", "editorial", "terminal", "banner", "compact", "aurora", "cinematic", "dossier"] as const;
-const PREMIUM_LAYOUT_TEMPLATES = ["aurora", "cinematic", "dossier"] as const;
+const LAYOUT_TEMPLATES = ["classic", "editorial", "terminal", "banner", "compact", "aurora", "cinematic", "dossier", "social"] as const;
+const PREMIUM_LAYOUT_TEMPLATES = ["aurora", "cinematic", "dossier", "social"] as const;
 
 type Props = {
   tab: string;
@@ -750,17 +750,30 @@ export default function ProfileInfoForm(props: Props) {
               { id: "aurora", label: "Aurora", premium: true, desc: "An oversized centered avatar wrapped in a glowing ambient halo.", features: ["Oversized avatar", "Ambient glow halo", "Infected Plus exclusive"] },
               { id: "cinematic", label: "Cinematic", premium: true, desc: "A full-bleed hero banner with your avatar and name pinned bottom-left.", features: ["270px hero banner", "Avatar+name side-by-side", "Infected Plus exclusive"] },
               { id: "dossier", label: "Dossier", premium: true, desc: "A wide identity-card layout with corner brackets and a big photo column.", features: ["1100px wide 2-column card", "Corner bracket accents", "Infected Plus exclusive"] },
+              { id: "social", label: "Social", premium: true, desc: "A sidebar profile with tabs — Home, Widgets and Projects, like a social dashboard.", features: ["Sidebar + tabbed content", "Separate Widgets & Projects tabs", "Infected Plus exclusive"] },
             ].map((tpl) => {
               const locked = tpl.premium && !props.isPremium;
               return (
                 <div key={tpl.id} className={`template-card ${layoutTemplate === tpl.id ? "active" : ""}`}>
                   <div className="template-card-preview">
                     <div className={`template-card-preview-inner tpl-${tpl.id}`}>
-                      <span className="tpl-dot" />
-                      <span className="tpl-lines">
-                        <span className="tpl-line" />
-                        <span className="tpl-line short" />
-                      </span>
+                      {tpl.id === "social" ? (
+                        <>
+                          <span className="tpl-social-side"><span className="tpl-dot" /><span className="tpl-line short" /></span>
+                          <span className="tpl-social-main">
+                            <span className="tpl-social-tabs"><span className="tpl-social-tab active" /><span className="tpl-social-tab" /><span className="tpl-social-tab" /></span>
+                            <span className="tpl-line" /><span className="tpl-line short" />
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="tpl-dot" />
+                          <span className="tpl-lines">
+                            <span className="tpl-line" />
+                            <span className="tpl-line short" />
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                   <div className="template-card-name">{t(tpl.label)}</div>
