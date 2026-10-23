@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import EffectText from "./EffectText";
 import DiscordPresenceCard from "./DiscordPresenceCard";
 import DiscordServerCard from "./DiscordServerCard";
 import GameIntegrationCards from "./GameIntegrationCards";
-import SpotifyPresenceCard from "./SpotifyPresenceCard";
+import SpotifyPresenceCard, { type SpotifyNowPlaying } from "./SpotifyPresenceCard";
 import WeatherWidget from "./WeatherWidget";
 import ProfileProjects from "./ProfileProjects";
 import ProfileComments from "./ProfileComments";
@@ -23,6 +23,53 @@ const TAB_ICON: Record<Tab, React.ReactNode> = {
   widgets: <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" />,
   projects: <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />,
 };
+
+/**
+ * Owns the live "now playing" poll + elapsed-time ticking at the top level
+ * (ProfileImmersive never unmounts across a tab switch), so the two places
+ * SpotifyPresenceCard gets rendered — compact on Home, full on Widgets —
+ * share one continuously-updating source instead of each restarting its own
+ * poll from the stale page-load snapshot every time the viewer switches tabs.
+ */
+function useSpotifyLive(initial: SpotifyNowPlaying | null, slug: string, enabled: boolean) {
+  const [nowPlaying, setNowPlaying] = useState<SpotifyNowPlaying | null>(initial);
+  const [now, setNow] = useState(() => Date.now());
+  const [mountSync] = useState(() => Date.now());
+  const refetchedFor = useRef<string | null>(null);
+
+  async function refresh() {
+    try {
+      const res = await fetch(`/api/integrations/spotify/now?slug=${encodeURIComponent(slug)}`, { cache: "no-store" });
+      const j = await res.json();
+      if (j.success) setNowPlaying(j.nowPlaying);
+    } catch {}
+  }
+
+  useEffect(() => {
+    if (!enabled) return;
+    const poll = setInterval(refresh, 15_000);
+    const tick = setInterval(() => setNow(Date.now()), 1000);
+    return () => { clearInterval(poll); clearInterval(tick); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, enabled]);
+
+  const max = nowPlaying?.durationMs || 0;
+  const base = nowPlaying?.progressMs || 0;
+  const progress = nowPlaying?.isPlaying && max ? Math.min(max, base + (now - (nowPlaying.syncedAt ?? mountSync))) : base;
+
+  // When the song should have ended, ask again right away instead of waiting for the next poll.
+  useEffect(() => {
+    if (!enabled || !nowPlaying?.isPlaying || !max || progress < max) return;
+    const key = `${nowPlaying.trackUrl}-${nowPlaying.syncedAt}`;
+    if (refetchedFor.current === key) return;
+    refetchedFor.current = key;
+    const id = setTimeout(refresh, 1500);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progress, max, nowPlaying, enabled]);
+
+  return { nowPlaying, progress };
+}
 
 /**
  * Full-bleed profile layout (no card): content floats over the background, avatar on the right on desktop
@@ -46,6 +93,7 @@ export default function ProfileImmersive({
   const games = p.gameIntegrations.filter((it) => it.type !== "spotify");
   const hasWidgets = !!(p.discordInt || p.discordServerInt || games.length > 0 || p.weather || spotify);
   const tabs: Tab[] = ["home", ...(hasWidgets ? (["widgets"] as Tab[]) : []), ...(p.projects.length ? (["projects"] as Tab[]) : [])];
+  const spotifyLive = useSpotifyLive(spotify?.type === "spotify" ? spotify.data.nowPlaying : null, p.username, spotify?.type === "spotify");
   const [tab, setTab] = useState<Tab>("home");
   const [commentsOpen, setCommentsOpen] = useState(false);
   const hasChampion = p.badges.some((b) => b.id === "champion");
@@ -195,16 +243,16 @@ export default function ProfileImmersive({
 
               {spotify?.type === "spotify" && (
                 <div className="im-block">
-                  <SpotifyPresenceCard data={spotify.data} slug={p.username} compact />
+                  <SpotifyPresenceCard data={spotify.data} nowPlaying={spotifyLive.nowPlaying} progress={spotifyLive.progress} slug={p.username} compact />
                 </div>
               )}
 
               {/* With a single tab there's no widgets tab, so integrations live on home. */}
-              {tabs.length === 1 && hasWidgets && <Widgets p={p} games={games} />}
+              {tabs.length === 1 && hasWidgets && <Widgets p={p} games={games} spotifyLive={spotifyLive} />}
             </div>
           )}
 
-          {tab === "widgets" && <div className="fade-in"><Widgets p={p} games={games} /></div>}
+          {tab === "widgets" && <div className="fade-in"><Widgets p={p} games={games} spotifyLive={spotifyLive} /></div>}
           {tab === "projects" && <div className="fade-in im-projects"><ProfileProjects projects={p.projects} /></div>}
         </main>
       </div>
@@ -267,7 +315,13 @@ export default function ProfileImmersive({
   );
 }
 
-function Widgets({ p, games }: { p: ProfileViewProps; games: ProfileViewProps["gameIntegrations"] }) {
+function Widgets({
+  p, games, spotifyLive,
+}: {
+  p: ProfileViewProps;
+  games: ProfileViewProps["gameIntegrations"];
+  spotifyLive: { nowPlaying: SpotifyNowPlaying | null; progress: number };
+}) {
   const spotify = p.gameIntegrations.find((it) => it.type === "spotify");
   return (
     <div className="im-widgets">
@@ -290,7 +344,7 @@ function Widgets({ p, games }: { p: ProfileViewProps; games: ProfileViewProps["g
           total={p.discordServerInt.total}
         />
       )}
-      {spotify?.type === "spotify" && <SpotifyPresenceCard data={spotify.data} slug={p.username} />}
+      {spotify?.type === "spotify" && <SpotifyPresenceCard data={spotify.data} nowPlaying={spotifyLive.nowPlaying} progress={spotifyLive.progress} slug={p.username} />}
       {games.length > 0 && <GameIntegrationCards integrations={games} />}
     </div>
   );

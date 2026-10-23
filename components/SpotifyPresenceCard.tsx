@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { SpotifyIcon } from "@/components/IntegrationIcons";
 
 type SpotifyTrack = {
@@ -11,7 +10,7 @@ type SpotifyTrack = {
   trackUrl: string;
 };
 
-type SpotifyNowPlaying = {
+export type SpotifyNowPlaying = {
   isPlaying: boolean;
   trackName: string;
   artists: string;
@@ -48,46 +47,25 @@ function fmt(ms: number) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-const POLL_MS = 15_000;
-
-/** `compact`: just the current (or last played) track, for the profile home; the full card shows top/recent lists. */
-export default function SpotifyPresenceCard({ data, slug, compact = false }: { data: SpotifyData; slug: string; compact?: boolean }) {
-  const [nowPlaying, setNowPlaying] = useState<SpotifyNowPlaying | null>(data.nowPlaying);
-  // Snapshots from before syncedAt existed are treated as read when the page loaded.
-  const [fallbackSync] = useState(() => Date.now());
-  const [now, setNow] = useState(() => Date.now());
-  const refetchedFor = useRef<string | null>(null);
-
-  async function refresh() {
-    try {
-      const res = await fetch(`/api/integrations/spotify/now?slug=${encodeURIComponent(slug)}`, { cache: "no-store" });
-      const j = await res.json();
-      if (j.success) setNowPlaying(j.nowPlaying);
-    } catch {}
-  }
-
-  useEffect(() => {
-    const poll = setInterval(refresh, POLL_MS);
-    const tick = setInterval(() => setNow(Date.now()), 1000);
-    return () => { clearInterval(poll); clearInterval(tick); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
-
+/**
+ * Purely presentational — the live track + elapsed-progress ticking lives one
+ * level up (`useSpotifyLive` in ProfileImmersive) so it survives this card
+ * being unmounted/remounted as the viewer switches tabs (Home shows a compact
+ * card, Widgets shows the full one — two separate mounts of this component
+ * that must still reflect the *same* live state, not each poll from scratch).
+ * `compact`: just the current (or last played) track, for the profile home; the full card shows top/recent lists.
+ */
+export default function SpotifyPresenceCard({
+  data, nowPlaying, progress, compact = false,
+}: {
+  data: SpotifyData;
+  nowPlaying: SpotifyNowPlaying | null;
+  progress: number;
+  slug: string;
+  compact?: boolean;
+}) {
   const max = nowPlaying?.durationMs || 0;
-  const base = nowPlaying?.progressMs || 0;
-  const progress = nowPlaying?.isPlaying && max ? Math.min(max, base + (now - (nowPlaying.syncedAt ?? fallbackSync))) : base;
   const pct = max ? Math.max(0, Math.min(100, (progress / max) * 100)) : 0;
-
-  // When the song should have ended, ask again right away instead of waiting for the next poll.
-  useEffect(() => {
-    if (!nowPlaying?.isPlaying || !max || progress < max) return;
-    const key = `${nowPlaying.trackUrl}-${nowPlaying.syncedAt}`;
-    if (refetchedFor.current === key) return;
-    refetchedFor.current = key;
-    const id = setTimeout(refresh, 1500);
-    return () => clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [progress, max, nowPlaying]);
 
   if (compact) {
     const last = !nowPlaying ? data.recentTracks[0] : null;
