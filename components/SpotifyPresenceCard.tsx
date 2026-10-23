@@ -50,7 +50,8 @@ function fmt(ms: number) {
 
 const POLL_MS = 15_000;
 
-export default function SpotifyPresenceCard({ data, slug }: { data: SpotifyData; slug: string }) {
+/** `compact`: just the current (or last played) track, for the profile home; the full card shows top/recent lists. */
+export default function SpotifyPresenceCard({ data, slug, compact = false }: { data: SpotifyData; slug: string; compact?: boolean }) {
   const [nowPlaying, setNowPlaying] = useState<SpotifyNowPlaying | null>(data.nowPlaying);
   // Snapshots from before syncedAt existed are treated as read when the page loaded.
   const [fallbackSync] = useState(() => Date.now());
@@ -87,6 +88,36 @@ export default function SpotifyPresenceCard({ data, slug }: { data: SpotifyData;
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progress, max, nowPlaying]);
+
+  if (compact) {
+    const last = !nowPlaying ? data.recentTracks[0] : null;
+    if (!nowPlaying && !last) return null;
+    const track = nowPlaying
+      ? { name: nowPlaying.trackName, artists: nowPlaying.artists, image: nowPlaying.albumImage, url: nowPlaying.trackUrl }
+      : { name: last!.trackName, artists: last!.artists, image: last!.albumImage, url: last!.trackUrl };
+    return (
+      <a className="sp-compact" href={track.url || data.profileUrl || "https://open.spotify.com"} target="_blank" rel="noopener noreferrer">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={track.image || data.avatarUrl || "/assets/img/default-avatar.png"} alt="" />
+        <div className="sp-compact-body">
+          <div className="sp-compact-top">
+            <b>{track.name}</b>
+            <span className={`sp-compact-state ${nowPlaying?.isPlaying ? "live" : ""}`}>
+              <SpotifyIcon size={14} />{nowPlaying?.isPlaying ? "Listening" : nowPlaying ? "Paused" : "Last played"}
+            </span>
+          </div>
+          <span className="sp-compact-artist">{track.artists}</span>
+          {nowPlaying && max > 0 && (
+            <div className="sp-compact-progress">
+              <span>{fmt(progress)}</span>
+              <div className="sp-progress-track"><span className="sp-progress-fill" style={{ width: `${pct}%` }} /></div>
+              <span>{fmt(max)}</span>
+            </div>
+          )}
+        </div>
+      </a>
+    );
+  }
 
   return (
     <div className="spotify-presence-card">
