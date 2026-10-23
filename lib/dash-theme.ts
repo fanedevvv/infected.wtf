@@ -39,4 +39,10 @@ export function saveDashThemeCookies(mode: DashMode, accent: string) {
   const age = 60 * 60 * 24 * 365;
   document.cookie = `${DASH_THEME_COOKIE}=${mode}; path=/; max-age=${age}; samesite=lax`;
   document.cookie = `${DASH_ACCENT_COOKIE}=${encodeURIComponent(accent)}; path=/; max-age=${age}; samesite=lax`;
+  // The server copy is the reliable one: it's stored on the account and re-sets the cookies via Set-Cookie.
+  return fetch("/api/dash-theme", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode, accent }),
+  }).catch(() => undefined);
 }
