@@ -1,4 +1,4 @@
-import { ValorantIcon, TwitchIcon, SpotifyIcon, GithubIcon, PinterestIcon } from "@/components/IntegrationIcons";
+import { ValorantIcon, TwitchIcon, SpotifyIcon, GithubIcon, PinterestIcon, YoutubeIcon } from "@/components/IntegrationIcons";
 import { openSteamInApp } from "@/lib/app-links";
 
 export type GameIntegration =
@@ -10,6 +10,7 @@ export type GameIntegration =
   | { type: "twitch"; data: { username: string } }
   | { type: "github"; data: { username: string; name: string; avatarUrl: string; profileUrl: string; publicRepos: number; followers: number } }
   | { type: "pinterest"; data: { title: string; authorName: string; profileUrl: string; thumbnailUrl: string; url: string } }
+  | { type: "youtube"; data: { name: string; avatarUrl: string; channelUrl: string } }
   | {
       type: "spotify";
       data: {
@@ -54,6 +55,7 @@ const COLORS: Record<string, string> = {
   spotify: "#1db954",
   github: "#f0f6fc",
   pinterest: "#e60023",
+  youtube: "#ff0000",
 };
 
 function GameCardShell({ type, href, children }: { type: string; href?: string; children: React.ReactNode }) {
@@ -179,6 +181,20 @@ export default function GameIntegrationCards({ integrations }: { integrations: G
               <div className="game-int-info">
                 <div className="game-int-name">{it.data.title}</div>
                 <div className="game-int-sub">Pinterest{it.data.authorName ? ` · ${it.data.authorName}` : ""}</div>
+              </div>
+            </GameCardShell>
+          );
+        }
+        if (it.type === "youtube") {
+          return (
+            <GameCardShell key="youtube" type="youtube" href={it.data.channelUrl}>
+              <div className="game-int-icon">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {it.data.avatarUrl ? <img src={it.data.avatarUrl} alt="" /> : <YoutubeIcon size={18} />}
+              </div>
+              <div className="game-int-info">
+                <div className="game-int-name">{it.data.name}</div>
+                <div className="game-int-sub">YouTube</div>
               </div>
             </GameCardShell>
           );

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { showToast } from "@/lib/toast";
-import { SteamIcon, RobloxIcon, MinecraftIcon, ServerIcon, ValorantIcon, TwitchIcon, SpotifyIcon, GithubIcon, PinterestIcon } from "@/components/IntegrationIcons";
+import { SteamIcon, RobloxIcon, MinecraftIcon, ServerIcon, ValorantIcon, TwitchIcon, SpotifyIcon, GithubIcon, PinterestIcon, YoutubeIcon } from "@/components/IntegrationIcons";
 import { useT } from "@/lib/i18n/client";
 
 type IntegrationRow = { data: Record<string, unknown>; visible: boolean } | null;
@@ -421,6 +421,27 @@ export default function GameIntegrations() {
               <div className="int-preview-info">
                 <div className="int-preview-name">{String(d.title || "")}</div>
                 <div className="int-preview-sub">{t("Pinterest")}{d.authorName ? ` · ${String(d.authorName)}` : ""}</div>
+              </div>
+            </div>
+          )}
+        />
+
+        <GameCard
+          type="youtube"
+          title={t("YouTube")}
+          subtitle="Show your YouTube channel on your profile"
+          color="#ff0000"
+          icon={<YoutubeIcon />}
+          fields={[{ name: "url", placeholder: "youtube.com/@yourchannel" }]}
+          renderPreview={(d) => (
+            <div className="int-preview-generic">
+              <div className="int-preview-avatar">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {d.avatarUrl ? <img src={String(d.avatarUrl)} alt="" /> : <YoutubeIcon size={16} />}
+              </div>
+              <div className="int-preview-info">
+                <div className="int-preview-name">{String(d.name || "")}</div>
+                <div className="int-preview-sub">{t("YouTube")}</div>
               </div>
             </div>
           )}

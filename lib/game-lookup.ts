@@ -66,6 +66,32 @@ export async function lookupPinterest(url: string) {
   };
 }
 
+export async function lookupYoutube(url: string) {
+  if (!/^https:\/\/(www\.)?youtube\.com\/(@|channel\/|c\/|user\/)/i.test(url)) return null;
+  let html: string | null = null;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 6000);
+    const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" }, signal: controller.signal, cache: "no-store" });
+    clearTimeout(timer);
+    if (res.ok) html = await res.text();
+  } catch {
+    html = null;
+  }
+  if (!html) return null;
+
+  const title = html.match(/<meta property="og:title" content="([^"]*)"/)?.[1];
+  const image = html.match(/<meta property="og:image" content="([^"]*)"/)?.[1];
+  const canonicalUrl = html.match(/<meta property="og:url" content="([^"]*)"/)?.[1];
+  if (!title) return null;
+
+  return {
+    name: title.replace(/&amp;/g, "&"),
+    avatarUrl: image || "",
+    channelUrl: canonicalUrl || url,
+  };
+}
+
 export async function lookupMcServer(host: string) {
   const cleanHost = host.trim().replace(/^https?:\/\//, "").split("/")[0];
   if (!cleanHost || !/^[a-zA-Z0-9.\-:]+$/.test(cleanHost)) return null;
