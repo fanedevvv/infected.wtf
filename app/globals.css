@@ -1813,6 +1813,12 @@ body:has(.unsaved-bar.visible) .toast-container { bottom: calc(1.5rem + 58px); }
 @media (max-width: 440px) { .an-stats { grid-template-columns: 1fr; } }
 
 /* ══════════════════ Integrations page ══════════════════ */
+.int-catalog-controls { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; margin-bottom: 1.25rem; }
+.int-catalog-search { flex: 1 1 220px; max-width: 320px; }
+.int-catalog-tabs { display: flex; gap: .4rem; flex-wrap: wrap; }
+.int-catalog-tab { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); color: rgba(255,255,255,.55); border-radius: 999px; padding: .4rem 1rem; font-size: .82rem; font-weight: 600; cursor: pointer; transition: all .2s; }
+.int-catalog-tab:hover { border-color: rgba(88,101,242,.3); color: #fff; }
+.int-catalog-tab.active { background: rgba(88,101,242,.18); border-color: rgba(88,101,242,.45); color: #fff; }
 .int-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
 @media (max-width: 640px) { .int-grid { grid-template-columns: 1fr; } }
 .int-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 16px; padding: 1.25rem; display: flex; flex-direction: column; gap: .75rem; transition: border-color .25s, transform .25s, box-shadow .25s; position: relative; overflow: hidden; }

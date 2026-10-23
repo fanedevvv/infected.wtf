@@ -227,8 +227,44 @@ function SteamCodeConnect({ onConnected }: { onConnected: (data: Record<string, 
   );
 }
 
+type Category = "all" | "gaming" | "music" | "social";
+const CATEGORY_OF: Record<string, Exclude<Category, "all">> = {
+  steam: "gaming",
+  roblox: "gaming",
+  minecraft: "gaming",
+  mcserver: "gaming",
+  valorant: "gaming",
+  twitch: "gaming",
+  spotify: "music",
+  github: "social",
+  pinterest: "social",
+  youtube: "social",
+};
+const CATEGORY_LABEL: Record<Category, string> = { all: "All", gaming: "Gaming", music: "Music", social: "Social" };
+const TITLE_OF: Record<string, string> = {
+  steam: "Steam",
+  roblox: "Roblox",
+  minecraft: "Minecraft",
+  mcserver: "MC Server",
+  valorant: "Valorant",
+  twitch: "Twitch",
+  spotify: "Spotify",
+  github: "GitHub",
+  pinterest: "Pinterest",
+  youtube: "YouTube",
+};
+
 export default function GameIntegrations() {
   const t = useT();
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<Category>("all");
+
+  function visible(type: string, title: string) {
+    if (category !== "all" && CATEGORY_OF[type] !== category) return false;
+    if (query.trim() && !title.toLowerCase().includes(query.trim().toLowerCase())) return false;
+    return true;
+  }
+
   return (
     <>
       <div className="section-header">
@@ -236,7 +272,29 @@ export default function GameIntegrations() {
         <p>{t("Show your gaming accounts and a live server status on your profile")}</p>
       </div>
 
+      <div className="int-catalog-controls">
+        <input
+          className="form-control int-catalog-search"
+          placeholder={t("Search widgets...")}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <div className="int-catalog-tabs">
+          {(["all", "gaming", "music", "social"] as Category[]).map((c) => (
+            <button
+              key={c}
+              type="button"
+              className={`int-catalog-tab ${category === c ? "active" : ""}`}
+              onClick={() => setCategory(c)}
+            >
+              {t(CATEGORY_LABEL[c])}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="int-grid">
+        {visible("steam", "Steam") && (
         <GameCard
           type="steam"
           title={t("Steam")}
@@ -258,7 +316,9 @@ export default function GameIntegrations() {
             </div>
           )}
         />
+        )}
 
+        {visible("roblox", "Roblox") && (
         <GameCard
           type="roblox"
           title={t("Roblox")}
@@ -279,7 +339,9 @@ export default function GameIntegrations() {
             </div>
           )}
         />
+        )}
 
+        {visible("minecraft", "Minecraft") && (
         <GameCard
           type="minecraft"
           title={t("Minecraft")}
@@ -300,7 +362,9 @@ export default function GameIntegrations() {
             </div>
           )}
         />
+        )}
 
+        {visible("mcserver", "MC Server") && (
         <GameCard
           type="mcserver"
           title={t("MC Server")}
@@ -321,7 +385,9 @@ export default function GameIntegrations() {
             </div>
           )}
         />
+        )}
 
+        {visible("twitch", "Twitch") && (
         <GameCard
           type="twitch"
           title={t("Twitch")}
@@ -339,7 +405,9 @@ export default function GameIntegrations() {
             </div>
           )}
         />
+        )}
 
+        {visible("spotify", "Spotify") && (
         <GameCard
           type="spotify"
           title={t("Spotify")}
@@ -383,7 +451,9 @@ export default function GameIntegrations() {
             );
           }}
         />
+        )}
 
+        {visible("github", "GitHub") && (
         <GameCard
           type="github"
           title={t("GitHub")}
@@ -404,7 +474,9 @@ export default function GameIntegrations() {
             </div>
           )}
         />
+        )}
 
+        {visible("pinterest", "Pinterest") && (
         <GameCard
           type="pinterest"
           title={t("Pinterest")}
@@ -425,7 +497,9 @@ export default function GameIntegrations() {
             </div>
           )}
         />
+        )}
 
+        {visible("youtube", "YouTube") && (
         <GameCard
           type="youtube"
           title={t("YouTube")}
@@ -446,7 +520,9 @@ export default function GameIntegrations() {
             </div>
           )}
         />
+        )}
 
+        {visible("valorant", "Valorant") && (
         <GameCard
           type="valorant"
           title={t("Valorant")}
@@ -468,6 +544,11 @@ export default function GameIntegrations() {
             </div>
           )}
         />
+        )}
+
+        {Object.keys(CATEGORY_OF).every((type) => !visible(type, TITLE_OF[type])) && (query.trim() || category !== "all") && (
+          <div className="int-empty">{t("No widgets match your search.")}</div>
+        )}
       </div>
     </>
   );
