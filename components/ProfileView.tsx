@@ -9,6 +9,7 @@ import PurchasedEffectsEngine from "./PurchasedEffectsEngine";
 import type { ProfileProjectCard } from "./ProfileProjects";
 import ReportProfileModal from "./ReportProfileModal";
 import ProfileImmersive from "./ProfileImmersive";
+import ProfileClassic from "./ProfileClassic";
 
 export interface ProfileViewProps {
   username: string;
@@ -118,6 +119,8 @@ export default function ProfileView(p: ProfileViewProps) {
   }
 
   const hasActiveAvatarEffect = !!(p.activeAvatarEffect && p.purchasedEffects.includes(p.activeAvatarEffect));
+  const PREMIUM_LAYOUTS = ["aurora", "cinematic", "dossier"];
+  const effectiveLayout = PREMIUM_LAYOUTS.includes(p.layoutTemplate) && !p.isPremium ? "modern" : p.layoutTemplate;
 
   const bgStyle: React.CSSProperties =
     p.backgroundType === "color" || p.backgroundType === "gradient"
@@ -173,19 +176,36 @@ export default function ProfileView(p: ProfileViewProps) {
           <MusicPlayer tracks={p.musicTracks} style={p.playlistStyle} active={entered} />
         )}
 
-        {/* Every profile uses the full-bleed layout (lethal.wtf-style); layoutTemplate no longer changes it. */}
-        <ProfileImmersive
-          p={p}
-          entered={entered}
-          hasActiveAvatarEffect={hasActiveAvatarEffect}
-          liked={liked}
-          likeCount={likeCount}
-          disliked={disliked}
-          dislikeCount={dislikeCount}
-          likeBusy={likeBusy}
-          onRate={rate}
-          onReport={() => setReportOpen(true)}
-        />
+        {/* "modern" is the full-bleed sidebar+tabs layout (lethal.wtf-style); every
+            other value renders the original card family via ProfileClassic, with
+            the same profile-card--{layout} CSS the dashboard picker has always had. */}
+        {effectiveLayout === "modern" ? (
+          <ProfileImmersive
+            p={p}
+            entered={entered}
+            hasActiveAvatarEffect={hasActiveAvatarEffect}
+            liked={liked}
+            likeCount={likeCount}
+            disliked={disliked}
+            dislikeCount={dislikeCount}
+            likeBusy={likeBusy}
+            onRate={rate}
+            onReport={() => setReportOpen(true)}
+          />
+        ) : (
+          <ProfileClassic
+            p={p}
+            entered={entered}
+            layout={effectiveLayout}
+            liked={liked}
+            likeCount={likeCount}
+            disliked={disliked}
+            dislikeCount={dislikeCount}
+            likeBusy={likeBusy}
+            onRate={rate}
+            onReport={() => setReportOpen(true)}
+          />
+        )}
 
         {reportOpen && <ReportProfileModal slug={p.username} onClose={() => setReportOpen(false)} />}
 

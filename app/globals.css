@@ -1519,6 +1519,9 @@ input[type="color"] { width:40px; height:32px; border-radius:8px; border:2px sol
 .template-card-preview { aspect-ratio:16/10; background:#0a0a0f; border-radius:10px; border:1px solid rgba(255,255,255,.06); display:flex; align-items:center; justify-content:center; margin-bottom:.4rem; }
 .template-card-preview-inner { display:flex; flex-direction:column; align-items:center; gap:.35rem; width:70%; }
 .template-card-preview-inner.tpl-classic { width:70%; }
+.template-card-preview-inner.tpl-modern { position:relative; flex-direction:row; align-items:stretch; width:88%; gap:.4rem; }
+.template-card-preview-inner.tpl-modern .tpl-dot { flex-shrink:0; width:16px; height:16px; }
+.template-card-preview-inner.tpl-modern::after { content:""; position:absolute; left:50%; top:10%; bottom:10%; width:1px; background:rgba(255,255,255,.15); }
 .template-card-preview-inner.tpl-editorial { flex-direction:row; align-items:center; width:82%; gap:.5rem; }
 .template-card-preview-inner.tpl-editorial .tpl-dot { flex-shrink:0; }
 .template-card-preview-inner.tpl-editorial .tpl-lines { display:flex; flex-direction:column; gap:.3rem; width:100%; align-items:flex-start; }

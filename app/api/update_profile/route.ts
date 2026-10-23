@@ -27,7 +27,7 @@ async function deleteFile(relPath: string | null | undefined) {
 }
 
 const ALLOWED_TEXT_EFFECTS = ["none", "glow", "rainbow", "shake", "glitch", "scramble", "shine", "typewriter", "flip"];
-const ALLOWED_LAYOUTS = ["classic", "editorial", "terminal", "banner", "compact", "aurora", "cinematic", "dossier"];
+const ALLOWED_LAYOUTS = ["modern", "classic", "editorial", "terminal", "banner", "compact", "aurora", "cinematic", "dossier"];
 const PREMIUM_LAYOUTS = ["aurora", "cinematic", "dossier"];
 
 export async function POST(req: NextRequest) {
@@ -84,8 +84,8 @@ export async function POST(req: NextRequest) {
   }
 
   if (action === "set_layout_template") {
-    let layoutTemplate = String(form.get("layout_template") || "classic").trim();
-    if (!ALLOWED_LAYOUTS.includes(layoutTemplate)) layoutTemplate = "classic";
+    let layoutTemplate = String(form.get("layout_template") || "modern").trim();
+    if (!ALLOWED_LAYOUTS.includes(layoutTemplate)) layoutTemplate = "modern";
     const isPremium = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date());
     if (PREMIUM_LAYOUTS.includes(layoutTemplate) && !isPremium) {
       return err("This layout is an Infected Plus feature.");
@@ -120,9 +120,9 @@ export async function POST(req: NextRequest) {
     if (isPremiumFont(font) && !isPremium) font = DEFAULT_PROFILE_FONT;
     let playlistStyle = String(form.get("playlist_style") || "glow").trim();
     if (!["glow", "compact", "vinyl"].includes(playlistStyle)) playlistStyle = "glow";
-    let layoutTemplate = String(form.get("layout_template") || "classic").trim();
-    if (!ALLOWED_LAYOUTS.includes(layoutTemplate)) layoutTemplate = "classic";
-    if (PREMIUM_LAYOUTS.includes(layoutTemplate) && !isPremium) layoutTemplate = "classic";
+    let layoutTemplate = String(form.get("layout_template") || "modern").trim();
+    if (!ALLOWED_LAYOUTS.includes(layoutTemplate)) layoutTemplate = "modern";
+    if (PREMIUM_LAYOUTS.includes(layoutTemplate) && !isPremium) layoutTemplate = "modern";
     let avatar = String(form.get("avatar") || "").trim();
     if (avatar && !/^uploads\/avatars\/[a-zA-Z0-9_\-.]+$/.test(avatar)) avatar = "";
     const bgImg = String(form.get("background_image") || "").trim();

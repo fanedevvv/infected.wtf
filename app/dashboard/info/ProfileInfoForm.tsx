@@ -5,7 +5,7 @@ import { showToast } from "@/lib/toast";
 import { useT } from "@/lib/i18n/client";
 import { PROFILE_FONTS, googleFontsHref } from "@/lib/profile-fonts";
 
-const LAYOUT_TEMPLATES = ["classic", "editorial", "terminal", "banner", "compact", "aurora", "cinematic", "dossier"] as const;
+const LAYOUT_TEMPLATES = ["modern", "classic", "editorial", "terminal", "banner", "compact", "aurora", "cinematic", "dossier"] as const;
 const PREMIUM_LAYOUT_TEMPLATES = ["aurora", "cinematic", "dossier"] as const;
 
 type Props = {
@@ -758,7 +758,8 @@ export default function ProfileInfoForm(props: Props) {
           <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>{t("Choose your profile layout")}</p>
           <div className="template-card-grid">
             {[
-              { id: "classic", label: "Classic", premium: false, desc: "Avatar and name perfectly centered — the clean baseline.", features: ["Centered design", "Mobile optimized", "Clean & minimal"] },
+              { id: "modern", label: "Modern", premium: false, desc: "Sidebar profile with Home, Widgets and Projects tabs — the current default.", features: ["Full-bleed background", "Sidebar + tabbed sections", "Comments in a slide-out drawer"] },
+              { id: "classic", label: "Classic Card", premium: false, desc: "Avatar and name perfectly centered — the clean baseline.", features: ["Centered design", "Mobile optimized", "Clean & minimal"] },
               { id: "editorial", label: "Editorial", premium: false, desc: "A two-column layout — your identity pinned left, everything else flows right.", features: ["Left identity column", "Left-aligned content", "Magazine-style feel"] },
               { id: "terminal", label: "Terminal", premium: false, desc: "A monospace hacker console with a blinking cursor and sharp corners.", features: ["Monospace font", "No blur, sharp edges", "Left-aligned console feel"] },
               { id: "banner", label: "Banner", premium: false, desc: "A tall hero banner with your avatar overlapping dramatically.", features: ["240px hero banner", "Overlapping avatar", "Bold entrance"] },
