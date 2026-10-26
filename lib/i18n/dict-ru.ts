@@ -664,6 +664,7 @@ const ru: Record<string, string> = {
   "Content": "Контент",
   "Flair": "Стиль",
   "Reach": "Охват",
+  "Compare live and draft": "Сравнить опубликованное и черновик",
 };
 
 export default ru;

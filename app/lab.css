@@ -767,3 +767,12 @@ select.form-control option { background:var(--panel); }
   .pe-toolbar .pe-save { flex:1 1 100%; margin-left:0; }
   .pe-compare-hint { padding:0 .5rem; }
 }
+
+/* live/draft compare handle: a wide grab strip, square grip, shield over the iframes while dragging */
+.pe-compare-handle { width:28px; touch-action:none; outline:none; }
+.pe-compare-handle::before { width:2px; background:var(--accent); box-shadow:0 0 0 1px rgba(0,0,0,.35); }
+.pe-compare-handle-grip { width:30px; height:30px; border-radius:0; background:var(--accent); color:var(--accent-ink); box-shadow:0 0 0 1px rgba(0,0,0,.4); transition:transform .12s; }
+.pe-compare-handle:hover .pe-compare-handle-grip, .pe-compare-handle.is-dragging .pe-compare-handle-grip, .pe-compare-handle:focus-visible .pe-compare-handle-grip { transform:scale(1.12); }
+.pe-compare-handle:focus-visible .pe-compare-handle-grip { box-shadow:0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+.pe-compare-shield { position:absolute; inset:0; z-index:4; cursor:ew-resize; }
+.pe-preview-frame:has(.pe-compare-shield) { user-select:none; }

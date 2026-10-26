@@ -65,24 +65,37 @@ function ComparisonPreview({ slug, draft, device, reloadKey }: { slug: string; d
     setSplit(Math.max(0, Math.min(100, pct)));
   }, []);
 
+  // Pointer events cover mouse, touch and pen; while dragging, a shield over the iframes keeps them from
+  // swallowing the moves (and the release), which used to make the handle stick or jump.
   useEffect(() => {
     if (!dragging) return;
-    const onMove = (e: MouseEvent | TouchEvent) => {
-      const x = "touches" in e ? e.touches[0]?.clientX : e.clientX;
-      if (x != null) updateSplitFromPointer(x);
-    };
+    const onMove = (e: PointerEvent) => updateSplitFromPointer(e.clientX);
     const onUp = () => setDragging(false);
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("touchmove", onMove);
-    window.addEventListener("mouseup", onUp);
-    window.addEventListener("touchend", onUp);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
     return () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("touchmove", onMove);
-      window.removeEventListener("mouseup", onUp);
-      window.removeEventListener("touchend", onUp);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
     };
   }, [dragging, updateSplitFromPointer]);
+
+  function startDrag(e: React.PointerEvent) {
+    e.preventDefault();
+    setDragging(true);
+    updateSplitFromPointer(e.clientX);
+  }
+
+  function nudge(e: React.KeyboardEvent) {
+    const step = e.shiftKey ? 10 : 2;
+    if (e.key === "ArrowLeft") setSplit((v) => Math.max(0, v - step));
+    else if (e.key === "ArrowRight") setSplit((v) => Math.min(100, v + step));
+    else if (e.key === "Home") setSplit(0);
+    else if (e.key === "End") setSplit(100);
+    else return;
+    e.preventDefault();
+  }
 
   function toggleFullscreen() {
     const box = boxRef.current;
@@ -115,7 +128,19 @@ function ComparisonPreview({ slug, draft, device, reloadKey }: { slug: string; d
         <div className="pe-compare-draft-layer" style={{ clipPath: `inset(0 0 0 ${split}%)` }}>
           <iframe key={`draft-${device}`} src={draftSrc} title={t("Draft")} style={{ width: frameWidth, height: frameHeight, transform: `scale(${scale})`, transformOrigin: "0 0" }} />
         </div>
-        <div className="pe-compare-handle" style={{ left: `${split}%` }} onMouseDown={() => setDragging(true)} onTouchStart={() => setDragging(true)}>
+        {dragging && <div className="pe-compare-shield" />}
+        <div
+          className={`pe-compare-handle${dragging ? " is-dragging" : ""}`}
+          style={{ left: `${split}%` }}
+          onPointerDown={startDrag}
+          onKeyDown={nudge}
+          role="slider"
+          tabIndex={0}
+          aria-label={t("Compare live and draft")}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(split)}
+        >
           <span className="pe-compare-handle-grip">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="8 7 3 12 8 17" /><polyline points="16 7 21 12 16 17" /></svg>
           </span>

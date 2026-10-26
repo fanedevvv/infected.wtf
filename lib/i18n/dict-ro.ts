@@ -664,6 +664,7 @@ const ro: Record<string, string> = {
   "Content": "Conținut",
   "Flair": "Stil",
   "Reach": "Distribuire",
+  "Compare live and draft": "Compară live cu draft",
 };
 
 export default ro;
