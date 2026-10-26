@@ -13,7 +13,7 @@ export default async function VerifyEmailResultPage({ searchParams }: { searchPa
         {status === "success" && (
           <>
             <div className="verify-icon success">
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="7 12 10.5 15.5 17 9" /></svg>
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#c6ff3d" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="7 12 10.5 15.5 17 9" /></svg>
             </div>
             <h1 className="verify-title success-text">Email Verified!</h1>
             <p className="verify-desc">

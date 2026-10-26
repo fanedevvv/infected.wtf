@@ -278,7 +278,7 @@ export default function SettingsClient(props: Props) {
       if (res.ok) {
         const lv = j.localViews ?? 0;
         setRegionMsg({
-          html: `✓ Region saved! ${lv > 0 ? `Found <strong style="color:#a78bfa">${lv}</strong> existing local views from ${regionNameSel}.` : `No existing views from ${regionNameSel} yet.`}`,
+          html: `✓ Region saved! ${lv > 0 ? `Found <strong style="color:var(--accent)">${lv}</strong> existing local views from ${regionNameSel}.` : `No existing views from ${regionNameSel} yet.`}`,
           ok: true,
         });
         setCurrentRegionLabel(regionNameSel);
@@ -309,7 +309,7 @@ export default function SettingsClient(props: Props) {
         <div className="acct-info-grid">
           <div className="acct-info-item">
             <div className="acct-info-item-header">
-              <div className="acct-info-item-icon" style={{ background: "rgba(124,58,237,.12)", color: "#7c3aed" }}>
+              <div className="acct-info-item-icon" style={{ background: "color-mix(in srgb, var(--accent) 12%, transparent)", color: "var(--accent)" }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
               </div>
               <span className="acct-info-item-label">{t("Username")}</span>
@@ -318,7 +318,7 @@ export default function SettingsClient(props: Props) {
           </div>
           <div className="acct-info-item">
             <div className="acct-info-item-header">
-              <div className="acct-info-item-icon" style={{ background: "rgba(167,139,250,.12)", color: "#a78bfa" }}>
+              <div className="acct-info-item-icon" style={{ background: "color-mix(in srgb, var(--accent) 12%, transparent)", color: "var(--accent)" }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
               </div>
               <span className="acct-info-item-label">{t("Email")}</span>
@@ -341,7 +341,7 @@ export default function SettingsClient(props: Props) {
         {/* Username */}
         <div className={`sv2-section ${openSections.has("sec-username") ? "open" : ""}`}>
           <div className="sv2-section-header" onClick={() => toggleSection("sec-username")}>
-            <div className="sv2-icon" style={{ background: "rgba(124,58,237,.1)", color: "#7c3aed" }}>
+            <div className="sv2-icon" style={{ background: "color-mix(in srgb, var(--accent) 10%, transparent)", color: "var(--accent)" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
             </div>
             <div>
@@ -373,7 +373,7 @@ export default function SettingsClient(props: Props) {
         {/* Email */}
         <div className={`sv2-section ${openSections.has("sec-email") ? "open" : ""}`}>
           <div className="sv2-section-header" onClick={() => toggleSection("sec-email")}>
-            <div className="sv2-icon" style={{ background: "rgba(167,139,250,.1)", color: "#a78bfa" }}>
+            <div className="sv2-icon" style={{ background: "color-mix(in srgb, var(--accent) 10%, transparent)", color: "var(--accent)" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
             </div>
             <div>
@@ -496,7 +496,7 @@ export default function SettingsClient(props: Props) {
         {/* Region */}
         <div className={`sv2-section ${openSections.has("sec-region") ? "open" : ""}`}>
           <div className="sv2-section-header" onClick={() => toggleSection("sec-region")}>
-            <div className="sv2-icon" style={{ background: "rgba(167,139,250,.12)", color: "#a78bfa" }}>
+            <div className="sv2-icon" style={{ background: "color-mix(in srgb, var(--accent) 12%, transparent)", color: "var(--accent)" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
             </div>
             <div>
@@ -535,7 +535,7 @@ export default function SettingsClient(props: Props) {
               </div>
             </div>
 
-            <button className="sv2-btn" onClick={saveRegion} style={{ background: "linear-gradient(135deg,rgba(167,139,250,.3),rgba(167,139,250,.1))", border: "1px solid rgba(167,139,250,.35)", color: "#a78bfa" }}>
+            <button className="sv2-btn" onClick={saveRegion} style={{ background: "linear-gradient(135deg,color-mix(in srgb, var(--accent) 30%, transparent),color-mix(in srgb, var(--accent) 10%, transparent))", border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)", color: "var(--accent)" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
               {t("Save Region")}
             </button>

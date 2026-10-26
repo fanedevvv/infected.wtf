@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import DashboardShell from "@/components/DashboardShell";
 import { I18nProvider } from "@/lib/i18n/client";
 import { LOCALE_COOKIE, normalizeLocale } from "@/lib/i18n/shared";
-import { DASH_ACCENT_COOKIE, DASH_THEME_COOKIE, DEFAULT_DASH_ACCENT, normalizeAccent, normalizeDashMode } from "@/lib/dash-theme";
+import { DASH_ACCENT_COOKIE, DASH_THEME_COOKIE, DEFAULT_DASH_ACCENT, accentInk, normalizeAccent, normalizeDashMode } from "@/lib/dash-theme";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import "../dash-accent.css";
@@ -20,8 +20,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const mode = normalizeDashMode(saved?.dashTheme ?? store.get(DASH_THEME_COOKIE)?.value);
   const accent = normalizeAccent(saved?.dashAccent ?? decodeURIComponent(store.get(DASH_ACCENT_COOKIE)?.value || ""));
 
-  // Applied before first paint so a light/custom-accent dashboard doesn't flash dark purple on load.
-  const boot = `(function(){var r=document.documentElement;r.classList.add("dash-active");${mode === "light" ? 'r.classList.add("dash-light");' : ""}${accent !== DEFAULT_DASH_ACCENT ? `r.classList.add("dash-custom-accent");r.style.setProperty("--dash-accent","${accent}");` : ""}})()`;
+  // Applied before first paint so a light/custom-accent dashboard doesn't flash the default accent on load.
+  const boot = `(function(){var r=document.documentElement;r.classList.add("dash-active");${mode === "light" ? 'r.classList.add("dash-light");' : ""}${accent !== DEFAULT_DASH_ACCENT ? `r.classList.add("dash-custom-accent");r.style.setProperty("--dash-accent","${accent}");r.style.setProperty("--accent-ink","${accentInk(accent)}");` : ""}})()`;
 
   return (
     <I18nProvider locale={locale}>

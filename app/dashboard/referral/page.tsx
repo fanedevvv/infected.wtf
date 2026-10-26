@@ -75,7 +75,7 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
 
   const btnBase = "display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:38px;padding:0 .75rem;border-radius:10px;font-size:.82rem;font-weight:700;text-decoration:none;transition:all .2s;border:1px solid;";
   const btnNormal = btnBase + "background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1);color:rgba(255,255,255,.6);";
-  const btnActive = btnBase + "background:rgba(124,58,237,.12);border-color:rgba(124,58,237,.45);color:#7c3aed;box-shadow:0 0 12px rgba(124,58,237,.2);";
+  const btnActive = btnBase + "background:color-mix(in srgb, var(--accent) 12%, transparent);border-color:color-mix(in srgb, var(--accent) 45%, transparent);color:var(--accent);box-shadow:0 0 12px color-mix(in srgb, var(--accent) 20%, transparent);";
   const btnDisabl = btnBase + "background:rgba(255,255,255,.02);border-color:rgba(255,255,255,.05);color:rgba(255,255,255,.2);pointer-events:none;";
 
   const pageNumbers: number[] = [];

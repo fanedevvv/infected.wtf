@@ -100,8 +100,8 @@ export default function AnalyticsClient() {
 
   function initCharts() {
     if (!window.Chart || !viewsCanvasRef.current || !deviceCanvasRef.current || viewsChartRef.current) return;
-    const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#7c3aed";
-    const accent2 = getComputedStyle(document.documentElement).getPropertyValue("--accent2").trim() || "#1e40af";
+    const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#c6ff3d";
+    const accent2 = getComputedStyle(document.documentElement).getPropertyValue("--accent2").trim() || "#8fc21a";
     const rgb = hexToRgb(accent);
 
     viewsChartRef.current = new window.Chart(viewsCanvasRef.current.getContext("2d"), {
@@ -417,7 +417,7 @@ export default function AnalyticsClient() {
               }
               return (
                 <div className="an-list-item" key={l.link_id}>
-                  <div className="an-list-icon" style={{ background: "rgba(124,58,237,.08)", borderColor: "rgba(124,58,237,.15)", color: "var(--accent)" }}>
+                  <div className="an-list-icon" style={{ background: "color-mix(in srgb, var(--accent) 8%, transparent)", borderColor: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="13" height="13"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
                   </div>
                   <div className="an-list-info">

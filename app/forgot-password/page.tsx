@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import LabAuth from "@/components/lab/LabAuth";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -32,38 +32,23 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="flex flex-1 items-center justify-center px-4 py-16">
-      <form onSubmit={handleSubmit} className="gf-card w-full max-w-md p-8">
-        <h1 className="font-[var(--font-display)] text-2xl font-bold mb-1">Forgot password</h1>
-        <p className="text-white/50 text-sm mb-6">We&apos;ll send a reset link to your email.</p>
-
-        {msg && (
-          <div className="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
-            {msg}
-          </div>
-        )}
-        {error && (
-          <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
-            {error}
-          </div>
-        )}
-
-        <input
-          type="email"
-          className="gf-input"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <button type="submit" disabled={loading} className="gf-btn w-full mt-4">
+    <LabAuth
+      kicker="Recovery"
+      title={<>Forgot <span className="is-accent">password?</span></>}
+      description="We'll send a reset link to your email."
+      alt={{ text: "Remembered it?", label: "Log in", href: "/login" }}
+    >
+      <form onSubmit={handleSubmit} className="auth-fields">
+        {msg && <div className="alert alert-success">{msg}</div>}
+        {error && <div className="alert alert-error">{error}</div>}
+        <div className="auth-field">
+          <label htmlFor="fp-email">Email</label>
+          <input id="fp-email" type="email" className="form-control" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        </div>
+        <button type="submit" disabled={loading} className="lab-btn lab-btn--solid lab-btn--lg lab-btn--block">
           {loading ? "Sending…" : "Send reset link"}
         </button>
-        <p className="text-center text-white/40 text-xs mt-5">
-          <Link href="/login" className="text-[var(--accent)]">
-            Back to login
-          </Link>
-        </p>
       </form>
-    </main>
+    </LabAuth>
   );
 }

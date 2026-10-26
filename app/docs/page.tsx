@@ -3,6 +3,7 @@ import { isValidElement, type ReactNode } from "react";
 import { prisma } from "@/lib/prisma";
 import { DISCORD_INVITE, DOC_PAGES, DOC_SECTIONS, SITE, findDoc } from "@/lib/docs";
 import DocsSearch from "@/components/docs/DocsSearch";
+import { LabMark, LabWordmark } from "@/components/lab/LabMark";
 
 export const dynamic = "force-dynamic";
 
@@ -64,9 +65,7 @@ export default async function DocsPage({ searchParams }: { searchParams: Promise
     <div className="dc-root">
       <header className="dc-header">
         <a href="?page=getting-started" className="dc-brand">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`${SITE}/assets/img/logo-icon.png`} alt="" />
-          <span>infected.wtf</span>
+          <LabWordmark />
           <em>docs</em>
         </a>
         <DocsSearch entries={searchEntries} />
@@ -123,8 +122,7 @@ export default async function DocsPage({ searchParams }: { searchParams: Promise
 
       <footer className="dc-footer">
         <div className="dc-footer-brand">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`${SITE}/assets/img/logo-icon.png`} alt="" />
+          <LabMark size={18} className="lab-wordmark-mark" />
           <span>© {new Date().getFullYear()} infected.wtf</span>
         </div>
         <div className="dc-footer-links">

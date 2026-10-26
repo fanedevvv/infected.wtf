@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import ToastContainer from "./ToastContainer";
+import { LabWordmark } from "./lab/LabMark";
 import { LanguagePicker, ThemePicker } from "./DashPrefs";
 import { useT } from "@/lib/i18n/client";
 import { applyDashTheme, clearDashTheme, type DashMode } from "@/lib/dash-theme";
@@ -141,7 +142,7 @@ export default function DashboardShell({ children, initialMode, initialAccent }:
             <button
               onClick={() => { setNotifOpen((o) => !o); if (!notifOpen) loadNotifs(); }}
               title="Notifications"
-              style={{ position: "relative", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 10, width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,.75)" }}
+              className="dash-icon-btn"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="17" height="17">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
@@ -160,7 +161,7 @@ export default function DashboardShell({ children, initialMode, initialAccent }:
                   ) : (
                     notifs.map((n) => (
                       <div key={n.id} className={`notif-item ${!n.isRead ? "unread" : ""}`} onClick={() => openNotif(n.id)}>
-                        <div className="notif-item-icon" style={{ background: "rgba(124,58,237,.12)", color: "#7c3aed" }}>
+                        <div className="notif-item-icon">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -179,7 +180,7 @@ export default function DashboardShell({ children, initialMode, initialAccent }:
           </div>
 
           <Link href="/dashboard?page=shop" className="navbar-tokens" title="Go to Shop">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15" style={{ color: "var(--accent)" }}><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z" /></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z" /></svg>
             <span>{me?.tokens ?? 0}</span>
           </Link>
 
@@ -219,9 +220,8 @@ export default function DashboardShell({ children, initialMode, initialAccent }:
       <div className="dashboard-layout">
         <aside className={`sidebar ${sidebarOpen ? "sidebar-open" : ""}`} id="sidebar">
           <div className="sidebar-logo-wrap">
-            <Link href="/dashboard" className="sidebar-logo">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/img/logo-wordmark.svg" alt="INFECTED.WTF" className="brand-logo-img" />
+            <Link href="/dashboard" className="sidebar-logo" aria-label="infected.wtf dashboard">
+              <LabWordmark />
             </Link>
           </div>
 
@@ -419,26 +419,26 @@ function ManageAccountsModal({ currentUsername, currentAvatar, onClose }: { curr
   }
 
   return (
-    <div onClick={(e) => e.target === e.currentTarget && onClose()} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
-      <div style={{ background: "#13131a", border: "1px solid rgba(255,255,255,.1)", borderRadius: 16, padding: "1.5rem", width: "min(420px,95vw)", maxHeight: "80vh", overflowY: "auto", position: "relative" }}>
-        <button onClick={onClose} style={{ position: "absolute", top: ".9rem", right: ".9rem", background: "rgba(255,255,255,.06)", border: "none", color: "#aaa", width: 28, height: 28, borderRadius: "50%", cursor: "pointer" }}>✕</button>
-        <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "#fff" }}>{t("Manage Accounts")}</div>
-        <div style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.1rem" }}>{t("Switch between multiple accounts")}</div>
+    <div className="lab-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()} style={{ zIndex: 9999 }}>
+      <div className="lab-modal" style={{ maxHeight: "80vh", overflowY: "auto" }}>
+        <button onClick={onClose} className="lab-modal-close" aria-label="Close">✕</button>
+        <span className="lab-label"><span className="lab-dot" /> {t("Manage Accounts")}</span>
+        <div className="lab-modal-sub" style={{ marginTop: ".6rem" }}>{t("Switch between multiple accounts")}</div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: ".75rem", padding: ".65rem .75rem", background: "rgba(124,58,237,.06)", border: "1px solid rgba(124,58,237,.15)", borderRadius: 10, marginBottom: ".5rem" }}>
-          <div style={{ width: 38, height: 38, borderRadius: "50%", flexShrink: 0, overflow: "hidden", background: "rgba(124,58,237,.15)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: ".75rem", padding: ".65rem .75rem", background: "color-mix(in srgb, var(--accent) 6%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", marginBottom: ".5rem" }}>
+          <div style={{ width: 38, height: 38, borderRadius: "50%", flexShrink: 0, overflow: "hidden", background: "var(--panel-2)" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {currentAvatar && <img src={`/${currentAvatar}`} alt="" style={{ width: 38, height: 38, objectFit: "cover" }} />}
           </div>
           <div>
             <div style={{ fontSize: ".85rem", fontWeight: 600, color: "#fff" }}>@{currentUsername}</div>
-            <div style={{ fontSize: ".7rem", color: "#34d399" }}>● Active account</div>
+            <div style={{ fontSize: ".7rem", color: "var(--accent)" }}>● Active account</div>
           </div>
         </div>
 
         {accounts.map((a) => (
-          <div key={a.username} style={{ display: "flex", alignItems: "center", gap: ".75rem", padding: ".65rem .75rem", background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.07)", borderRadius: 10, marginBottom: ".4rem" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "50%", flexShrink: 0, overflow: "hidden", background: "rgba(99,102,241,.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "#818cf8", fontWeight: 700 }}>
+          <div key={a.username} style={{ display: "flex", alignItems: "center", gap: ".75rem", padding: ".65rem .75rem", border: "1px solid var(--border)", marginBottom: ".4rem" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "50%", flexShrink: 0, overflow: "hidden", background: "var(--panel-2)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)", fontWeight: 700 }}>
               {a.avatar ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={a.avatar} alt="" style={{ width: 38, height: 38, objectFit: "cover" }} />

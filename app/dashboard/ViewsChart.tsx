@@ -17,7 +17,7 @@ export default function ViewsChart({ labels, data }: { labels: string[]; data: n
     if (!window.Chart || !canvasRef.current) return;
     if (chartRef.current) chartRef.current.destroy();
 
-    const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#7c3aed";
+    const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#c6ff3d";
     function hexToRgb(hex: string) {
       const r = parseInt(hex.slice(1, 3), 16);
       const g = parseInt(hex.slice(3, 5), 16);

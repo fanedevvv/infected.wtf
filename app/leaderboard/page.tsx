@@ -1,13 +1,11 @@
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
-import PublicNavbar from "@/components/PublicNavbar";
+import LabNav from "@/components/lab/LabNav";
 import LeaderboardTabs from "./LeaderboardTabs";
 import SafeImg from "@/components/SafeImg";
 import CookieBanner from "@/components/CookieBanner";
-import SiteFooter from "@/components/SiteFooter";
-import SmoothScroll from "@/components/SmoothScroll";
-import PatternWaves from "@/components/ui/PatternWaves";
+import LabFooter from "@/components/lab/LabFooter";
 import { getCookieConsent } from "@/lib/cookie-consent";
 
 function isPremiumNow(isPremium: boolean, premiumExpiresAt: Date | null): boolean {
@@ -224,25 +222,21 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
   }
 
   return (
-    <div className="lc-site lb-root">
-      <div className="lb-waves" aria-hidden="true">
-        <PatternWaves preset="silk" color="#a78bfa" backgroundColor="transparent" fade="edges" fadeSize={0.6} opacity={0.55} interactive cursorSize={50} cursorStrength={0.6} />
-      </div>
-      <PublicNavbar user={currentUser} active="leaderboard" />
+    <div className="lab-page lb-lab">
+      <LabNav user={currentUser} />
       <div className="lb-page">
-        <header className="lb-head">
-          <div className="lb-head-glow" aria-hidden="true" />
-          <div className="ls-label">Hall of fame.</div>
-          <h1>The most viewed pages <em>on infected.wtf.</em></h1>
-          <p>Updated live. Search any username to see where they stand.</p>
+        <header className="lb-head lab-wrap">
+          <span className="lab-label"><span className="lab-dot" /> Live · Hall of fame</span>
+          <h1>Most <span className="is-accent">contagious.</span></h1>
+          <p>The most viewed pages on infected.wtf, updated live. Search any username to see where they stand.</p>
 
           <form className="lb-search-form" method="get" action="/leaderboard">
-            <div className="lb-search-wrap">
-              <svg className="lb-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="15" height="15"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-              <input type="text" name="q" className="lb-search-input" placeholder="Search username…" defaultValue={searchQuery} autoComplete="off" />
-            </div>
+            <label className="lb-search-wrap">
+              <span className="lx-claim-prompt" aria-hidden="true">&gt;</span>
+              <input type="text" name="q" className="lb-search-input" placeholder="search username" defaultValue={searchQuery} autoComplete="off" spellCheck={false} />
+            </label>
             {searchQuery && <a href="/leaderboard" className="lb-search-clear" aria-label="Clear search">✕</a>}
-            <button type="submit" className="lb-search-btn">Search.</button>
+            <button type="submit" className="lab-btn lab-btn--solid">Search</button>
           </form>
         </header>
 
@@ -254,7 +248,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                 <SafeImg src={searchResult.avatar ? `/${searchResult.avatar}` : null} className="lb-search-avatar" />
                 <div>
                   <div style={{ fontWeight: 700, fontSize: ".95rem" }}>{searchResult.displayName || searchResult.username}</div>
-                  <div style={{ fontSize: ".8rem", color: "rgba(255,255,255,.4)", marginTop: ".15rem" }}>
+                  <div className="lb-search-sub">
                     @{searchResult.username} · {searchResult.views.toLocaleString()} views
                   </div>
                 </div>
@@ -283,8 +277,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
           badgeRegionName={badgeRegionName}
         />
       </div>
-      <SiteFooter />
-      <SmoothScroll />
+      <LabFooter />
       <CookieBanner initialConsent={await getCookieConsent()} />
     </div>
   );

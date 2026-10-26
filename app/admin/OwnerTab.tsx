@@ -541,12 +541,12 @@ export default function OwnerTab({
       </div>
 
       {/* ── Domains ── */}
-      <div className="dash-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(124,58,237,.3)", background: "linear-gradient(160deg,rgba(124,58,237,.05) 0%,rgba(124,58,237,.02) 100%)" }}>
+      <div className="dash-card" style={{ marginBottom: "1.5rem", borderColor: "color-mix(in srgb, var(--accent) 30%, transparent)", background: "linear-gradient(160deg,color-mix(in srgb, var(--accent) 5%, transparent) 0%,color-mix(in srgb, var(--accent) 2%, transparent) 100%)" }}>
         <div className="dash-card-header" style={{ borderBottom: "1px solid rgba(255,255,255,.06)", paddingBottom: "1rem", marginBottom: "1.4rem" }}>
           <span className="dash-card-title" style={{ display: "flex", alignItems: "center", gap: ".6rem" }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2" width="18" height="18"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
-            <span style={{ color: "#7c3aed" }}>Domains</span>
-            <span style={{ fontSize: ".65rem", padding: ".2rem .55rem", background: "rgba(124,58,237,.15)", border: "1px solid rgba(124,58,237,.4)", borderRadius: 99, color: "#7c3aed", fontWeight: 700, letterSpacing: ".05em" }}>OWNER</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#c6ff3d" strokeWidth="2" width="18" height="18"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
+            <span style={{ color: "var(--accent)" }}>Domains</span>
+            <span style={{ fontSize: ".65rem", padding: ".2rem .55rem", background: "color-mix(in srgb, var(--accent) 15%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 40%, transparent)", borderRadius: 99, color: "var(--accent)", fontWeight: 700, letterSpacing: ".05em" }}>OWNER</span>
           </span>
           <span style={{ fontSize: ".78rem", color: "rgba(255,255,255,.35)" }}>Add a domain you own — DNS is checked automatically, and once it points here, SSL is provisioned and the domain goes live for users to pick.</span>
         </div>
@@ -565,7 +565,7 @@ export default function OwnerTab({
               <label style={{ fontSize: ".72rem", color: "rgba(255,255,255,.45)", fontWeight: 600, display: "block", marginBottom: ".35rem" }}>TIER</label>
               <div style={{ display: "flex", gap: ".4rem" }}>
                 <button type="button" onClick={() => setNewDomainTier("free")}
-                  style={{ padding: ".6rem .9rem", borderRadius: 8, fontSize: ".8rem", fontWeight: 700, cursor: "pointer", border: `1px solid ${newDomainTier === "free" ? "rgba(124,58,237,.5)" : "rgba(255,255,255,.1)"}`, background: newDomainTier === "free" ? "rgba(124,58,237,.12)" : "rgba(255,255,255,.05)", color: newDomainTier === "free" ? "#7c3aed" : "rgba(255,255,255,.6)" }}>
+                  style={{ padding: ".6rem .9rem", borderRadius: 8, fontSize: ".8rem", fontWeight: 700, cursor: "pointer", border: `1px solid ${newDomainTier === "free" ? "color-mix(in srgb, var(--accent) 50%, transparent)" : "rgba(255,255,255,.1)"}`, background: newDomainTier === "free" ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "rgba(255,255,255,.05)", color: newDomainTier === "free" ? "var(--accent)" : "rgba(255,255,255,.6)" }}>
                   Free
                 </button>
                 <button type="button" onClick={() => setNewDomainTier("premium")}
@@ -574,7 +574,7 @@ export default function OwnerTab({
                 </button>
               </div>
             </div>
-            <button onClick={addDomain} disabled={addingDomain || !newDomainHost.trim()} style={{ opacity: addingDomain || !newDomainHost.trim() ? .6 : 1, display: "inline-flex", alignItems: "center", gap: ".5rem", padding: ".6rem 1.2rem", background: "linear-gradient(135deg,#7c3aed,#28c40d)", border: "none", borderRadius: 8, color: "#04140a", fontSize: ".85rem", fontWeight: 700, cursor: "pointer" }}>
+            <button onClick={addDomain} disabled={addingDomain || !newDomainHost.trim()} style={{ opacity: addingDomain || !newDomainHost.trim() ? .6 : 1, display: "inline-flex", alignItems: "center", gap: ".5rem", padding: ".6rem 1.2rem", background: "linear-gradient(135deg,var(--accent),#28c40d)", border: "none", borderRadius: 8, color: "#04140a", fontSize: ".85rem", fontWeight: 700, cursor: "pointer" }}>
               {addingDomain ? "Adding…" : "Add Domain"}
             </button>
           </div>
@@ -593,7 +593,7 @@ export default function OwnerTab({
                       <div style={{ display: "flex", alignItems: "center", gap: ".5rem" }}>
                         <span style={{ fontWeight: 700, fontSize: ".9rem", color: "#fff" }}>{d.hostname}</span>
                         <span style={{ background: `${statusPill[1]}1a`, border: `1px solid ${statusPill[1]}66`, borderRadius: 6, padding: ".1rem .45rem", color: statusPill[1], fontWeight: 600, fontSize: ".68rem" }}>{statusPill[0]}</span>
-                        {d.isDefault && <span style={{ background: "rgba(124,58,237,.1)", border: "1px solid rgba(124,58,237,.35)", borderRadius: 6, padding: ".1rem .45rem", color: "#7c3aed", fontWeight: 600, fontSize: ".68rem" }}>Default</span>}
+                        {d.isDefault && <span style={{ background: "color-mix(in srgb, var(--accent) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)", borderRadius: 6, padding: ".1rem .45rem", color: "var(--accent)", fontWeight: 600, fontSize: ".68rem" }}>Default</span>}
                         {!d.isDefault && (
                           <button onClick={() => setDomainTier(d.id, d.tier === "premium" ? "free" : "premium")} disabled={domainBusyId === d.id}
                             style={{ background: d.tier === "premium" ? "rgba(251,191,36,.1)" : "rgba(255,255,255,.06)", border: `1px solid ${d.tier === "premium" ? "rgba(251,191,36,.35)" : "rgba(255,255,255,.15)"}`, borderRadius: 6, padding: ".1rem .45rem", color: d.tier === "premium" ? "#fbbf24" : "rgba(255,255,255,.5)", fontWeight: 600, fontSize: ".68rem", cursor: "pointer" }}

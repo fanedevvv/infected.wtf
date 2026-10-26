@@ -101,7 +101,7 @@ export default function ResetPasswordForm({
         {status === "success" && (
           <>
             <div className="ci success">
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="7 12 10.5 15.5 17 9" /></svg>
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#c6ff3d" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="7 12 10.5 15.5 17 9" /></svg>
             </div>
             <h1 className="confirm-title success-text">Password Reset!</h1>
             <p className="confirm-desc">Your password has been changed successfully. You can now sign in with your new password.</p>
@@ -119,7 +119,7 @@ export default function ResetPasswordForm({
           <>
             <div className="ci lock">
               <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="32" height="32">
-                <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#1e40af" /><stop offset="100%" stopColor="#7c3aed" /></linearGradient></defs>
+                <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#8fc21a" /><stop offset="100%" stopColor="#c6ff3d" /></linearGradient></defs>
                 <rect x="3" y="11" width="18" height="11" rx="2" stroke="url(#lg)" />
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="url(#lg)" />
               </svg>

@@ -3,9 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Script from "next/script";
-import { useRouter } from "next/navigation";
-import { AuthForm } from "@/components/ui/sign-in-1";
-import { Button } from "@/components/ui/button";
+import LabAuth from "@/components/lab/LabAuth";
 
 const STRENGTH_LEVELS = [
   { label: "Too short", color: "#ff4444", width: 10 },
@@ -34,7 +32,6 @@ declare global {
 }
 
 export default function RegisterForm({ initialRef, initialUsername }: { initialRef: string; initialUsername: string }) {
-  const router = useRouter();
   const [username, setUsername] = useState(initialUsername);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -116,95 +113,62 @@ export default function RegisterForm({ initialRef, initialUsername }: { initialR
 
   if (success) {
     return (
-      <div className="auth-page">
-        <canvas id="particle-canvas" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }} />
-        <div className="modal-overlay">
-          <div className="modal-card">
-            <span className="modal-site">INFECTED.WTF</span>
-            <div className="envelope-wrap">
-              <div className="envelope-bg">
-                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M22 7l-10 7L2 7" /></svg>
-              </div>
-            </div>
-            <h2 className="modal-title">Check your inbox</h2>
-            <p className="modal-sub">
-              We sent a verification link to<br />
-              <span className="hl">{pendingEmail}</span><br />
-              Click the link to activate your account.
-            </p>
-            <ul className="verify-checklist">
-              <li><span className="check">✓</span> Open the email from <strong style={{ color: "var(--text)" }}>INFECTED.WTF</strong></li>
-              <li><span className="check">✓</span> Click the <strong style={{ color: "var(--text)" }}>Verify My Email</strong> button inside</li>
-              <li><span className="check">✓</span> Check your <strong style={{ color: "var(--text)" }}>spam / junk</strong> folder if needed</li>
-            </ul>
-            <div className="resend-wrap">
-              Didn&apos;t get it?{" "}
-              <button className="resend-btn" disabled={resendCooldown > 0} onClick={resend}>
-                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend email"}
-              </button>
-            </div>
-          </div>
+      <LabAuth kicker="Sample sent" title={<>Check your <span className="is-accent">inbox.</span></>} sideTitle={<>Almost<br /><span className="is-accent">infected.</span></>}>
+        <p className="la-desc">
+          We sent a verification link to <span className="la-hl">{pendingEmail}</span>. Click it to activate your account.
+        </p>
+        <ol className="la-steps">
+          <li>Open the email from <strong>infected.wtf</strong></li>
+          <li>Click the <strong>Verify my email</strong> button inside</li>
+          <li>Check your <strong>spam / junk</strong> folder if needed</li>
+        </ol>
+        <div className="la-resend">
+          Didn&apos;t get it?{" "}
+          <button className="la-link-btn" disabled={resendCooldown > 0} onClick={resend}>
+            {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend email"}
+          </button>
         </div>
-      </div>
+      </LabAuth>
     );
   }
 
   if (rateLimited) {
     return (
-      <div className="auth-page">
-        <canvas id="particle-canvas" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }} />
-        <div className="modal-overlay">
-          <div className="modal-card">
-            <span className="modal-site">INFECTED.WTF</span>
-            <div className="ratelimit-icon">
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ff8080" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
-            </div>
-            <h2 className="modal-title red">Already registered!</h2>
-            <p className="modal-sub">
-              An account with <span className="hl-red">{pendingEmail}</span> already exists but is <strong style={{ color: "#ff8080" }}>not verified yet</strong>.<br /><br />
-              {rateLimitSecs > 0 ? "A verification email was recently sent. Please wait before requesting another one." : "We just sent you a new verification link. Check your inbox!"}
-            </p>
-            {rateLimitSecs > 0 && (
-              <div className="countdown-bar-wrap">
-                <div className="countdown-bar-label">Wait <strong>{rateLimitSecs}</strong>s before resending</div>
-                <div className="countdown-bar-track">
-                  <div className="countdown-bar-fill" style={{ width: `${Math.round((rateLimitSecs / 60) * 100)}%` }} />
-                </div>
-              </div>
-            )}
-            <div className="modal-btn-row">
-              {rateLimitSecs <= 0 ? (
-                <Link href="/register" className="btn btn-primary btn-full" style={{ background: "linear-gradient(135deg,rgba(255,80,80,.2),rgba(255,80,80,.1))", border: "1px solid rgba(255,80,80,.35)", color: "#ff8080" }}>
-                  Back to register
-                </Link>
-              ) : (
-                <button disabled className="btn btn-primary btn-full" style={{ opacity: 0.5 }}>
-                  Resend in {rateLimitSecs}s
-                </button>
-              )}
-              <Link href="/login" className="btn btn-secondary btn-full">Sign in instead</Link>
-            </div>
+      <LabAuth kicker="Already registered" title={<>Pending <span className="is-hazard">verification.</span></>}>
+        <p className="la-desc">
+          An account with <span className="la-hl">{pendingEmail}</span> already exists but is not verified yet.{" "}
+          {rateLimitSecs > 0 ? "A verification email was recently sent. Please wait before requesting another one." : "We just sent you a new verification link. Check your inbox!"}
+        </p>
+        {rateLimitSecs > 0 && (
+          <div className="la-countdown">
+            <div className="lab-label">Wait {rateLimitSecs}s before resending</div>
+            <div className="la-countdown-track"><i style={{ width: `${Math.round((rateLimitSecs / 60) * 100)}%` }} /></div>
           </div>
+        )}
+        <div className="la-btn-col">
+          {rateLimitSecs <= 0 ? (
+            <Link href="/register" className="lab-btn lab-btn--solid lab-btn--lg lab-btn--block">Back to register</Link>
+          ) : (
+            <button disabled className="lab-btn lab-btn--ghost lab-btn--lg lab-btn--block">Resend in {rateLimitSecs}s</button>
+          )}
+          <Link href="/login" className="lab-btn lab-btn--ghost lab-btn--lg lab-btn--block">Sign in instead</Link>
         </div>
-      </div>
+      </LabAuth>
     );
   }
 
   const strength = password ? STRENGTH_LEVELS[Math.min(getStrength(password), STRENGTH_LEVELS.length - 1)] : null;
 
   return (
-    <div className="reg-page auth-shell-page">
+    <>
       <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer strategy="afterInteractive" />
-      <div className="reg-glow" aria-hidden="true" />
-
-      <AuthForm
-        className="auth-shell auth-shell--wide"
-        wrapperClassName="w-full"
-        logo={<span className="auth-wordmark">infected.wtf</span>}
-        title="Reserve your name"
-        description="Claim your infected.wtf link before someone else does — it's free, forever."
-        secondaryActions={[{ label: "Sign in instead", onClick: () => router.push("/login") }]}
-        skipAction={{ label: "Back to home", onClick: () => router.push("/") }}
+      <LabAuth
+        wide
+        kicker="New host"
+        title={<>Claim your <span className="is-accent">name.</span></>}
+        description="Reserve your infected.wtf link before someone else does — it's free, forever."
+        sideTitle={<>Get<br /><span className="is-accent">infected.</span></>}
+        alt={{ text: "Already a host?", label: "Log in", href: "/login" }}
       >
         {error && <div className="alert alert-error">⚠ {error}</div>}
 
@@ -258,7 +222,7 @@ export default function RegisterForm({ initialRef, initialUsername }: { initialR
           <div className={`terms-wrap ${shake ? "shake" : ""}`} onClick={() => setTerms((t) => !t)}>
             <div className={`terms-box ${terms ? "checked" : ""}`}>
               {terms && (
-                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
               )}
             </div>
             <div className="reg-terms-text">
@@ -268,11 +232,11 @@ export default function RegisterForm({ initialRef, initialUsername }: { initialR
           </div>
           <div className="cf-turnstile auth-turnstile" data-sitekey="0x4AAAAAAFZb0eaZ25joGga3" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired" data-theme="dark" />
 
-          <Button type="submit" disabled={loading || !terms} className="auth-submit w-full gap-2 transition-transform hover:scale-[1.03]">
-            {loading ? "Creating account…" : <>Create account <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="15" height="15"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg></>}
-          </Button>
+          <button type="submit" disabled={loading || !terms} className="lab-btn lab-btn--solid lab-btn--lg lab-btn--block">
+            {loading ? "Creating account…" : <>Create account <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" width="14" height="14"><path d="M5 12h14M13 6l6 6-6 6" /></svg></>}
+          </button>
         </form>
-      </AuthForm>
-    </div>
+      </LabAuth>
+    </>
   );
 }

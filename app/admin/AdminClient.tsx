@@ -469,8 +469,8 @@ export default function AdminClient(props: Props) {
               <div className="stat-label">Total Links</div>
             </div>
             <div className="stat-card">
-              <div className="stat-icon" style={{ color: "#a78bfa" }}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="22" height="22"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg></div>
-              <div className="stat-number" style={{ color: "#a78bfa" }}>{props.stats.totalTokensSpent.toLocaleString()}</div>
+              <div className="stat-icon" style={{ color: "var(--accent)" }}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="22" height="22"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg></div>
+              <div className="stat-number" style={{ color: "var(--accent)" }}>{props.stats.totalTokensSpent.toLocaleString()}</div>
               <div className="stat-label">Tokens Spent</div>
             </div>
             <div className="stat-card">
@@ -841,7 +841,7 @@ export default function AdminClient(props: Props) {
 
                   <div className="ep-section">
                     <div className="ep-section-head">
-                      <div className="ep-section-ico" style={{ background: "rgba(124,58,237,.1)", color: "var(--accent)" }}>
+                      <div className="ep-section-ico" style={{ background: "color-mix(in srgb, var(--accent) 10%, transparent)", color: "var(--accent)" }}>
                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z" /></svg>
                       </div>
                       <div>
@@ -852,8 +852,8 @@ export default function AdminClient(props: Props) {
                     </div>
                     <div style={{ display: "flex", gap: ".65rem", alignItems: "center", marginTop: ".25rem" }}>
                       <input type="number" min={0} max={999999} value={tokensInput} onChange={(e) => setTokensInput(e.target.value)} placeholder="Token amount"
-                        style={{ flex: 1, padding: ".52rem .85rem", fontSize: ".85rem", borderRadius: 10, background: "rgba(124,58,237,.04)", border: "1px solid rgba(124,58,237,.25)", color: "#fff", outline: "none" }} />
-                      <button onClick={epSetTokens} style={{ padding: ".52rem 1.1rem", borderRadius: 10, fontSize: ".82rem", fontWeight: 700, cursor: "pointer", border: "1px solid rgba(124,58,237,.35)", background: "rgba(124,58,237,.1)", color: "var(--accent)", whiteSpace: "nowrap" }}>Set tokens</button>
+                        style={{ flex: 1, padding: ".52rem .85rem", fontSize: ".85rem", borderRadius: 10, background: "color-mix(in srgb, var(--accent) 4%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 25%, transparent)", color: "#fff", outline: "none" }} />
+                      <button onClick={epSetTokens} style={{ padding: ".52rem 1.1rem", borderRadius: 10, fontSize: ".82rem", fontWeight: 700, cursor: "pointer", border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)", background: "color-mix(in srgb, var(--accent) 10%, transparent)", color: "var(--accent)", whiteSpace: "nowrap" }}>Set tokens</button>
                     </div>
                     <p style={{ fontSize: ".75rem", color: "rgba(255,255,255,.3)", marginTop: ".55rem" }}>Current balance: {(epUser.tokens ?? 0).toLocaleString()} tokens</p>
                   </div>
@@ -906,7 +906,7 @@ export default function AdminClient(props: Props) {
                   {!epIsSelf && (
                     <div className="ep-section">
                       <div className="ep-section-head">
-                        <div className="ep-section-ico" style={{ background: "rgba(124,58,237,.1)", color: "var(--accent)" }}>
+                        <div className="ep-section-ico" style={{ background: "color-mix(in srgb, var(--accent) 10%, transparent)", color: "var(--accent)" }}>
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
                         </div>
                         <div>
@@ -921,7 +921,7 @@ export default function AdminClient(props: Props) {
                           const styleMap: Record<string, { bg: string; border: string; color: string }> = {
                             user: { bg: "rgba(255,255,255,.06)", border: "rgba(255,255,255,.15)", color: "rgba(255,255,255,.7)" },
                             mod: { bg: "rgba(168,85,247,.08)", border: "rgba(168,85,247,.35)", color: "#a855f7" },
-                            admin: { bg: "rgba(124,58,237,.08)", border: "rgba(124,58,237,.3)", color: "var(--accent)" },
+                            admin: { bg: "color-mix(in srgb, var(--accent) 8%, transparent)", border: "color-mix(in srgb, var(--accent) 30%, transparent)", color: "var(--accent)" },
                             owner: { bg: "rgba(251,191,36,.08)", border: "rgba(251,191,36,.35)", color: "#fbbf24" },
                           };
                           const s = styleMap[r];

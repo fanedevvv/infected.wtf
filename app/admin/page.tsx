@@ -3,7 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { parseStringArray } from "@/lib/json-array";
 import { getAllEmailTemplates } from "@/lib/email-templates";
+import Link from "next/link";
 import AdminClient from "./AdminClient";
+import { LabWordmark } from "@/components/lab/LabMark";
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ page?: string; q?: string }> }) {
   const params = await searchParams;
@@ -96,58 +98,66 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   });
 
   return (
-    <AdminClient
-      iAmOwner={iAmOwner}
-      iAmAdmin={iAmAdmin}
-      iAmMod={iAmMod}
-      canGrantOwner={canGrantOwner}
-      myOwnerRank={myOwnerRank}
-      myUserId={me.id}
-      stats={{ totalUsers, totalViews, totalLinks, totalTokensSpent, premiumCount, verifiedCount, bannedCount }}
-      whitelistEnabled={whitelistEnabled}
-      x2EventEnabled={x2EventEnabled}
-      bundles={allBundles.map((b) => ({
-        id: b.id,
-        name: b.name,
-        price: Number(b.price),
-        priceType: b.priceType as "euro" | "tokens",
-        badges: parseStringArray(b.badges),
-        effects: parseStringArray(b.effects),
-        premiumDays: b.premiumDays,
-      }))}
-      redeemCodes={allRedeemCodes.map((r) => ({
-        id: r.id,
-        code: r.code,
-        tokens: r.tokens,
-        maxUses: r.maxUses,
-        usesCount: r.usesCount,
-        expiresAt: r.expiresAt ? r.expiresAt.toISOString() : null,
-        active: r.active,
-      }))}
-      dynamicBadges={allDynamicBadges.map((d) => ({
-        badgeKey: d.badgeKey,
-        label: d.label,
-        color: d.color || "#5865F2",
-      }))}
-      siteDomains={allDomains.map((d) => ({
-        id: d.id,
-        hostname: d.hostname,
-        status: d.status,
-        errorMessage: d.errorMessage,
-        isDefault: d.isDefault,
-      }))}
-      emailTemplates={allEmailTemplates.map((t) => ({
-        id: t.id,
-        templateKey: t.templateKey,
-        subject: t.subject,
-        bodyHtml: t.bodyHtml,
-        availableVariables: t.availableVariables,
-        updatedAt: t.updatedAt.toISOString(),
-      }))}
-      users={users}
-      page={clampedPage}
-      totalPages={totalPages}
-      search={search}
-    />
+    <div className="admin-shell">
+      <header className="admin-topbar">
+        <Link href="/dashboard" className="admin-topbar-brand"><LabWordmark /></Link>
+        <Link href="/dashboard" className="lab-btn lab-btn--ghost">← Dashboard</Link>
+      </header>
+      <main className="admin-main">
+        <AdminClient
+          iAmOwner={iAmOwner}
+          iAmAdmin={iAmAdmin}
+          iAmMod={iAmMod}
+          canGrantOwner={canGrantOwner}
+          myOwnerRank={myOwnerRank}
+          myUserId={me.id}
+          stats={{ totalUsers, totalViews, totalLinks, totalTokensSpent, premiumCount, verifiedCount, bannedCount }}
+          whitelistEnabled={whitelistEnabled}
+          x2EventEnabled={x2EventEnabled}
+          bundles={allBundles.map((b) => ({
+            id: b.id,
+            name: b.name,
+            price: Number(b.price),
+            priceType: b.priceType as "euro" | "tokens",
+            badges: parseStringArray(b.badges),
+            effects: parseStringArray(b.effects),
+            premiumDays: b.premiumDays,
+          }))}
+          redeemCodes={allRedeemCodes.map((r) => ({
+            id: r.id,
+            code: r.code,
+            tokens: r.tokens,
+            maxUses: r.maxUses,
+            usesCount: r.usesCount,
+            expiresAt: r.expiresAt ? r.expiresAt.toISOString() : null,
+            active: r.active,
+          }))}
+          dynamicBadges={allDynamicBadges.map((d) => ({
+            badgeKey: d.badgeKey,
+            label: d.label,
+            color: d.color || "#5865F2",
+          }))}
+          siteDomains={allDomains.map((d) => ({
+            id: d.id,
+            hostname: d.hostname,
+            status: d.status,
+            errorMessage: d.errorMessage,
+            isDefault: d.isDefault,
+          }))}
+          emailTemplates={allEmailTemplates.map((t) => ({
+            id: t.id,
+            templateKey: t.templateKey,
+            subject: t.subject,
+            bodyHtml: t.bodyHtml,
+            availableVariables: t.availableVariables,
+            updatedAt: t.updatedAt.toISOString(),
+          }))}
+          users={users}
+          page={clampedPage}
+          totalPages={totalPages}
+          search={search}
+        />
+      </main>
+    </div>
   );
 }

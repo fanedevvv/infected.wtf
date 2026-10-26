@@ -113,8 +113,8 @@ export default function EmailTemplatesManagement({ emailTemplates }: { emailTemp
               onClick={() => setSelectedId(t.id)}
               style={{
                 textAlign: "left", padding: ".6rem .75rem", borderRadius: 8, cursor: "pointer",
-                border: "1px solid " + (selectedId === t.id ? "rgba(124,58,237,.5)" : "rgba(255,255,255,.08)"),
-                background: selectedId === t.id ? "rgba(124,58,237,.12)" : "rgba(255,255,255,.02)",
+                border: "1px solid " + (selectedId === t.id ? "color-mix(in srgb, var(--accent) 50%, transparent)" : "rgba(255,255,255,.08)"),
+                background: selectedId === t.id ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "rgba(255,255,255,.02)",
               }}
             >
               <div style={{ fontSize: ".82rem", fontWeight: 700, color: "#fff" }}>{t.templateKey}</div>
@@ -173,7 +173,7 @@ export default function EmailTemplatesManagement({ emailTemplates }: { emailTemp
 
                 <div style={{ display: "flex", gap: ".6rem", alignItems: "center", flexWrap: "wrap" }}>
                   <button onClick={save} disabled={saving}
-                    style={{ padding: ".6rem 1.2rem", background: "linear-gradient(135deg,#7c3aed,#1e40af)", border: "none", borderRadius: 8, color: "#fff", fontSize: ".82rem", fontWeight: 700, cursor: "pointer", opacity: saving ? .6 : 1 }}>
+                    style={{ padding: ".6rem 1.2rem", background: "var(--accent)", border: "none", borderRadius: 2, color: "var(--accent-ink)", fontSize: ".82rem", fontWeight: 700, cursor: "pointer", opacity: saving ? .6 : 1 }}>
                     {saving ? "Saving…" : "Save template"}
                   </button>
                   <button onClick={() => setTestOpen((v) => !v)}
@@ -194,7 +194,7 @@ export default function EmailTemplatesManagement({ emailTemplates }: { emailTemp
                       style={{ flex: 1, padding: ".5rem .7rem", background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 8, color: "#fff", fontSize: ".8rem", outline: "none" }}
                     />
                     <button onClick={sendTest} disabled={testSending || !testEmail.trim()}
-                      style={{ padding: ".5rem 1rem", background: "rgba(124,58,237,.15)", border: "1px solid rgba(124,58,237,.4)", borderRadius: 8, color: "#a78bfa", fontSize: ".8rem", fontWeight: 700, cursor: "pointer", opacity: testSending ? .6 : 1 }}>
+                      style={{ padding: ".5rem 1rem", background: "color-mix(in srgb, var(--accent) 15%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 40%, transparent)", borderRadius: 8, color: "var(--accent)", fontSize: ".8rem", fontWeight: 700, cursor: "pointer", opacity: testSending ? .6 : 1 }}>
                       {testSending ? "…" : "Send"}
                     </button>
                   </div>

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import SafeImg from "@/components/SafeImg";
-import SpotlightCard from "@/components/ui/SpotlightCard";
 
 type GlobalUser = { id: number; username: string; displayName: string; avatar: string; views: number; premium: boolean };
 type LocalUser = { id: number; username: string; displayName: string; avatar: string; localViews: number; regionName: string; premium: boolean };
@@ -31,13 +30,6 @@ function PremBadge() {
   );
 }
 
-// Spotlight colour + card border per podium place (gold / silver / bronze).
-const PODIUM_LIGHT: Record<string, { light: string; border: string }> = {
-  p1: { light: "#ffd700", border: "rgba(200,151,10,.4)" },
-  p2: { light: "#e4e4e7", border: "rgba(160,160,160,.28)" },
-  p3: { light: "#e0a26b", border: "rgba(122,79,46,.35)" },
-};
-
 function Podium({ users, metric }: { users: AnyUser[]; metric: Metric }) {
   const order: { rank: number; cls: string; user: AnyUser | undefined }[] = [
     { rank: 2, cls: "p2", user: users[1] },
@@ -49,17 +41,7 @@ function Podium({ users, metric }: { users: AnyUser[]; metric: Metric }) {
       {order.map((pod) =>
         pod.user ? (
           <div key={pod.cls} className={`lb-podium-slot ${pod.cls}`} onClick={() => window.open(`/${encodeURIComponent(pod.user!.username)}`, "_blank")}>
-            <SpotlightCard
-              className="lb-podium-card"
-              spotlightColor={PODIUM_LIGHT[pod.cls].light}
-              intensity={0.22}
-              spotlightSize={220}
-              softness={0.55}
-              borderGlow={0.7}
-              proximity={120}
-              smoothing={0.35}
-              style={{ "--spotlight-card-border": PODIUM_LIGHT[pod.cls].border } as React.CSSProperties}
-            >
+            <div className="lb-podium-card">
               <span className="lb-podium-rank">{pod.rank}</span>
               <SafeImg src={pod.user.avatar ? `/${pod.user.avatar}` : null} className="lb-podium-avatar" />
               <div className="lb-podium-name">
@@ -77,7 +59,7 @@ function Podium({ users, metric }: { users: AnyUser[]; metric: Metric }) {
                 )}
                 {fmtViews(metricValue(pod.user, metric))}
               </div>
-            </SpotlightCard>
+            </div>
           </div>
         ) : null
       )}
@@ -103,7 +85,7 @@ function Table({
   const metricLabel = metric === "views" ? "Views" : metric === "localViews" ? "Local Views" : "Likes";
   return (
     <div className="lb-table-wrap">
-      <SpotlightCard className="lb-table-card" spotlightColor="#c4b5fd" intensity={0.1} spotlightSize={360} softness={0.8} borderGlow={0.5} proximity={60}>
+      <div className="lb-table-card">
       <table className="lb-table">
         <thead>
           <tr>
@@ -143,7 +125,7 @@ function Table({
           )}
         </tbody>
       </table>
-      </SpotlightCard>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-// Generates app/dash-accent.css: every globals.css rule that hardcodes the brand purple, re-emitted with the
-// purple swapped for var(--dash-accent) and scoped to html.dash-custom-accent, so a custom dashboard accent
-// recolours the dashboard without touching public profile pages.
+// Generates app/dash-accent.css: every globals.css rule that still hardcodes the old brand purple, re-emitted with
+// the purple swapped for var(--dash-accent) and scoped to html.dash-custom-accent, so a custom dashboard accent
+// recolours the dashboard without touching public profile pages. Rules written against var(--accent) need no copy:
+// the first emitted rule remaps --accent itself.
 // Usage: node scripts/gen-dash-accent-css.js
 
 const fs = require("fs");
@@ -10,13 +11,13 @@ const path = require("path");
 const root = path.join(__dirname, "..");
 const src = fs.readFileSync(path.join(root, "app", "globals.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 
-const PURPLE = /rgba\(\s*124\s*,\s*58\s*,\s*237\s*,\s*([\d.]+)\s*\)|#7c3aed\b|#8b5cf6\b|#a78bfa\b|#6d28d9\b|#c4b5fd\b|#1e40af\b|var\(--accent\)/gi;
+const PURPLE = /rgba\(\s*124\s*,\s*58\s*,\s*237\s*,\s*([\d.]+)\s*\)|#7c3aed\b|#8b5cf6\b|#a78bfa\b|#6d28d9\b|#c4b5fd\b|#1e40af\b/gi;
 
 function recolor(value) {
   return value.replace(PURPLE, (m, alpha) => {
     if (alpha !== undefined) return `color-mix(in srgb, var(--dash-accent) ${Math.round(parseFloat(alpha) * 100)}%, transparent)`;
     switch (m.toLowerCase()) {
-      case "#7c3aed": case "var(--accent)": return "var(--dash-accent)";
+      case "#7c3aed": return "var(--dash-accent)";
       case "#8b5cf6": return "color-mix(in srgb, var(--dash-accent) 85%, #fff)";
       case "#a78bfa": return "color-mix(in srgb, var(--dash-accent) 65%, #fff)";
       case "#c4b5fd": return "color-mix(in srgb, var(--dash-accent) 45%, #fff)";
