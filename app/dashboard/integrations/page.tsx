@@ -1,10 +1,9 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
-import IntegrationsContent from "./IntegrationsContent";
-import GameIntegrations from "./GameIntegrations";
+import WidgetsManager from "./WidgetsManager";
 
-export default async function IntegrationsPage({ searchParams }: { searchParams: Promise<{ error?: string; connected?: string }> }) {
+export default async function IntegrationsPage({ searchParams, embedded = false }: { searchParams: Promise<{ error?: string; connected?: string }>; embedded?: boolean }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
@@ -13,8 +12,7 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
   const socialLinks = await prisma.socialLink.findMany({ where: { userId: user.id }, orderBy: { displayOrder: "asc" } });
 
   return (
-    <>
-      <IntegrationsContent
+    <WidgetsManager
         initialSocialLinks={socialLinks.map((l) => ({ id: l.id, platform: l.platform, url: l.url }))}
         initialIntegration={
           integration
@@ -36,9 +34,8 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
             : null
         }
         error={params.error}
-        connected={params.connected}
-      />
-      <GameIntegrations />
-    </>
+      connected={params.connected}
+      embedded={embedded}
+    />
   );
 }

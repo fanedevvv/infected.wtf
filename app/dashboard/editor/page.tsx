@@ -27,7 +27,7 @@ async function serverPanel(tile: EditorTile, params: { error?: string; connected
     case "links":
       return <LinksPage />;
     case "widgets":
-      return <IntegrationsPage searchParams={Promise.resolve(params)} />;
+      return <IntegrationsPage searchParams={Promise.resolve(params)} embedded />;
     case "badges":
       return <BadgesPage />;
     default:

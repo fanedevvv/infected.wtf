@@ -242,10 +242,10 @@ export default function ProfileEditor({
           )}
 
           {pending && activeTile !== tile && <p className="pe-loading">{t("Loading…")}</p>}
+          {panelForTile && <div className="pe-server-panel">{panelForTile}</div>}
           {activeTile === "widgets" && (
             <WeatherClockPanel location={formProps.location} showWeather={showWeather} showClock={showClock} clock24h={clock24h} />
           )}
-          {panelForTile && <div className="pe-server-panel">{panelForTile}</div>}
         </div>
 
         <aside className="pe-side">
