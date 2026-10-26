@@ -339,20 +339,19 @@ export default function DashboardShell({ children, initialMode, initialAccent }:
 function ManageAccountsModal({ currentUsername, currentAvatar, onClose }: { currentUsername: string; currentAvatar: string | null; onClose: () => void }) {
   const t = useT();
   const router = useRouter();
-  const [accounts, setAccounts] = useState<{ username: string; token: string; avatar: string | null }[]>([]);
+  // Only mounted after a click, so localStorage is always there to read.
+  const [accounts, setAccounts] = useState<{ username: string; token: string; avatar: string | null }[]>(() => {
+    try {
+      const all = JSON.parse(localStorage.getItem("bf_saved_accounts") || "[]");
+      return all.filter((a: { username: string }) => a.username !== currentUsername);
+    } catch {
+      return [];
+    }
+  });
   const [adding, setAdding] = useState(false);
   const [login, setLogin] = useState("");
   const [pw, setPw] = useState("");
   const [status, setStatus] = useState<{ text: string; ok: boolean } | null>(null);
-
-  useEffect(() => {
-    try {
-      const all = JSON.parse(localStorage.getItem("bf_saved_accounts") || "[]");
-      setAccounts(all.filter((a: { username: string }) => a.username !== currentUsername));
-    } catch {
-      setAccounts([]);
-    }
-  }, [currentUsername]);
 
   function saveAccounts(list: typeof accounts) {
     const all = JSON.parse(localStorage.getItem("bf_saved_accounts") || "[]");

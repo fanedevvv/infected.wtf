@@ -3,8 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { getActiveProfileId, maxPagesFor } from "@/lib/active-profile";
 
-function isPremiumNow(isPremium: boolean, premiumExpiresAt: Date | null): boolean {
-  return isPremium && (!premiumExpiresAt || premiumExpiresAt.getTime() > Date.now());
+function isPremiumNow(isPremium: boolean | null, premiumExpiresAt: Date | null): boolean {
+  return !!isPremium && (!premiumExpiresAt || premiumExpiresAt.getTime() > Date.now());
 }
 
 export async function GET() {

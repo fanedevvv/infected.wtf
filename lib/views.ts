@@ -62,10 +62,11 @@ export async function recordProfileView(profileId: number, profileUserId: number
     await prisma.profile.update({ where: { id: profileId }, data: { localViews: { increment: 1 } } });
   }
 
-  if (profile.views >= 1000 && (await grantBadge(profileId, "hall_of_fame", true))) {
+  const views = profile.views ?? 0;
+  if (views >= 1000 && (await grantBadge(profileId, "hall_of_fame", true))) {
     await syncDiscordBadgeRole(profileUserId, "hall_of_fame", true);
   }
-  if (profile.views >= 10000 && (await grantBadge(profileId, "champion", true))) {
+  if (views >= 10000 && (await grantBadge(profileId, "champion", true))) {
     await syncDiscordBadgeRole(profileUserId, "champion", true);
   }
 

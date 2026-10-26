@@ -1,3 +1,4 @@
+import Link from "next/link";
 import RedirectCountdown from "@/components/RedirectCountdown";
 
 export default async function VerifyEmailResultPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
@@ -8,7 +9,7 @@ export default async function VerifyEmailResultPage({ searchParams }: { searchPa
     <div className="verify-wrap">
       <canvas id="particle-canvas" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }} />
       <div className="verify-card">
-        <a href="/" className="site-logo">INFECTED.WTF</a>
+        <Link href="/" className="site-logo">INFECTED.WTF</Link>
 
         {status === "success" && (
           <>
@@ -25,7 +26,7 @@ export default async function VerifyEmailResultPage({ searchParams }: { searchPa
               Redirecting to dashboard in <RedirectCountdown seconds={3} to="/dashboard" />s
             </div>
             <div className="verify-actions">
-              <a href="/dashboard" className="btn btn-primary btn-full">Go to Dashboard →</a>
+              <Link href="/dashboard" className="btn btn-primary btn-full">Go to Dashboard →</Link>
             </div>
           </>
         )}
@@ -41,8 +42,8 @@ export default async function VerifyEmailResultPage({ searchParams }: { searchPa
               Register again to get a new link.
             </p>
             <div className="verify-actions">
-              <a href="/register" className="btn btn-primary btn-full">Register Again</a>
-              <a href="/login" className="btn btn-secondary btn-full">Sign In</a>
+              <Link href="/register" className="btn btn-primary btn-full">Register Again</Link>
+              <Link href="/login" className="btn btn-secondary btn-full">Sign In</Link>
             </div>
           </>
         )}
@@ -58,15 +59,15 @@ export default async function VerifyEmailResultPage({ searchParams }: { searchPa
               Make sure you copied the full link from the email.
             </p>
             <div className="verify-actions">
-              <a href="/register" className="btn btn-primary btn-full">Create New Account</a>
-              <a href="/login" className="btn btn-secondary btn-full">Sign In</a>
+              <Link href="/register" className="btn btn-primary btn-full">Create New Account</Link>
+              <Link href="/login" className="btn btn-secondary btn-full">Sign In</Link>
             </div>
           </>
         )}
 
         <div className="divider" />
         <p style={{ fontSize: ".75rem", color: "var(--text-muted)" }}>
-          Need help? <a href="/support" style={{ color: "var(--accent)", textDecoration: "none" }}>Contact Support</a>
+          Need help? <Link href="/support" style={{ color: "var(--accent)", textDecoration: "none" }}>Contact Support</Link>
         </p>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import AnalyticsClient from "./AnalyticsClient";
@@ -19,7 +20,7 @@ export default async function AnalyticsPage() {
           </div>
           <div className="pg-title">{t("Analytics is Infected Plus only")}</div>
           <p className="pg-desc">{t("Upgrade to Infected Plus to unlock detailed profile analytics — views by country, browser, device, and more.")}</p>
-          <a href="/dashboard?page=shop#premium" className="pg-btn">{t("Upgrade to Infected Plus")}</a>
+          <Link href="/dashboard?page=shop#premium" className="pg-btn">{t("Upgrade to Infected Plus")}</Link>
         </div>
       </div>
     );

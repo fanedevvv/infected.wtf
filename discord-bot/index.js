@@ -5,8 +5,6 @@ const {
   Client,
   GatewayIntentBits,
   Partials,
-  REST,
-  Routes,
 } = require('discord.js');
 
 const {
@@ -238,7 +236,7 @@ app.get('/member/:id', async (req, res) => {
         avatar: member.user.avatar,
       },
     });
-  } catch (e) {
+  } catch {
     // Unknown Member / Unknown User → not in guild
     res.json({ success: true, in_guild: false });
   }
@@ -274,7 +272,7 @@ app.get('/presence/:id', async (req, res) => {
         })),
       },
     });
-  } catch (e) {
+  } catch {
     res.json({ success: true, data: { status: 'offline', activities: [] } });
   }
 });

@@ -8,7 +8,7 @@ export default async function SpinPage() {
   if (!user) redirect("/login");
 
   const nextAt = user.lastDailySpinAt ? user.lastDailySpinAt.getTime() + SPIN_COOLDOWN_MS : 0;
-  const canSpin = Date.now() >= nextAt;
+  const canSpin = new Date().getTime() >= nextAt;
 
   return (
     <SpinClient

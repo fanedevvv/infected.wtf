@@ -1,3 +1,4 @@
+import Link from "next/link";
 import PublicNavbar from "@/components/PublicNavbar";
 import SiteFooter from "@/components/SiteFooter";
 import CookieBanner from "@/components/CookieBanner";
@@ -15,10 +16,10 @@ export default async function RulesPage() {
     <>
       <PublicNavbar user={user} />
       <div className="legal-page fade-in">
-        <a href="/" className="legal-back">
+        <Link href="/" className="legal-back">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14"><polyline points="15 18 9 12 15 6" /></svg>
           Back to home
-        </a>
+        </Link>
         <h1 className="legal-title">Rules</h1>
         <p className="legal-meta">Last updated: October 23, 2026 &nbsp;&middot;&nbsp; Applies to infected.wtf and our Discord server</p>
 
@@ -80,7 +81,7 @@ export default async function RulesPage() {
           <ul>
             <li>Botting or faking profile views, likes or comments.</li>
             <li>Using alt accounts to farm tokens, referrals, badges or Discord invites.</li>
-            <li>Abusing bugs — report them on our <a href="/support">support page</a> instead.</li>
+            <li>Abusing bugs — report them on our <Link href="/support">support page</Link> instead.</li>
           </ul>
           <p>Gains made this way are removed and the accounts involved can be suspended.</p>
         </div>
@@ -88,7 +89,7 @@ export default async function RulesPage() {
         <div className="legal-section" id="r7">
           <h2><span className="legal-num">7</span> Payments &amp; Tokens</h2>
           <p>Payments for any benefit are made <strong>only through the platform</strong> or privately with the owners. We are not responsible for losses from deals made with anyone else.</p>
-          <p>Tokens have <strong>no real-world value</strong>: they can&apos;t be sold, traded, transferred between accounts or refunded. See our <a href="/terms">Terms of Service</a>.</p>
+          <p>Tokens have <strong>no real-world value</strong>: they can&apos;t be sold, traded, transferred between accounts or refunded. See our <Link href="/terms">Terms of Service</Link>.</p>
         </div>
 
         <div className="legal-section" id="r8">
@@ -110,7 +111,7 @@ export default async function RulesPage() {
             <li>Profile content removed or your profile suspended.</li>
             <li>A permanent ban from the site and the Discord server.</li>
           </ul>
-          <p>Think a punishment was a mistake? Contact us via the <a href="/support">Support page</a> or our <a href="https://infected.wtf/discord" target="_blank" rel="noopener noreferrer">Discord server</a>.</p>
+          <p>Think a punishment was a mistake? Contact us via the <Link href="/support">Support page</Link> or our <a href="https://infected.wtf/discord" target="_blank" rel="noopener noreferrer">Discord server</a>.</p>
         </div>
       </div>
 

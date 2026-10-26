@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
@@ -8,8 +9,8 @@ import CookieBanner from "@/components/CookieBanner";
 import LabFooter from "@/components/lab/LabFooter";
 import { getCookieConsent } from "@/lib/cookie-consent";
 
-function isPremiumNow(isPremium: boolean, premiumExpiresAt: Date | null): boolean {
-  return isPremium && (!premiumExpiresAt || premiumExpiresAt.getTime() > Date.now());
+function isPremiumNow(isPremium: boolean | null, premiumExpiresAt: Date | null): boolean {
+  return !!isPremium && (!premiumExpiresAt || premiumExpiresAt.getTime() > Date.now());
 }
 
 async function detectCountry(h: Awaited<ReturnType<typeof headers>>): Promise<{ code: string; name: string }> {
@@ -82,7 +83,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
     username: p.slug,
     displayName: p.displayName || "",
     avatar: p.avatar || "",
-    views: p.views,
+    views: p.views ?? 0,
     premium: isPremiumNow(p.user.isPremium, p.user.premiumExpiresAt),
   }));
 
@@ -121,7 +122,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
     username: p.slug,
     displayName: p.displayName || "",
     avatar: p.avatar || "",
-    localViews: p.localViews,
+    localViews: p.localViews ?? 0,
     regionName: p.user.leaderboardRegionName || "",
     premium: isPremiumNow(p.user.isPremium, p.user.premiumExpiresAt),
   }));
@@ -216,8 +217,8 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
       select: { slug: true, displayName: true, avatar: true, views: true },
     });
     if (p) {
-      searchResult = { username: p.slug, displayName: p.displayName || "", avatar: p.avatar || "", views: p.views };
-      searchRank = (await prisma.profile.count({ where: { isPrimary: true, user: { banned: false, emailVerified: true }, views: { gt: p.views } } })) + 1;
+      searchResult = { username: p.slug, displayName: p.displayName || "", avatar: p.avatar || "", views: p.views ?? 0 };
+      searchRank = (await prisma.profile.count({ where: { isPrimary: true, user: { banned: false, emailVerified: true }, views: { gt: p.views ?? 0 } } })) + 1;
     }
   }
 
@@ -235,7 +236,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
               <span className="lx-claim-prompt" aria-hidden="true">&gt;</span>
               <input type="text" name="q" className="lb-search-input" placeholder="search username" defaultValue={searchQuery} autoComplete="off" spellCheck={false} />
             </label>
-            {searchQuery && <a href="/leaderboard" className="lb-search-clear" aria-label="Clear search">✕</a>}
+            {searchQuery && <Link href="/leaderboard" className="lb-search-clear" aria-label="Clear search">✕</Link>}
             <button type="submit" className="lab-btn lab-btn--solid">Search</button>
           </form>
         </header>

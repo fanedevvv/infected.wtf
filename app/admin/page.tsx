@@ -79,14 +79,14 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     return {
       id: u.id,
       username: u.username,
-      isAdmin: u.isAdmin,
-      isOwner: u.isOwner,
+      isAdmin: u.isAdmin ?? false,
+      isOwner: u.isOwner ?? false,
       isMod: u.isMod,
-      banned: u.banned,
+      banned: u.banned ?? false,
       banUntil: u.banUntil ? u.banUntil.toISOString() : null,
-      createdAt: u.createdAt.toISOString(),
-      tokens: u.tokens,
-      isPremium: u.isPremium,
+      createdAt: (u.createdAt ?? new Date(0)).toISOString(),
+      tokens: u.tokens ?? 0,
+      isPremium: u.isPremium ?? false,
       premiumExpiresAt: u.premiumExpiresAt ? u.premiumExpiresAt.toISOString() : null,
       views: profile?.views ?? 0,
       links: u._count.socialLinks,
@@ -143,6 +143,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             status: d.status,
             errorMessage: d.errorMessage,
             isDefault: d.isDefault,
+            tier: d.tier,
           }))}
           emailTemplates={allEmailTemplates.map((t) => ({
             id: t.id,

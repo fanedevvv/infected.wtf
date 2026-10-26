@@ -118,7 +118,6 @@ export default function ProfileImmersive({
   return (
     <div className={`im-root ${entered ? "im-entered" : ""}`} style={profileFontFamily(p.profileFont) ? { fontFamily: profileFontFamily(p.profileFont)! } : undefined}>
       {googleFontsHref([p.profileFont]) && (
-        // eslint-disable-next-line @next/next/no-page-custom-font
         <link rel="stylesheet" href={googleFontsHref([p.profileFont])!} />
       )}
       <div className="im-views" title="Profile views">

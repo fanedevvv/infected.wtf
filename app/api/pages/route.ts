@@ -5,8 +5,8 @@ import { getActiveProfileId, setActiveProfileCookie, maxPagesFor } from "@/lib/a
 import { RESERVED_SLUGS, isSlugTaken } from "@/lib/slug-availability";
 
 
-function isPremiumNow(isPremium: boolean, premiumExpiresAt: Date | null): boolean {
-  return isPremium && (!premiumExpiresAt || premiumExpiresAt.getTime() > Date.now());
+function isPremiumNow(isPremium: boolean | null, premiumExpiresAt: Date | null): boolean {
+  return !!isPremium && (!premiumExpiresAt || premiumExpiresAt.getTime() > Date.now());
 }
 
 export async function GET() {

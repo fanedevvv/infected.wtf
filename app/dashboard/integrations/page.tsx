@@ -24,7 +24,7 @@ export default async function IntegrationsPage({ searchParams }: { searchParams:
                 discordUsername: integration.discordUsername,
                 discordGlobalName: integration.discordGlobalName,
                 discordAvatar: integration.discordAvatar,
-                visible: integration.visible,
+                visible: integration.visible ?? true,
                 discordServerInvite: integration.discordServerInvite,
                 discordServerId: integration.discordServerId,
                 discordServerName: integration.discordServerName,

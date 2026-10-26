@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { buildSessionCookie } from "@/lib/session";
-import { parseStringArray } from "@/lib/json-array";
+import { parseStringArray, serializeStringArray } from "@/lib/json-array";
 
 export async function GET(req: NextRequest) {
   const siteUrl = process.env.SITE_URL || "";
@@ -49,11 +49,11 @@ export async function GET(req: NextRequest) {
             if (refCount >= 20) {
               badges = badges.filter((b) => b !== "promoter");
               if (!badges.includes("promoter_elite")) badges.push("promoter_elite");
-              await prisma.profile.updateMany({ where: { userId: referrer.id , isPrimary: true }, data: { badges } });
+              await prisma.profile.updateMany({ where: { userId: referrer.id , isPrimary: true }, data: { badges: serializeStringArray(badges) } });
             } else if (refCount >= 10) {
               if (!badges.includes("promoter") && !badges.includes("promoter_elite")) {
                 badges.push("promoter");
-                await prisma.profile.updateMany({ where: { userId: referrer.id , isPrimary: true }, data: { badges } });
+                await prisma.profile.updateMany({ where: { userId: referrer.id , isPrimary: true }, data: { badges: serializeStringArray(badges) } });
               }
             }
 

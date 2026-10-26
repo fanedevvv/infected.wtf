@@ -3,12 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
 import { useT } from "@/lib/i18n/client";
+import type { ChartInstance, ChartTooltipItem, ChartScriptableContext } from "@/lib/chartjs";
 
-declare global {
-  interface Window {
-    Chart?: any;
-  }
-}
 
 type Country = { code: string; name: string; cnt: number };
 type NamedCount = { cnt: number; browser?: string; os_name?: string };
@@ -54,7 +50,7 @@ function osAbbr(name: string) {
   return o.slice(0, 3).toUpperCase();
 }
 
-function GenericList({ items, nameKey, unit, iconFn }: { items: NamedCount[]; nameKey: "browser" | "os_name"; unit: string; iconFn: (s: string) => string }) {
+function GenericList({ items, nameKey, iconFn }: { items: NamedCount[]; nameKey: "browser" | "os_name"; iconFn: (s: string) => string }) {
   const t = useT();
   const total = items.reduce((s, i) => s + i.cnt, 0);
   if (items.length === 0) {
@@ -95,8 +91,8 @@ export default function AnalyticsClient() {
 
   const viewsCanvasRef = useRef<HTMLCanvasElement>(null);
   const deviceCanvasRef = useRef<HTMLCanvasElement>(null);
-  const viewsChartRef = useRef<any>(null);
-  const deviceChartRef = useRef<any>(null);
+  const viewsChartRef = useRef<ChartInstance | null>(null);
+  const deviceChartRef = useRef<ChartInstance | null>(null);
 
   function initCharts() {
     if (!window.Chart || !viewsCanvasRef.current || !deviceCanvasRef.current || viewsChartRef.current) return;
@@ -120,7 +116,7 @@ export default function AnalyticsClient() {
           pointHoverBackgroundColor: "#fff",
           pointHoverBorderColor: accent,
           fill: true,
-          backgroundColor: (ctx: any) => {
+          backgroundColor: (ctx: ChartScriptableContext) => {
             const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 220);
             g.addColorStop(0, `rgba(${rgb},.18)`);
             g.addColorStop(1, `rgba(${rgb},0)`);
@@ -143,7 +139,7 @@ export default function AnalyticsClient() {
             bodyColor: accent,
             padding: 12,
             displayColors: false,
-            callbacks: { title: (i: any) => i[0].label, label: (i: any) => `${i.parsed.y} views` },
+            callbacks: { title: (i: ChartTooltipItem[]) => i[0].label, label: (i: ChartTooltipItem) => `${i.parsed.y} views` },
           },
         },
         scales: {
@@ -172,42 +168,45 @@ export default function AnalyticsClient() {
     setChartsReady(true);
   }
 
-  async function loadData(r: string) {
-    setUpdateText("Updating…");
-    try {
-      const res = await fetch(`/api/analytics_data?range=${r}`);
-      const json: Data = await res.json();
-      setD(json);
-      if (viewsChartRef.current) {
-        viewsChartRef.current.data.labels = json.labels;
-        viewsChartRef.current.data.datasets[0].data = json.data;
-        viewsChartRef.current.update("active");
-      }
-      if (deviceChartRef.current) {
-        deviceChartRef.current.data.datasets[0].data = [json.devices.desktop, json.devices.mobile, json.devices.tablet];
-        deviceChartRef.current.update();
-      }
-      setUpdateText(`Updated ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`);
-    } catch {
-      setUpdateText("Error loading data");
+  function showData(json: Data) {
+    setD(json);
+    if (viewsChartRef.current) {
+      viewsChartRef.current.data.labels = json.labels;
+      viewsChartRef.current.data.datasets[0].data = json.data;
+      viewsChartRef.current.update("active");
     }
+    if (deviceChartRef.current) {
+      deviceChartRef.current.data.datasets[0].data = [json.devices.desktop, json.devices.mobile, json.devices.tablet];
+      deviceChartRef.current.update();
+    }
+    setUpdateText(`Updated ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`);
   }
 
   useEffect(() => {
     if (window.Chart) initCharts();
   }, []);
 
+  // Load the selected range once the charts exist, then refresh it every two minutes.
   useEffect(() => {
     if (!chartsReady) return;
-    loadData(range);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let cancelled = false;
+    const load = () =>
+      fetch(`/api/analytics_data?range=${range}`)
+        .then((res) => res.json() as Promise<Data>)
+        .then((json) => { if (!cancelled) showData(json); })
+        .catch(() => { if (!cancelled) setUpdateText("Error loading data"); });
+    load();
+    const iv = setInterval(load, 120000);
+    return () => {
+      cancelled = true;
+      clearInterval(iv);
+    };
   }, [chartsReady, range]);
 
-  useEffect(() => {
-    const iv = setInterval(() => loadData(range), 120000);
-    return () => clearInterval(iv);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [range]);
+  function pickRange(r: string) {
+    setUpdateText("Updating…");
+    setRange(r);
+  }
 
   const devTotal = d ? d.devices.desktop + d.devices.mobile + d.devices.tablet : 0;
 
@@ -230,7 +229,7 @@ export default function AnalyticsClient() {
           </span>
           <div className="an-range-tabs">
             {(["1d", "3d", "7d", "30d", "90d"] as const).map((r) => (
-              <button key={r} className={`an-range-tab ${range === r ? "active" : ""}`} onClick={() => setRange(r)}>
+              <button key={r} className={`an-range-tab ${range === r ? "active" : ""}`} onClick={() => pickRange(r)}>
                 {r === "1d" ? "Today" : r === "3d" ? "3 Days" : r === "7d" ? "7 Days" : r === "30d" ? "30 Days" : "90 Days"}
               </button>
             ))}
@@ -374,7 +373,7 @@ export default function AnalyticsClient() {
             </span>
             <span className="an-card-badge">{d ? `${fmt(d.browsers.reduce((s, b) => s + b.cnt, 0))} views` : "—"}</span>
           </div>
-          {d ? <GenericList items={d.browsers} nameKey="browser" unit="views" iconFn={browserAbbr} /> : <div className="an-empty"><div className="an-spinner" /></div>}
+          {d ? <GenericList items={d.browsers} nameKey="browser" iconFn={browserAbbr} /> : <div className="an-empty"><div className="an-spinner" /></div>}
         </div>
 
         <div className="an-card">
@@ -385,7 +384,7 @@ export default function AnalyticsClient() {
             </span>
             <span className="an-card-badge">{d ? `${fmt(d.os.reduce((s, o) => s + o.cnt, 0))} views` : "—"}</span>
           </div>
-          {d ? <GenericList items={d.os} nameKey="os_name" unit="views" iconFn={osAbbr} /> : <div className="an-empty"><div className="an-spinner" /></div>}
+          {d ? <GenericList items={d.os} nameKey="os_name" iconFn={osAbbr} /> : <div className="an-empty"><div className="an-spinner" /></div>}
         </div>
 
         <div className="an-card">

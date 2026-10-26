@@ -1,3 +1,4 @@
+import Link from "next/link";
 import PublicNavbar from "@/components/PublicNavbar";
 import SiteFooter from "@/components/SiteFooter";
 import CookieBanner from "@/components/CookieBanner";
@@ -20,10 +21,10 @@ export default async function SupportPage() {
     <>
       <PublicNavbar user={user} />
       <div className="support-page fade-in">
-        <a href="/" className="legal-back">
+        <Link href="/" className="legal-back">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14"><polyline points="15 18 9 12 15 6" /></svg>
           Back to home
-        </a>
+        </Link>
 
         <div className="support-header">
           <div className="support-badge">

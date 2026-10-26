@@ -13,7 +13,7 @@ export default async function SettingsPage() {
   let canChangeUsername = true;
   let usernameNextChange: number | null = null;
   if (user.usernameChangedAt) {
-    const secondsSince = Math.floor((Date.now() - user.usernameChangedAt.getTime()) / 1000);
+    const secondsSince = Math.floor((new Date().getTime() - user.usernameChangedAt.getTime()) / 1000);
     const secondsLeft = 7 * 86400 - secondsSince;
     if (secondsLeft > 0) {
       canChangeUsername = false;
@@ -48,10 +48,10 @@ export default async function SettingsPage() {
       regionCode={user.leaderboardRegionCode || ""}
       regionName={user.leaderboardRegionName || ""}
       loginSessions={loginSessions.map((s) => ({
-        browser: s.browser,
+        browser: s.browser ?? "Unknown",
         ipDisplay: s.ipDisplay,
-        deviceType: s.deviceType,
-        loggedAt: s.loggedAt.toISOString(),
+        deviceType: s.deviceType ?? "desktop",
+        loggedAt: (s.loggedAt ?? new Date(0)).toISOString(),
       }))}
     />
   );

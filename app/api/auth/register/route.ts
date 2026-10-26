@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     const user = await prisma.user.findFirst({ where: { emailBlindIndex: emailBlindIndex(resendEmail) } });
     if (user && !user.emailVerified) {
       const last = await prisma.emailVerification.findFirst({ where: { userId: user.id }, orderBy: { createdAt: "desc" } });
-      const secsLeft = last ? Math.max(0, 60 - Math.floor((Date.now() - last.createdAt.getTime()) / 1000)) : 0;
+      const secsLeft = last?.createdAt ? Math.max(0, 60 - Math.floor((Date.now() - last.createdAt.getTime()) / 1000)) : 0;
       if (secsLeft === 0) {
         const token = crypto.randomBytes(32).toString("hex");
         await prisma.emailVerification.deleteMany({ where: { userId: user.id, used: false } });
@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
         where: { userId: existing.id },
         orderBy: { createdAt: "desc" },
       });
-      const secsLeft = last ? Math.max(0, 60 - Math.floor((Date.now() - last.createdAt.getTime()) / 1000)) : 0;
+      const secsLeft = last?.createdAt ? Math.max(0, 60 - Math.floor((Date.now() - last.createdAt.getTime()) / 1000)) : 0;
       if (secsLeft === 0) {
         const user = await prisma.user.findUnique({ where: { id: existing.id } });
         if (user) {

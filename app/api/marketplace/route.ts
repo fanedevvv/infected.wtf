@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
     // so it keeps working for every buyer even if the creator later changes
     // or deletes their own live background (which deletes that file).
     let themeBackgroundType = profile.backgroundType;
-    let themeBackgroundValue = profile.backgroundValue;
+    let themeBackgroundValue = profile.backgroundValue ?? "#050507";
     let downgradedBackground = false;
     if (["image", "video"].includes(profile.backgroundType)) {
       const copied = profile.backgroundValue ? await copyBackgroundForTheme(profile.backgroundValue) : null;
@@ -119,11 +119,11 @@ export async function POST(req: NextRequest) {
         backgroundValue: themeBackgroundValue,
         nameEffect: profile.nameEffect,
         bioEffect: profile.bioEffect,
-        profileFont: profile.profileFont,
+        profileFont: profile.profileFont ?? "Syne",
         avatarShape: profile.avatarShape,
         avatarRing: profile.avatarRing === "premium" ? "normal" : profile.avatarRing,
-        particleEffect: profile.particleEffect,
-        cursorTrail: profile.cursorTrail,
+        particleEffect: profile.particleEffect ?? false,
+        cursorTrail: profile.cursorTrail ?? false,
         layoutTemplate: profile.layoutTemplate,
         playlistStyle: profile.playlistStyle,
       },

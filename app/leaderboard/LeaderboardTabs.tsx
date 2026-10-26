@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import SafeImg from "@/components/SafeImg";
 
@@ -302,7 +303,7 @@ export default function LeaderboardTabs({
                 <div className="lb-info-banner-card">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="22" height="22" style={{ color: "var(--accent)", flexShrink: 0 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
                   <p>Login and set your region in Settings to appear in the Local leaderboard.</p>
-                  <a href="/login" className="btn btn-primary btn-sm">Login</a>
+                  <Link href="/login" className="btn btn-primary btn-sm">Login</Link>
                 </div>
               </div>
             ) : (!myRegionCode || myRegionCode === "XX") ? (
@@ -310,7 +311,7 @@ export default function LeaderboardTabs({
                 <div className="lb-info-banner-card">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="22" height="22" style={{ color: "var(--accent)", flexShrink: 0 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
                   <p>Set your region in Settings to appear in the Local leaderboard.</p>
-                  <a href="/dashboard?page=settings" className="btn btn-primary btn-sm">Set Region</a>
+                  <Link href="/dashboard?page=settings" className="btn btn-primary btn-sm">Set Region</Link>
                 </div>
               </div>
             ) : null}

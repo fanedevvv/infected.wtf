@@ -88,7 +88,7 @@ async function incrementRateLimit(type: string, actorId: number) {
   await prisma.rateLimit.create({ data: { type, ipHash: String(actorId) } });
 }
 
-function roleGrade(u: { isOwner: boolean; isAdmin: boolean; isMod: boolean }) {
+function roleGrade(u: { isOwner: boolean | null; isAdmin: boolean | null; isMod: boolean }) {
   return u.isOwner ? "owner" : u.isAdmin ? "admin" : u.isMod ? "mod" : "user";
 }
 
@@ -98,7 +98,6 @@ export async function POST(req: NextRequest) {
   if (!actor.isAdmin && !actor.isOwner && !actor.isMod) return err("Forbidden", 403);
 
   const actorIsOwner = actor.isOwner;
-  const actorIsAdmin = actor.isAdmin;
   const actorIsMod = !actor.isAdmin && !actor.isOwner && actor.isMod;
 
   let canGrantOwner = false;

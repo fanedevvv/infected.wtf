@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { showToast } from "@/lib/toast";
 import { RARITY_COLOR } from "@/lib/decorations";
 import type { DecorationRarity } from "@/lib/decorations";
@@ -48,7 +48,7 @@ export default function DecorationsClient({
   const [active, setActive] = useState(activeDecoration);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [items, setItems] = useState(catalog);
-  const [page, setPage] = useState(1);
+  const [rawPage, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortMode>("rarity");
 
@@ -114,13 +114,8 @@ export default function DecorationsClient({
   }, [tab, items, inventoryItems, search, sortBy]);
   const totalPages = Math.max(1, Math.ceil(visibleItems.length / PAGE_SIZE));
 
-  useEffect(() => {
-    setPage(1);
-  }, [tab, search, sortBy]);
-
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [page, totalPages]);
+  // Buying or filtering can shrink the list under the current page.
+  const page = Math.min(rawPage, totalPages);
 
   const pageItems = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE;
@@ -154,8 +149,8 @@ export default function DecorationsClient({
       </div>
 
       <div className="appr-tabbar" style={{ marginBottom: "1.25rem" }}>
-        <button type="button" className={`appr-tab ${tab === "shop" ? "active" : ""}`} style={{ border: "none", background: "none", cursor: "pointer" }} onClick={() => setTab("shop")}>{t("Shop")}</button>
-        <button type="button" className={`appr-tab ${tab === "inventory" ? "active" : ""}`} style={{ border: "none", background: "none", cursor: "pointer" }} onClick={() => setTab("inventory")}>{t("My Inventory (")}{inventoryItems.length})</button>
+        <button type="button" className={`appr-tab ${tab === "shop" ? "active" : ""}`} style={{ border: "none", background: "none", cursor: "pointer" }} onClick={() => { setTab("shop"); setPage(1); }}>{t("Shop")}</button>
+        <button type="button" className={`appr-tab ${tab === "inventory" ? "active" : ""}`} style={{ border: "none", background: "none", cursor: "pointer" }} onClick={() => { setTab("inventory"); setPage(1); }}>{t("My Inventory (")}{inventoryItems.length})</button>
       </div>
 
       <div className="dash-card decorations-controls" style={{ marginBottom: "1.25rem" }}>
@@ -164,14 +159,14 @@ export default function DecorationsClient({
             className="form-control decorations-search-input"
             type="search"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder={t("Search by name")}
             aria-label={t("Search decorations by name")}
           />
           <select
             className="form-control decorations-sort-select"
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as SortMode)}
+            onChange={(e) => { setSortBy(e.target.value as SortMode); setPage(1); }}
             aria-label={t("Sort decorations")}
           >
             <option value="rarity">{t("Sort by rarity")}</option>
@@ -191,6 +186,7 @@ export default function DecorationsClient({
               onClick={() => {
                 setSearch("");
                 setSortBy("rarity");
+                setPage(1);
               }}
             >
               {t("Reset")}
@@ -259,7 +255,7 @@ export default function DecorationsClient({
               className="shop-buy-btn"
               style={{ width: "auto", padding: ".45rem .9rem" }}
               disabled={page <= 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              onClick={() => setPage(Math.max(1, page - 1))}
             >
               {t("Previous")}
             </button>
@@ -268,7 +264,7 @@ export default function DecorationsClient({
               className="shop-buy-btn"
               style={{ width: "auto", padding: ".45rem .9rem" }}
               disabled={page >= totalPages}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              onClick={() => setPage(Math.min(totalPages, page + 1))}
             >
               {t("Next")}
             </button>

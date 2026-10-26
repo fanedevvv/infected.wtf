@@ -16,15 +16,19 @@ export default async function ResetPasswordPage({ searchParams }: { searchParams
 
   if (rawToken) {
     const tokenHash = sha256(rawToken);
-    const record = await prisma.passwordReset.findUnique({ where: { tokenHash }, include: { user: { select: { username: true } } } });
+    const record = await prisma.passwordReset.findUnique({ where: { tokenHash } });
     if (!record) {
       status = "invalid";
     } else if (record.expiresAt < new Date()) {
       await prisma.passwordReset.delete({ where: { id: record.id } });
       status = "expired";
     } else {
-      status = "form";
-      username = record.user.username;
+      // password_resets has no Prisma relation to users, so look the owner up directly
+      const owner = await prisma.user.findUnique({ where: { id: record.userId }, select: { username: true } });
+      if (owner) {
+        status = "form";
+        username = owner.username;
+      }
     }
   }
 

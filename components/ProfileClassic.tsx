@@ -92,7 +92,6 @@ export default function ProfileClassic({
   return (
     <div style={fontFamily ? { fontFamily } : undefined}>
       {fontHref && (
-        // eslint-disable-next-line @next/next/no-page-custom-font
         <link rel="stylesheet" href={fontHref} />
       )}
       {p.isOwner && (

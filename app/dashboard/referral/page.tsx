@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import crypto from "crypto";
 import { headers } from "next/headers";
@@ -5,7 +6,7 @@ import { getCurrentUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import CopyRefLinkButton from "./CopyRefLinkButton";
 import SafeImg from "@/components/SafeImg";
-import { parseStringArray } from "@/lib/json-array";
+import { parseStringArray, serializeStringArray } from "@/lib/json-array";
 import { getT } from "@/lib/i18n/server";
 
 const PER_PAGE = 10;
@@ -17,7 +18,7 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
 
   let myCode = user.referralCode;
   if (!myCode) {
-    myCode = crypto.createHash("md5").update(user.username + user.id + Date.now()).digest("hex").slice(0, 8).toUpperCase();
+    myCode = crypto.randomBytes(4).toString("hex").toUpperCase();
     await prisma.user.update({ where: { id: user.id }, data: { referralCode: myCode } });
   }
 
@@ -58,12 +59,12 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
   if (totalRefs >= 20 && !hasPromoterElite) {
     earnedBadges = earnedBadges.filter((b) => b !== "promoter");
     if (!earnedBadges.includes("promoter_elite")) earnedBadges.push("promoter_elite");
-    await prisma.profile.updateMany({ where: { userId: user.id , isPrimary: true }, data: { badges: earnedBadges } });
+    await prisma.profile.updateMany({ where: { userId: user.id , isPrimary: true }, data: { badges: serializeStringArray(earnedBadges) } });
     hasPromoterElite = true;
     hasPromoter = false;
   } else if (totalRefs >= 10 && !hasPromoter && !hasPromoterElite) {
     earnedBadges.push("promoter");
-    await prisma.profile.updateMany({ where: { userId: user.id , isPrimary: true }, data: { badges: earnedBadges } });
+    await prisma.profile.updateMany({ where: { userId: user.id , isPrimary: true }, data: { badges: serializeStringArray(earnedBadges) } });
     hasPromoter = true;
   }
 
@@ -178,7 +179,7 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
             <div className="ref-upsell-title">{t("Get Infected Plus for double referral rewards")}</div>
             <div className="ref-upsell-sub">{t("Infected Plus members earn")}{" "}<strong style={{ color: "rgba(255,215,0,.7)" }}>{t("+20 tokens")}</strong>{" "}{t("per referral instead of 10.")}</div>
           </div>
-          <a href="/dashboard?page=shop" className="ref-upsell-link">{t("Get Infected Plus")}</a>
+          <Link href="/dashboard?page=shop" className="ref-upsell-link">{t("Get Infected Plus")}</Link>
         </div>
       )}
 
@@ -227,7 +228,7 @@ export default async function ReferralPage({ searchParams }: { searchParams: Pro
               <SafeImg src={r.referred.profiles[0]?.avatar ? `/${r.referred.profiles[0].avatar}` : null} className="ref-user-avatar" />
               <div className="ref-user-info">
                 <div className="ref-user-name">@{r.referred.username}</div>
-                <div className="ref-user-date">{r.createdAt.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" })}</div>
+                <div className="ref-user-date">{r.createdAt?.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" })}</div>
               </div>
               <span className="ref-token-badge">
                 <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.5h-2v-2h2v2zm0-4h-2V7h2v5.5z" /></svg>

@@ -8,7 +8,8 @@ import { HALLOWEEN_CHECK } from "@/lib/seasonal";
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
-const stencil = Big_Shoulders_Stencil({ variable: "--font-stencil", subsets: ["latin"], weight: ["600", "800", "900"] });
+// No metric overrides exist for this face, so skip the auto-adjusted fallback and name one explicitly.
+const stencil = Big_Shoulders_Stencil({ variable: "--font-stencil", subsets: ["latin"], weight: ["600", "800", "900"], adjustFontFallback: false, fallback: ["Arial Narrow", "sans-serif"] });
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
   description: "Get infected. One link that spreads every side of you.",
   icons: {
     icon: [{ url: "/assets/img/mark.svg", type: "image/svg+xml" }],
-    apple: "/assets/img/logo-square-512.png",
+    apple: "/assets/img/mark-512.png",
   },
 };
 

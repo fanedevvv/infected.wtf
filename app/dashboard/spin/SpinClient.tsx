@@ -57,7 +57,7 @@ export default function SpinClient({
   const [tokenBal, setTokenBal] = useState(tokens);
   const [canSpin, setCanSpin] = useState(initialCanSpin);
   const [nextAt, setNextAt] = useState<number | null>(initialNextAt);
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(() => Date.now());
   const [spinning, setSpinning] = useState(false);
   const [offset, setOffset] = useState(0);
   const [transition, setTransition] = useState(false);
@@ -70,17 +70,13 @@ export default function SpinClient({
     return () => clearInterval(t);
   }, []);
 
-  useEffect(() => {
-    if (nextAt && now >= nextAt) {
-      setCanSpin(true);
-      setNextAt(null);
-    }
-  }, [now, nextAt]);
+  // The cooldown ends on its own once the ticking clock passes nextAt.
+  const ready = canSpin || (nextAt !== null && now >= nextAt);
 
   const sequence = Array.from({ length: prizes.length * REEL_CYCLES }, (_, i) => prizes[i % prizes.length]);
 
   async function spin() {
-    if (!canSpin || spinning) return;
+    if (!ready || spinning) return;
     setSpinning(true);
     setResult(null);
     setTransition(false);
@@ -151,8 +147,8 @@ export default function SpinClient({
           <div className="spin-result">{t("You won")}{" "}<strong style={{ color: "var(--accent)" }}>{t(result.label)}</strong>!</div>
         )}
 
-        <button type="button" className="spin-btn" disabled={!canSpin || spinning} onClick={spin}>
-          {spinning ? t("Spinning…") : canSpin ? t("Spin now") : t("Next spin in {time}", { time: nextAt ? fmtCountdown(nextAt - now) : "--:--:--" })}
+        <button type="button" className="spin-btn" disabled={!ready || spinning} onClick={spin}>
+          {spinning ? t("Spinning…") : ready ? t("Spin now") : t("Next spin in {time}", { time: nextAt ? fmtCountdown(nextAt - now) : "--:--:--" })}
         </button>
       </div>
 

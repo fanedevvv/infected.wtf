@@ -2,16 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import Script from "next/script";
+import type { ChartInstance, ChartTooltipItem } from "@/lib/chartjs";
 
-declare global {
-  interface Window {
-    Chart?: any;
-  }
-}
 
 export default function ViewsChart({ labels, data }: { labels: string[]; data: number[] }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const chartRef = useRef<any>(null);
+  const chartRef = useRef<ChartInstance | null>(null);
 
   function render() {
     if (!window.Chart || !canvasRef.current) return;
@@ -65,8 +61,8 @@ export default function ViewsChart({ labels, data }: { labels: string[]; data: n
             padding: 12,
             displayColors: false,
             callbacks: {
-              title: (items: any) => items[0].label,
-              label: (item: any) => item.parsed.y + " views",
+              title: (items: ChartTooltipItem[]) => items[0].label,
+              label: (item: ChartTooltipItem) => item.parsed.y + " views",
             },
           },
         },

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
@@ -128,7 +129,7 @@ export default async function OverviewContent() {
             ) : (
               <>
                 <div className="ov-value">{t("Free")}</div>
-                <a href="/dashboard?page=shop#premium" style={{ fontSize: ".7rem", color: "var(--accent)", marginTop: 2, display: "block", textDecoration: "none" }}>{t("Upgrade →")}</a>
+                <Link href="/dashboard?page=shop#premium" style={{ fontSize: ".7rem", color: "var(--accent)", marginTop: 2, display: "block", textDecoration: "none" }}>{t("Upgrade →")}</Link>
               </>
             )}
           </div>
@@ -170,42 +171,42 @@ export default async function OverviewContent() {
           </span>
         </div>
         <div className="quick-links-grid">
-            <a href="/dashboard?page=info" className="quick-link-card">
+            <Link href="/dashboard?page=info" className="quick-link-card">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" /></svg>
               <span>{t("Customize")}</span>
-            </a>
-            <a href="/dashboard?page=effects" className="quick-link-card">
+            </Link>
+            <Link href="/dashboard?page=effects" className="quick-link-card">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
               <span>{t("Effects")}</span>
-            </a>
-            <a href="/dashboard?page=shop" className="quick-link-card">
+            </Link>
+            <Link href="/dashboard?page=shop" className="quick-link-card">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0" /></svg>
               <span>{t("Shop")}</span>
-            </a>
-            <a href="/dashboard?page=marketplace" className="quick-link-card">
+            </Link>
+            <Link href="/dashboard?page=marketplace" className="quick-link-card">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
               <span>{t("Marketplace")}</span>
-            </a>
-            <a href="/dashboard?page=badges" className="quick-link-card">
+            </Link>
+            <Link href="/dashboard?page=badges" className="quick-link-card">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 15a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM8.21 13.89 7 23l5-3 5 3-1.21-9.12" /></svg>
               <span>{t("Badges")}</span>
-            </a>
-            <a href="/dashboard?page=links" className="quick-link-card">
+            </Link>
+            <Link href="/dashboard?page=links" className="quick-link-card">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
               <span>{t("Links")}</span>
-            </a>
-            <a href="/dashboard?page=referral" className="quick-link-card">
+            </Link>
+            <Link href="/dashboard?page=referral" className="quick-link-card">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>
               <span>{t("Referral")}</span>
-            </a>
-            <a href="/dashboard?page=integrations" className="quick-link-card">
+            </Link>
+            <Link href="/dashboard?page=integrations" className="quick-link-card">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 2h14a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM12 18h.01M9 7h6M9 11h6" /></svg>
               <span>{t("Integrations")}</span>
-            </a>
-            <a href="/leaderboard" className="quick-link-card">
+            </Link>
+            <Link href="/leaderboard" className="quick-link-card">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 20V10M12 20V4M6 20v-6" /></svg>
               <span>{t("Leaderboard")}</span>
-            </a>
+            </Link>
         </div>
       </div>
 
@@ -226,7 +227,7 @@ export default async function OverviewContent() {
                 <div>
                   <div className="updates-feed-title">{n.title}</div>
                   {n.body && <div className="updates-feed-body">{n.body}</div>}
-                  <div className="updates-feed-time">{n.createdAt.toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}</div>
+                  <div className="updates-feed-time">{n.createdAt?.toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}</div>
                 </div>
               </div>
             ))}

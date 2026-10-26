@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useState, useSyncExternalStore } from "react";
 
 const COOKIE_NAME = "site_cookie_consent";
+
+const noopSubscribe = () => () => {};
 
 function getConsent(): string | null {
   const match = document.cookie.match(new RegExp("(?:^|; )" + COOKIE_NAME + "=([^;]*)"));
@@ -10,19 +13,16 @@ function getConsent(): string | null {
 }
 
 export default function CookieBanner({ initialConsent }: { initialConsent: string | null }) {
-  const [visible, setVisible] = useState(false);
+  // The browser cookie can be newer than what the server saw; on the server, assume a choice exists so nothing flashes.
+  const storedConsent = useSyncExternalStore(noopSubscribe, getConsent, () => "unknown");
+  const [closed, setClosed] = useState(false);
   const [dismissing, setDismissing] = useState(false);
-
-  useEffect(() => {
-    if (initialConsent) return;
-    if (getConsent()) return;
-    setVisible(true);
-  }, [initialConsent]);
+  const visible = !initialConsent && !storedConsent && !closed;
 
   async function decide(accepted: boolean) {
     const value = accepted ? "accepted" : "rejected";
     setDismissing(true);
-    setTimeout(() => setVisible(false), 260);
+    setTimeout(() => setClosed(true), 260);
     try {
       await fetch("/api/cookie_consent", {
         method: "POST",
@@ -43,7 +43,7 @@ export default function CookieBanner({ initialConsent }: { initialConsent: strin
       <div className="cookie-text">
         <div className="cookie-title">We use cookies</div>
         <div className="cookie-desc">
-          We use cookies to improve your experience. By accepting, you agree to our <a href="/privacy">Privacy Policy</a>.
+          We use cookies to improve your experience. By accepting, you agree to our <Link href="/privacy">Privacy Policy</Link>.
         </div>
       </div>
       <div className="cookie-actions">

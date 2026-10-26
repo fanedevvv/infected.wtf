@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { showToast } from "@/lib/toast";
 
 type EmailTemplate = { id: number; templateKey: string; subject: string; bodyHtml: string; availableVariables: string[]; updatedAt: string };
@@ -33,12 +33,18 @@ async function callAction(body: Record<string, unknown>) {
   return res.json();
 }
 
+function previewDefaults(t: EmailTemplate | undefined): Record<string, string> {
+  const vars: Record<string, string> = {};
+  t?.availableVariables.forEach((v) => { vars[v] = PREVIEW_DEFAULTS[v] || `valoare_${v}`; });
+  return vars;
+}
+
 export default function EmailTemplatesManagement({ emailTemplates }: { emailTemplates: EmailTemplate[] }) {
   const [templates, setTemplates] = useState(emailTemplates);
   const [selectedId, setSelectedId] = useState<number | null>(emailTemplates[0]?.id ?? null);
-  const [subject, setSubject] = useState("");
-  const [bodyHtml, setBodyHtml] = useState("");
-  const [previewVars, setPreviewVars] = useState<Record<string, string>>({});
+  const [subject, setSubject] = useState(emailTemplates[0]?.subject ?? "");
+  const [bodyHtml, setBodyHtml] = useState(emailTemplates[0]?.bodyHtml ?? "");
+  const [previewVars, setPreviewVars] = useState<Record<string, string>>(() => previewDefaults(emailTemplates[0]));
   const [saving, setSaving] = useState(false);
   const [testEmail, setTestEmail] = useState("");
   const [testSending, setTestSending] = useState(false);
@@ -46,14 +52,13 @@ export default function EmailTemplatesManagement({ emailTemplates }: { emailTemp
 
   const selected = useMemo(() => templates.find((t) => t.id === selectedId) || null, [templates, selectedId]);
 
-  useEffect(() => {
-    if (!selected) return;
-    setSubject(selected.subject);
-    setBodyHtml(selected.bodyHtml);
-    const vars: Record<string, string> = {};
-    selected.availableVariables.forEach((v) => { vars[v] = PREVIEW_DEFAULTS[v] || `valoare_${v}`; });
-    setPreviewVars(vars);
-  }, [selected?.id]);
+  // Picking a template loads its saved copy into the editor.
+  function selectTemplate(t: EmailTemplate) {
+    setSelectedId(t.id);
+    setSubject(t.subject);
+    setBodyHtml(t.bodyHtml);
+    setPreviewVars(previewDefaults(t));
+  }
 
   const previewSubject = useMemo(() => interpolate(subject, previewVars), [subject, previewVars]);
   const previewHtml = useMemo(() => interpolate(bodyHtml, previewVars), [bodyHtml, previewVars]);
@@ -110,7 +115,7 @@ export default function EmailTemplatesManagement({ emailTemplates }: { emailTemp
           {templates.map((t) => (
             <button
               key={t.id}
-              onClick={() => setSelectedId(t.id)}
+              onClick={() => selectTemplate(t)}
               style={{
                 textAlign: "left", padding: ".6rem .75rem", borderRadius: 8, cursor: "pointer",
                 border: "1px solid " + (selectedId === t.id ? "color-mix(in srgb, var(--accent) 50%, transparent)" : "rgba(255,255,255,.08)"),

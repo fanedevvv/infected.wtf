@@ -1,3 +1,4 @@
+import Link from "next/link";
 import RedirectCountdown from "@/components/RedirectCountdown";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -24,7 +25,7 @@ export default async function ConfirmActionResultPage({
     <div className="confirm-wrap">
       <canvas id="particle-canvas" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }} />
       <div className="confirm-card">
-        <a href="/" className="site-logo">INFECTED.WTF</a>
+        <Link href="/" className="site-logo">INFECTED.WTF</Link>
 
         {status === "success" ? (
           isDelete ? (
@@ -35,7 +36,7 @@ export default async function ConfirmActionResultPage({
               <h1 className="confirm-title danger-text">Account Deleted</h1>
               <p className="confirm-desc">Your account and all associated data have been <strong>permanently deleted</strong>. We&apos;re sorry to see you go.</p>
               <div className="btn-row">
-                <a href="/" className="btn btn-secondary btn-full">Go Home</a>
+                <Link href="/" className="btn btn-secondary btn-full">Go Home</Link>
               </div>
             </>
           ) : isRelogin ? (
@@ -50,7 +51,7 @@ export default async function ConfirmActionResultPage({
                 Redirecting in <RedirectCountdown seconds={3} to="/dashboard" />s
               </div>
               <div className="btn-row">
-                <a href="/dashboard" className="btn btn-primary btn-full">Go to Dashboard →</a>
+                <Link href="/dashboard" className="btn btn-primary btn-full">Go to Dashboard →</Link>
               </div>
             </>
           ) : (
@@ -71,7 +72,7 @@ export default async function ConfirmActionResultPage({
                 Redirecting in <RedirectCountdown seconds={3} to="/dashboard?page=settings" />s
               </div>
               <div className="btn-row">
-                <a href="/dashboard?page=settings" className="btn btn-primary btn-full">Go to Settings →</a>
+                <Link href="/dashboard?page=settings" className="btn btn-primary btn-full">Go to Settings →</Link>
               </div>
             </>
           )
@@ -83,8 +84,8 @@ export default async function ConfirmActionResultPage({
             <h1 className="confirm-title success-text">Already Confirmed</h1>
             <p className="confirm-desc">This action was already completed. No changes were made.</p>
             <div className="btn-row">
-              <a href="/dashboard" className="btn btn-primary btn-full">Dashboard</a>
-              <a href="/" className="btn btn-secondary btn-full">Home</a>
+              <Link href="/dashboard" className="btn btn-primary btn-full">Dashboard</Link>
+              <Link href="/" className="btn btn-secondary btn-full">Home</Link>
             </div>
           </>
         ) : (
@@ -95,15 +96,15 @@ export default async function ConfirmActionResultPage({
             <h1 className="confirm-title">Invalid or Expired Link</h1>
             <p className="confirm-desc">This confirmation link is <strong>invalid or has expired</strong>. Please try the action again from your settings.</p>
             <div className="btn-row">
-              <a href="/dashboard?page=settings" className="btn btn-primary btn-full">Back to Settings</a>
-              <a href="/" className="btn btn-secondary btn-full">Home</a>
+              <Link href="/dashboard?page=settings" className="btn btn-primary btn-full">Back to Settings</Link>
+              <Link href="/" className="btn btn-secondary btn-full">Home</Link>
             </div>
           </>
         )}
 
         <div className="divider" />
         <p style={{ fontSize: ".75rem", color: "var(--text-muted)" }}>
-          Need help? <a href="/support" style={{ color: "var(--accent)", textDecoration: "none" }}>Contact Support</a>
+          Need help? <Link href="/support" style={{ color: "var(--accent)", textDecoration: "none" }}>Contact Support</Link>
         </p>
       </div>
     </div>

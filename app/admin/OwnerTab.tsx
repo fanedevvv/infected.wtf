@@ -234,12 +234,12 @@ export default function OwnerTab({
   return (
     <div className="admin-tab-panel">
       {/* ── Infected Mail ── */}
-      <div className="dash-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(168,85,247,.35)", background: "linear-gradient(160deg,rgba(168,85,247,.05) 0%,rgba(99,102,241,.03) 100%)" }}>
+      <div className="dash-card" style={{ marginBottom: "1.5rem", borderColor: "color-mix(in srgb, var(--accent) 35%, transparent)", background: "linear-gradient(160deg,color-mix(in srgb, var(--accent) 5%, transparent) 0%,color-mix(in srgb, var(--accent) 3%, transparent) 100%)" }}>
         <div className="dash-card-header" style={{ borderBottom: "1px solid rgba(255,255,255,.06)", paddingBottom: "1rem", marginBottom: "1.2rem" }}>
           <span className="dash-card-title" style={{ display: "flex", alignItems: "center", gap: ".6rem" }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2" width="18" height="18"><path d="M3 11l19-9-9 19-2-8-8-2z" /></svg>
-            <span style={{ color: "#a855f7" }}>Infected Mail</span>
-            <span style={{ fontSize: ".65rem", padding: ".2rem .55rem", background: "rgba(168,85,247,.15)", border: "1px solid rgba(168,85,247,.4)", borderRadius: 99, color: "#a855f7", fontWeight: 700, letterSpacing: ".05em" }}>OWNER</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#c6ff3d" strokeWidth="2" width="18" height="18"><path d="M3 11l19-9-9 19-2-8-8-2z" /></svg>
+            <span style={{ color: "var(--accent)" }}>Infected Mail</span>
+            <span style={{ fontSize: ".65rem", padding: ".2rem .55rem", background: "color-mix(in srgb, var(--accent) 15%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 40%, transparent)", borderRadius: 99, color: "var(--accent)", fontWeight: 700, letterSpacing: ".05em" }}>OWNER</span>
           </span>
           <span style={{ fontSize: ".78rem", color: "rgba(255,255,255,.35)" }}>Send an announcement notification to a group of users</span>
         </div>
@@ -271,7 +271,7 @@ export default function OwnerTab({
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
-          <button onClick={sendInfectedMail} disabled={mailSending} style={{ opacity: mailSending ? .6 : 1, display: "inline-flex", alignItems: "center", gap: ".5rem", padding: ".6rem 1.2rem", background: "linear-gradient(135deg,#a855f7,#6366f1)", border: "none", borderRadius: 8, color: "#fff", fontSize: ".85rem", fontWeight: 700, cursor: "pointer" }}>
+          <button onClick={sendInfectedMail} disabled={mailSending} style={{ opacity: mailSending ? .6 : 1, display: "inline-flex", alignItems: "center", gap: ".5rem", padding: ".6rem 1.2rem", background: "linear-gradient(135deg,var(--accent),var(--accent))", border: "none", borderRadius: 8, color: "#fff", fontSize: ".85rem", fontWeight: 700, cursor: "pointer" }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14"><path d="M3 11l19-9-9 19-2-8-8-2z" /></svg> Send Announcement
           </button>
           {mailStatus && <span style={{ fontSize: ".8rem", color: mailStatus.color }}>{mailStatus.text}</span>}
@@ -339,9 +339,9 @@ export default function OwnerTab({
               {Object.entries(SHOP_EFFECTS).map(([eid, e]) => {
                 const checked = bEffects.has(eid);
                 return (
-                  <label key={eid} style={{ display: "inline-flex", alignItems: "center", gap: ".35rem", padding: ".35rem .7rem", background: "rgba(255,255,255,.04)", border: `1px solid ${checked ? "rgba(99,102,241,.45)" : "rgba(255,255,255,.09)"}`, borderRadius: 8, cursor: "pointer", fontSize: ".78rem", color: "rgba(255,255,255,.65)", userSelect: "none" }}>
-                    <input type="checkbox" checked={checked} onChange={() => toggleSet(bEffects, setBEffects, eid)} style={{ accentColor: "#6366f1", width: 13, height: 13 }} />
-                    <span style={{ fontSize: ".65rem", padding: ".1rem .4rem", background: "rgba(99,102,241,.15)", borderRadius: 4, color: "#a5b4fc", fontWeight: 600 }}>{e.type}</span>
+                  <label key={eid} style={{ display: "inline-flex", alignItems: "center", gap: ".35rem", padding: ".35rem .7rem", background: "rgba(255,255,255,.04)", border: `1px solid ${checked ? "color-mix(in srgb, var(--accent) 45%, transparent)" : "rgba(255,255,255,.09)"}`, borderRadius: 8, cursor: "pointer", fontSize: ".78rem", color: "rgba(255,255,255,.65)", userSelect: "none" }}>
+                    <input type="checkbox" checked={checked} onChange={() => toggleSet(bEffects, setBEffects, eid)} style={{ accentColor: "#c6ff3d", width: 13, height: 13 }} />
+                    <span style={{ fontSize: ".65rem", padding: ".1rem .4rem", background: "color-mix(in srgb, var(--accent) 15%, transparent)", borderRadius: 4, color: "var(--accent)", fontWeight: 600 }}>{e.type}</span>
                     {e.name}
                   </label>
                 );
@@ -374,7 +374,7 @@ export default function OwnerTab({
                           <span style={{ background: "rgba(16,185,129,.12)", border: "1px solid rgba(16,185,129,.3)", borderRadius: 6, padding: ".1rem .45rem", color: "#10b981", fontWeight: 700 }}>{priceStr}</span>
                           {bn.premiumDays > 0 && <span style={{ background: "rgba(255,215,0,.1)", border: "1px solid rgba(255,215,0,.3)", borderRadius: 6, padding: ".1rem .45rem", color: "#ffd700", fontWeight: 600 }}>⭐ {bn.premiumDays}d Infected Plus</span>}
                           {bn.badges.map((b) => <span key={b} style={{ background: "rgba(251,191,36,.08)", border: "1px solid rgba(251,191,36,.2)", borderRadius: 6, padding: ".1rem .45rem", color: "#fbbf24", fontSize: ".7rem" }}>🏅 {b}</span>)}
-                          {bn.effects.map((e) => <span key={e} style={{ background: "rgba(99,102,241,.08)", border: "1px solid rgba(99,102,241,.2)", borderRadius: 6, padding: ".1rem .45rem", color: "#a5b4fc", fontSize: ".7rem" }}>✨ {e}</span>)}
+                          {bn.effects.map((e) => <span key={e} style={{ background: "color-mix(in srgb, var(--accent) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 20%, transparent)", borderRadius: 6, padding: ".1rem .45rem", color: "var(--accent)", fontSize: ".7rem" }}>✨ {e}</span>)}
                         </div>
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexShrink: 0 }}>
@@ -397,7 +397,7 @@ export default function OwnerTab({
       </div>
 
       {/* ── Redeem Codes ── */}
-      <div className="dash-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(236,72,153,.3)", background: "linear-gradient(160deg,rgba(236,72,153,.05) 0%,rgba(168,85,247,.02) 100%)" }}>
+      <div className="dash-card" style={{ marginBottom: "1.5rem", borderColor: "rgba(236,72,153,.3)", background: "linear-gradient(160deg,rgba(236,72,153,.05) 0%,color-mix(in srgb, var(--accent) 2%, transparent) 100%)" }}>
         <div className="dash-card-header" style={{ borderBottom: "1px solid rgba(255,255,255,.06)", paddingBottom: "1rem", marginBottom: "1.4rem" }}>
           <span className="dash-card-title" style={{ display: "flex", alignItems: "center", gap: ".6rem" }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#ec4899" strokeWidth="2" width="18" height="18"><polyline points="20 12 20 22 4 22 4 12" /><rect x="2" y="7" width="20" height="5" /><line x1="12" y1="22" x2="12" y2="7" /><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" /><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" /></svg>
@@ -432,7 +432,7 @@ export default function OwnerTab({
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
-            <button onClick={redeemCodeCreate} disabled={rcCreating} style={{ opacity: rcCreating ? .6 : 1, display: "inline-flex", alignItems: "center", gap: ".5rem", padding: ".6rem 1.2rem", background: "linear-gradient(135deg,#ec4899,#a855f7)", border: "none", borderRadius: 8, color: "#fff", fontSize: ".85rem", fontWeight: 700, cursor: "pointer" }}>
+            <button onClick={redeemCodeCreate} disabled={rcCreating} style={{ opacity: rcCreating ? .6 : 1, display: "inline-flex", alignItems: "center", gap: ".5rem", padding: ".6rem 1.2rem", background: "linear-gradient(135deg,#ec4899,var(--accent))", border: "none", borderRadius: 8, color: "#fff", fontSize: ".85rem", fontWeight: 700, cursor: "pointer" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg> Generate Code
             </button>
             {rcStatus && <span style={{ fontSize: ".8rem", color: rcStatus.color }}>{rcStatus.text}</span>}

@@ -7,7 +7,17 @@ export async function getCurrentUser() {
   if (!session) return null;
   const user = await prisma.user.findUnique({ where: { id: session.userId } });
   if (!user) return null;
-  return { ...user, email: decryptEmail(user.email) };
+  // These columns have defaults but are nullable in the schema; settle them once here so callers get plain values.
+  return {
+    ...user,
+    email: decryptEmail(user.email),
+    isAdmin: user.isAdmin ?? false,
+    isOwner: user.isOwner ?? false,
+    isPremium: user.isPremium ?? false,
+    banned: user.banned ?? false,
+    tokens: user.tokens ?? 0,
+    tokensSpent: user.tokensSpent ?? 0,
+  };
 }
 
 export async function requireUser() {
@@ -16,14 +26,16 @@ export async function requireUser() {
   return user;
 }
 
-export function isStaff(user: { isMod: boolean; isAdmin: boolean; isOwner: boolean } | null): boolean {
+type RoleFlags = { isAdmin: boolean | null; isOwner: boolean | null };
+
+export function isStaff(user: (RoleFlags & { isMod: boolean | null }) | null): boolean {
   if (!user) return false;
-  return user.isMod || user.isAdmin || user.isOwner;
+  return !!(user.isMod || user.isAdmin || user.isOwner);
 }
 
-export function isAdminUser(user: { isAdmin: boolean; isOwner: boolean } | null): boolean {
+export function isAdminUser(user: RoleFlags | null): boolean {
   if (!user) return false;
-  return user.isAdmin || user.isOwner;
+  return !!(user.isAdmin || user.isOwner);
 }
 
 export function validateUsername(u: string): boolean {

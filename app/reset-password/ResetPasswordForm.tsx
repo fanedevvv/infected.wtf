@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import RedirectCountdown from "@/components/RedirectCountdown";
 
@@ -68,7 +69,7 @@ export default function ResetPasswordForm({
     <div className="confirm-wrap">
       <canvas id="particle-canvas" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }} />
       <div className="confirm-card">
-        <a href="/" className="site-logo">INFECTED.WTF</a>
+        <Link href="/" className="site-logo">INFECTED.WTF</Link>
 
         {status === "invalid" && (
           <>
@@ -78,8 +79,8 @@ export default function ResetPasswordForm({
             <h1 className="confirm-title">Invalid or Expired Link</h1>
             <p className="confirm-desc">This password reset link is <strong>invalid or has already been used</strong>. Please request a new one.</p>
             <div className="btn-row">
-              <a href="/login" className="btn btn-primary btn-full">Request New Link</a>
-              <a href="/" className="btn btn-secondary btn-full">Home</a>
+              <Link href="/login" className="btn btn-primary btn-full">Request New Link</Link>
+              <Link href="/" className="btn btn-secondary btn-full">Home</Link>
             </div>
           </>
         )}
@@ -92,8 +93,8 @@ export default function ResetPasswordForm({
             <h1 className="confirm-title">Link Expired</h1>
             <p className="confirm-desc">This reset link has <strong>expired</strong> (valid for 1 hour). Please go back and request a new one.</p>
             <div className="btn-row">
-              <a href="/login" className="btn btn-primary btn-full">Request New Link</a>
-              <a href="/" className="btn btn-secondary btn-full">Home</a>
+              <Link href="/login" className="btn btn-primary btn-full">Request New Link</Link>
+              <Link href="/" className="btn btn-secondary btn-full">Home</Link>
             </div>
           </>
         )}
@@ -110,7 +111,7 @@ export default function ResetPasswordForm({
               Redirecting to login in <RedirectCountdown seconds={3} to="/login" />s
             </div>
             <div className="btn-row">
-              <a href="/login" className="btn btn-primary btn-full">Sign In →</a>
+              <Link href="/login" className="btn btn-primary btn-full">Sign In →</Link>
             </div>
           </>
         )}
@@ -169,7 +170,7 @@ export default function ResetPasswordForm({
 
             <div className="divider" />
             <p style={{ fontSize: ".75rem", color: "var(--text-muted)" }}>
-              <a href="/login" style={{ color: "var(--accent)", textDecoration: "none" }}>← Back to Login</a>
+              <Link href="/login" style={{ color: "var(--accent)", textDecoration: "none" }}>← Back to Login</Link>
             </p>
           </>
         )}
@@ -178,7 +179,7 @@ export default function ResetPasswordForm({
           <>
             <div className="divider" />
             <p style={{ fontSize: ".75rem", color: "var(--text-muted)" }}>
-              Need help? <a href="/support" style={{ color: "var(--accent)", textDecoration: "none" }}>Contact Support</a>
+              Need help? <Link href="/support" style={{ color: "var(--accent)", textDecoration: "none" }}>Contact Support</Link>
             </p>
           </>
         )}

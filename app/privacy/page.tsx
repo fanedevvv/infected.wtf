@@ -1,3 +1,4 @@
+import Link from "next/link";
 import PublicNavbar from "@/components/PublicNavbar";
 import SiteFooter from "@/components/SiteFooter";
 import CookieBanner from "@/components/CookieBanner";
@@ -15,10 +16,10 @@ export default async function PrivacyPage() {
     <div className="privacy-page">
       <PublicNavbar user={user} />
       <div className="legal-page fade-in">
-        <a href="/" className="legal-back">
+        <Link href="/" className="legal-back">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14"><polyline points="15 18 9 12 15 6" /></svg>
           Back to home
-        </a>
+        </Link>
         <h1 className="legal-title">Privacy Policy</h1>
         <p className="legal-meta">Last updated: {today} &nbsp;&middot;&nbsp; We take your privacy seriously</p>
 
@@ -94,7 +95,7 @@ export default async function PrivacyPage() {
             <li><strong>Correction</strong> &mdash; update your username, email and profile data at any time.</li>
             <li><strong>Deletion</strong> &mdash; permanently delete your account and all associated data via Dashboard &rarr; Settings.</li>
           </ul>
-          <p>For requests that cannot be fulfilled through the dashboard, contact us via <a href="/support">Support</a>.</p>
+          <p>For requests that cannot be fulfilled through the dashboard, contact us via <Link href="/support">Support</Link>.</p>
         </div>
 
         <div className="legal-section" id="p7">
@@ -104,7 +105,7 @@ export default async function PrivacyPage() {
 
         <div className="legal-section" id="p8">
           <h2><span className="legal-num">8</span> Children&apos;s Privacy</h2>
-          <p>The Service is not directed to children under 13. We do not knowingly collect personal information from children under 13. If you believe we have inadvertently collected such data, please <a href="/support">contact us</a> immediately.</p>
+          <p>The Service is not directed to children under 13. We do not knowingly collect personal information from children under 13. If you believe we have inadvertently collected such data, please <Link href="/support">contact us</Link> immediately.</p>
         </div>
 
         <div className="legal-section" id="p9">
@@ -114,7 +115,7 @@ export default async function PrivacyPage() {
 
         <div className="legal-section" id="p10">
           <h2><span className="legal-num">10</span> Contact</h2>
-          <p>For privacy-related questions or data requests, please visit our <a href="/support">Support page</a> or join our <a href="https://infected.wtf/discord" target="_blank" rel="noopener noreferrer">Discord server</a>.</p>
+          <p>For privacy-related questions or data requests, please visit our <Link href="/support">Support page</Link> or join our <a href="https://infected.wtf/discord" target="_blank" rel="noopener noreferrer">Discord server</a>.</p>
         </div>
       </div>
 

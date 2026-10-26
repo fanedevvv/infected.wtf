@@ -11,8 +11,9 @@ export default function SafeImg({
   alt?: string;
   className?: string;
 }) {
-  // eslint-disable-next-line @next/next/no-img-element
   return (
+    // Arbitrary user uploads and remote avatars, with an onError fallback: next/image doesn't fit here.
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src || fallback}
       alt={alt}

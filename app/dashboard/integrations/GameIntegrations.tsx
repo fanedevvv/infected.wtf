@@ -422,6 +422,7 @@ export default function GameIntegrations() {
               <div className="int-preview-generic" style={{ alignItems: "flex-start" }}>
                 <div className="int-preview-avatar">
                   {typeof now?.albumImage === "string" && now.albumImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- remote album art from Spotify's CDN
                     <img src={now.albumImage} alt="" />
                   ) : (
                     <SpotifyIcon size={16} />

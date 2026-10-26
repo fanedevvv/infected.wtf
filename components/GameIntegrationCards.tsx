@@ -206,6 +206,7 @@ export default function GameIntegrationCards({ integrations }: { integrations: G
             <GameCardShell key="spotify" type="spotify" href={now?.trackUrl || it.data.profileUrl}>
               <div className="game-int-icon">
                 {now?.albumImage || it.data.avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- remote album art / avatar from the integration
                   <img src={now?.albumImage || it.data.avatarUrl} alt="" />
                 ) : (
                   <SpotifyIcon size={18} />

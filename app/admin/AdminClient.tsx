@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { showToast } from "@/lib/toast";
@@ -23,6 +23,8 @@ type AdminUser = {
 type Bundle = { id: number; name: string; price: number; priceType: "euro" | "tokens"; badges: string[]; effects: string[]; premiumDays: number };
 type RedeemCode = { id: number; code: string; tokens: number; maxUses: number; usesCount: number; expiresAt: string | null; active: boolean };
 type DynamicBadge = { badgeKey: string; label: string; color: string };
+type AdminTab = "staff" | "reports" | "projects" | "partners" | "owner";
+const noopSubscribe = () => () => {};
 type SiteDomain = { id: number; hostname: string; status: string; errorMessage: string | null; isDefault: boolean; tier: string };
 type EmailTemplate = { id: number; templateKey: string; subject: string; bodyHtml: string; availableVariables: string[]; updatedAt: string };
 
@@ -65,7 +67,11 @@ function RoleBadge({ u }: { u: { isOwner: boolean; isAdmin: boolean; isMod: bool
 
 export default function AdminClient(props: Props) {
   const router = useRouter();
-  const [tab, setTab] = useState<"staff" | "reports" | "projects" | "partners" | "owner">("staff");
+  // The last tab lives in sessionStorage; until the user picks one this session, fall back to it.
+  const [now] = useState(() => Date.now());
+  const savedTab = useSyncExternalStore(noopSubscribe, () => sessionStorage.getItem("adminTab"), () => null);
+  const [pickedTab, setTab] = useState<AdminTab | null>(null);
+  const tab: AdminTab = pickedTab ?? (savedTab === "owner" && props.iAmOwner ? "owner" : "staff");
   const [pendingProjects, setPendingProjects] = useState<number | null>(null);
   const [openReports, setOpenReports] = useState<number | null>(null);
   const [searchQ, setSearchQ] = useState(props.search);
@@ -228,22 +234,25 @@ export default function AdminClient(props: Props) {
     });
   }
 
-  useEffect(() => {
-    const saved = typeof window !== "undefined" ? sessionStorage.getItem("adminTab") : null;
-    if (saved === "owner" && props.iAmOwner) setTab("owner");
-  }, [props.iAmOwner]);
-
-  function switchTab(t: "staff" | "reports" | "projects" | "partners" | "owner") {
+  function switchTab(t: AdminTab) {
     setTab(t);
     try { sessionStorage.setItem("adminTab", t); } catch {}
   }
 
   // Keep the open edit panel in sync with fresh server data after router.refresh()
-  useEffect(() => {
-    if (!epUser) return;
-    const fresh = props.users.find((u) => u.id === epUser.id);
+  const [seenUsers, setSeenUsers] = useState(props.users);
+  if (seenUsers !== props.users) {
+    setSeenUsers(props.users);
+    const fresh = epUser && props.users.find((u) => u.id === epUser.id);
     if (fresh) setEpUser(fresh);
-  }, [props.users]); // eslint-disable-line react-hooks/exhaustive-deps
+  }
+
+  // Lock page scroll behind the edit panel while it is open.
+  useEffect(() => {
+    if (!panelOpen) return;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, [panelOpen]);
 
   function openEditPanel(u: AdminUser, isSelf = false) {
     setEpUser(u);
@@ -253,11 +262,9 @@ export default function AdminClient(props: Props) {
     setTokensInput(String(u.tokens ?? 0));
     setPremiumDaysInput("30");
     setPanelOpen(true);
-    document.body.style.overflow = "hidden";
   }
   function closeEditPanel() {
     setPanelOpen(false);
-    document.body.style.overflow = "";
     setEpUser(null);
     setInFlight(false);
   }
@@ -410,7 +417,7 @@ export default function AdminClient(props: Props) {
     );
   }
 
-  const isActivePremium = (u: AdminUser) => u.isPremium && (!u.premiumExpiresAt || new Date(u.premiumExpiresAt).getTime() > Date.now());
+  const isActivePremium = (u: AdminUser) => u.isPremium && (!u.premiumExpiresAt || new Date(u.premiumExpiresAt).getTime() > now);
 
   return (
     <>

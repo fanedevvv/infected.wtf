@@ -15,15 +15,23 @@ interface Props {
 type Renderer = (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => void;
 
 // ── Background effects ──────────────────────────────────────────────────────
+type Pt = { x: number; y: number };
+/** A point on an avatar outline plus the outward angle there. */
+type BorderPt = Pt & { a: number };
+type Spark = Pt & { vx: number; vy: number; life: number; trail: Pt[] };
+type Burst = { particles: Spark[]; color: string; life: number; maxLife: number };
+type Star = Pt & { r: number; tw: number };
+
 function buildBgRenderers(): Record<string, Renderer> {
-  let hellSeeds: any = null;
+  let hellSeeds: { xBase: number; xWobble: number; speed: number; phase: number; sz0: number }[] | null = null;
 
   return {
     bg_fallingleaves: (() => {
       const LEAF_COUNT = 28;
-      let seeds: any = null;
-      function initSeeds() {
-        seeds = Array.from({ length: LEAF_COUNT }, (_, i) => ({
+      type Leaf = { xBase: number; phase: number; speed: number; swayAmp: number; swayFreq: number; rotSpeed: number; sz: number; colorIdx: number; swayOff: number };
+      let seeds: Leaf[] | null = null;
+      function initSeeds(): Leaf[] {
+        return Array.from({ length: LEAF_COUNT }, (_, i) => ({
           xBase: Math.random(),
           phase: Math.random() * 100,
           speed: 0.18 + Math.random() * 0.32,
@@ -94,7 +102,7 @@ function buildBgRenderers(): Record<string, Renderer> {
       const colors = ["#84cc16", "#65a30d", "#a3e635", "#fbbf24", "#86efac"];
       return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
         ctx.clearRect(0, 0, W, H);
-        if (!seeds) initSeeds();
+        if (!seeds) seeds = initSeeds();
         drawBranch(ctx, W, H);
         for (let i = 0; i < seeds.length; i++) {
           const s = seeds[i];
@@ -117,9 +125,10 @@ function buildBgRenderers(): Record<string, Renderer> {
 
     bg_underwater: (() => {
       const BCOUNT = 22;
-      let bubbles: any = null;
-      function initBubbles(W: number) {
-        bubbles = Array.from({ length: BCOUNT }, () => ({
+      type Bubble = { x: number; wobbleOff: number; speed: number; r: number; phase: number; popAt: number; popping: boolean; popT: number; popX: number; popY: number };
+      let bubbles: Bubble[] | null = null;
+      function initBubbles(W: number): Bubble[] {
+        return Array.from({ length: BCOUNT }, () => ({
           x: Math.random() * W, wobbleOff: Math.random() * Math.PI * 2,
           speed: 0.25 + Math.random() * 0.45, r: 2.5 + Math.random() * 5.5,
           phase: Math.random() * 100, popAt: 0.07 + Math.random() * 0.25,
@@ -136,7 +145,7 @@ function buildBgRenderers(): Record<string, Renderer> {
           ctx.save(); ctx.globalAlpha = 0.04 + Math.sin(t * 0.01 + j) * 0.02; ctx.fillStyle = "#bae6fd";
           ctx.beginPath(); ctx.moveTo(rx - 20, 0); ctx.lineTo(rx + 20, 0); ctx.lineTo(rx + 60, H); ctx.lineTo(rx - 60, H); ctx.closePath(); ctx.fill(); ctx.restore();
         }
-        if (!bubbles) initBubbles(W);
+        if (!bubbles) bubbles = initBubbles(W);
         for (let i = 0; i < bubbles.length; i++) {
           const b = bubbles[i];
           const prog = ((t * b.speed + b.phase) % 100) / 100;
@@ -179,7 +188,7 @@ function buildBgRenderers(): Record<string, Renderer> {
         const cy = H / 2 + Math.sin(t * 0.008 + i * 45 * Math.PI / 180) * H * 0.32;
         const r = W * 0.15 + Math.sin(t * 0.012 + i) * W * 0.05;
         const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-        const [c1, c2] = palettes[i % palettes.length];
+        const [c1] = palettes[i % palettes.length];
         grd.addColorStop(0, c1 + "44"); grd.addColorStop(1, "transparent");
         ctx.save(); ctx.globalAlpha = 0.6; ctx.fillStyle = grd;
         ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
@@ -187,7 +196,7 @@ function buildBgRenderers(): Record<string, Renderer> {
     },
 
     bg_fireworks: (() => {
-      const bursts: any[] = [];
+      const bursts: Burst[] = [];
       const COLORS = ["#ffd700", "#f97316", "#ef4444", "#a78bfa", "#34d399", "#60a5fa", "#f472b6", "#facc15"];
       let lastBurst = 0;
       function spawnBurst(W: number, H: number) {
@@ -196,7 +205,7 @@ function buildBgRenderers(): Record<string, Renderer> {
         const color = COLORS[Math.floor(Math.random() * COLORS.length)];
         const count = 28 + Math.floor(Math.random() * 16);
         const speed = 2.2 + Math.random() * 2.5;
-        const particles: any[] = [];
+        const particles: Spark[] = [];
         for (let i = 0; i < count; i++) {
           const a = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
           const s = speed * (0.5 + Math.random() * 0.8);
@@ -252,7 +261,8 @@ function buildBgRenderers(): Record<string, Renderer> {
         for (let p = 0; p < 5; p++) {
           const a = rot + p * 4 * Math.PI / 5 - Math.PI / 2;
           const x = cx + r * Math.cos(a); const y = cy + r * Math.sin(a);
-          p === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+          if (p === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
         }
         ctx.closePath(); ctx.stroke(); ctx.restore();
       };
@@ -616,7 +626,7 @@ function buildBgRenderers(): Record<string, Renderer> {
     })(),
 
     bg_galaxy: (() => {
-      let stars: { x: number; y: number; r: number; tw: number } | any = null;
+      let stars: Star[] = [];
       let initedFor = 0;
       function init(W: number, H: number) {
         stars = Array.from({ length: 140 }, () => ({
@@ -651,7 +661,7 @@ function buildBgRenderers(): Record<string, Renderer> {
     })(),
 
     bg_neoncity: (() => {
-      let bld: any = null;
+      let bld: { x: number; w: number; h: number; hue: number; flicker: number }[] = [];
       let initedFor = 0;
       function init(W: number, H: number) {
         const n = 16;
@@ -694,7 +704,7 @@ function buildBgRenderers(): Record<string, Renderer> {
     })(),
 
     bg_bioluminescent: (() => {
-      let dots: any = null;
+      let dots: { x: number; y: number; sp: number; ph: number; r: number }[] = [];
       let initedFor = 0;
       function init(W: number, H: number) {
         dots = Array.from({ length: 34 }, () => ({
@@ -741,8 +751,8 @@ function buildBgRenderers(): Record<string, Renderer> {
     })(),
 
     bg_meteors: (() => {
-      let stars: any = null;
-      let meteors: any[] = [];
+      let stars: Star[] = [];
+      let meteors: (Pt & { vx: number; vy: number; life: number })[] = [];
       let lastSpawn = 0;
       let initedFor = 0;
       function init(W: number, H: number) {
@@ -838,7 +848,7 @@ function polygonBorderPoints(cx: number, cy: number, W: number, H: number, polyN
     return Math.hypot(q.x - p.x, q.y - p.y);
   });
   const total = lens.reduce((a, b) => a + b, 0);
-  const pts: any[] = [];
+  const pts: BorderPt[] = [];
   for (let i = 0; i < n; i++) {
     let dist = (i / n) * total;
     let si = 0;
@@ -855,7 +865,10 @@ function polygonBorderPoints(cx: number, cy: number, W: number, H: number, polyN
 function perimPoint(cx: number, cy: number, hw: number, hh: number, cr: number, t: number) {
   const s = hw - cr;
   const arcLen = cr * Math.PI / 2;
-  const segs: any[] = [
+  type Seg =
+    | { type: "arc"; cx: number; cy: number; r: number; a0: number; da: number }
+    | { type: "line"; x0: number; y0: number; x1: number; y1: number };
+  const segs: Seg[] = [
     { type: "arc", cx: cx - s, cy: cy - hh + cr, r: cr, a0: -Math.PI / 2, da: -Math.PI / 2 },
     { type: "line", x0: cx - s, y0: cy - hh, x1: cx + s, y1: cy - hh },
     { type: "arc", cx: cx + s, cy: cy - hh + cr, r: cr, a0: -Math.PI / 2, da: Math.PI / 2 },
@@ -887,11 +900,11 @@ function perimPoint(cx: number, cy: number, hw: number, hh: number, cr: number, 
 function buildAvatarHelpers(SHAPE: string) {
   const SR = SHAPE_RADIUS[SHAPE] ?? 9999;
 
-  function getBorderPoints(cx: number, cy: number, R: number, n: number): any[] {
+  function getBorderPoints(cx: number, cy: number, R: number, n: number): BorderPt[] {
     if (SHAPE_POLYGONS[SHAPE]) {
       return polygonBorderPoints(cx, cy, R * 2, R * 2, SHAPE_POLYGONS[SHAPE], n);
     } else if (CIRCLE_ORBIT.has(SHAPE)) {
-      const pts: any[] = [];
+      const pts: BorderPt[] = [];
       for (let i = 0; i < n; i++) {
         const a = (i / n) * Math.PI * 2;
         pts.push({ x: cx + Math.cos(a) * R, y: cy + Math.sin(a) * R, a });
@@ -906,7 +919,7 @@ function buildAvatarHelpers(SHAPE: string) {
         { x: cx, y: cy + R },
         { x: cx - R, y: cy },
       ];
-      const pts: any[] = [];
+      const pts: BorderPt[] = [];
       for (let i = 0; i < n; i++) {
         const t = (i / n) * total;
         const seg = Math.floor(t / side);
@@ -924,7 +937,7 @@ function buildAvatarHelpers(SHAPE: string) {
       const straight = (hw - cr) * 2;
       const arc = cr * Math.PI / 2;
       const total = straight * 4 + arc * 4;
-      const pts: any[] = [];
+      const pts: BorderPt[] = [];
       for (let i = 0; i < n; i++) {
         const t = (i / n) * total;
         pts.push(perimPoint(cx, cy, hw, hh, cr, t));
@@ -946,7 +959,8 @@ function buildAvatarHelpers(SHAPE: string) {
       poly.forEach(([px, py], i) => {
         const x = cx + (px - 0.5) * R * 2;
         const y = cy + (py - 0.5) * R * 2;
-        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       });
       ctx.closePath();
     } else if (CIRCLE_ORBIT.has(SHAPE)) {
@@ -986,7 +1000,7 @@ function buildAvatarRenderers(SHAPE: string, PAV_TOP_OFFSET: number, PAV_EDGE: n
   function getAvatarR(H: number) { return (H - PAV_TOP_OFFSET - PAV_EDGE) / 2 - 2; }
   function getEffectR(W: number, H: number) { return H ? getAvatarR(H) : W * 0.48; }
 
-  let avDarkEyesCache: any = null;
+  let avDarkEyesCache: { W: number; H: number; pts: BorderPt[] } | null = null;
 
   return {
     avatar_rocks: (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
@@ -1366,7 +1380,11 @@ function runAvatarEffect(AE: string, avatarShape: string): (() => void) | null {
 // ── Cursor trail effects ────────────────────────────────────────────────────
 function runCursorEffect(CE: string): (() => void) | null {
   const isShadow = CE === "cursor_shadow";
-  const particles: any[] = [];
+  type TrailParticle = Pt & {
+    vx: number; vy: number; life: number; maxLife: number; sz: number; color: string;
+    rot: number; rspd: number; swayPhase: number; char: string;
+  };
+  const particles: TrailParticle[] = [];
   let mx = 0, my = 0;
   const onMouseMove = (e: MouseEvent) => { mx = e.clientX; my = e.clientY; };
   document.addEventListener("mousemove", onMouseMove);
@@ -1383,7 +1401,12 @@ function runCursorEffect(CE: string): (() => void) | null {
   };
   window.addEventListener("resize", onResize);
 
-  const configs: Record<string, any> = {
+  type TrailConfig = {
+    count: number; life: number; spd: number; sz: () => number; color: () => string; grow: boolean;
+    ring?: boolean; meteor?: boolean; leaf?: boolean; soul?: boolean; sparkle?: boolean; snow?: boolean;
+    heart?: boolean; butterfly?: boolean; matrixchar?: boolean; glow?: boolean;
+  };
+  const configs: Record<string, TrailConfig> = {
     cursor_smoke: { count: 2, life: 60, spd: 1.2, sz: () => 4 + Math.random() * 6, color: () => `hsla(0,0%,${60 + Math.random() * 20}%,`, grow: true },
     cursor_fire: { count: 3, life: 40, spd: 1.8, sz: () => 3 + Math.random() * 5, color: () => `hsla(${15 + Math.random() * 30},100%,${50 + Math.random() * 20}%,`, grow: false },
     cursor_soundwave: { count: 1, life: 55, spd: 0, sz: () => 2, color: () => "rgba(57,255,20,", grow: true, ring: true },
@@ -1631,7 +1654,6 @@ export default function PurchasedEffectsEngine({
     }
 
     return () => cleanups.forEach((fn) => fn());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [purchasedEffects, activeCursorEffect, activeAvatarEffect, activeBgEffect, avatarShape, cursorTrailEnabled, customCursorUrl]);
 
   return null;

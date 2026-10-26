@@ -72,8 +72,6 @@ export default function EffectText({
       }, 45);
       return () => clearInterval(timer);
     }
-
-    setDisplay(text);
   }, [active, effect, text]);
 
   if (effect === "glitch") {

@@ -101,7 +101,6 @@ export default function ProfileInfoForm(props: Props) {
 
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [fontOpen, setFontOpen] = useState(false);
 
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [bannerUploading, setBannerUploading] = useState(false);
@@ -114,7 +113,6 @@ export default function ProfileInfoForm(props: Props) {
   const bgInputRef = useRef<HTMLInputElement>(null);
   const musicInputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
   const cursorInputRef = useRef<HTMLInputElement>(null);
-  const fontWrapRef = useRef<HTMLDivElement>(null);
 
   function checkDirty(next?: Partial<typeof original.current>) {
     const cur = {
@@ -159,14 +157,6 @@ export default function ProfileInfoForm(props: Props) {
     checkDirty();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayName, location, job, birthDate, bio, font, playlistStyle, layoutTemplate, opacity, blur, accentColor, backgroundColor, nameColor, bioColor, overlayColor]);
-
-  useEffect(() => {
-    function onClick(e: MouseEvent) {
-      if (fontWrapRef.current && !fontWrapRef.current.contains(e.target as Node)) setFontOpen(false);
-    }
-    document.addEventListener("click", onClick);
-    return () => document.removeEventListener("click", onClick);
-  }, []);
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -827,7 +817,6 @@ export default function ProfileInfoForm(props: Props) {
 
       {show("fonts") && (
         <div className="dash-card">
-          {/* eslint-disable-next-line @next/next/no-page-custom-font */}
           <link rel="stylesheet" href={googleFontsHref(PROFILE_FONTS.map((f) => f.id)) || undefined} />
           <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: ".25rem" }}>{t("Typography")}</h3>
           <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>{t("Font selection")}</p>

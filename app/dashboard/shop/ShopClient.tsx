@@ -90,7 +90,7 @@ export default function ShopClient(props: Props) {
   const [purchasedEffects, setPurchasedEffects] = useState(new Set(props.purchasedEffects));
   const [ownedBundles, setOwnedBundles] = useState(new Set(props.bundles.filter((b) => b.owned).map((b) => b.id)));
   const [isPremium, setIsPremium] = useState(props.isPremium);
-  const [premiumExpiresAt, setPremiumExpiresAt] = useState(props.premiumExpiresAt);
+  const premiumExpiresAt = props.premiumExpiresAt;
 
   const [confirmBuy, setConfirmBuy] = useState<{ kind: "badge" | "effect" | "bundle"; id: string | number; name: string; price: number; color: string } | null>(null);
   const [gift, setGift] = useState<GiftTarget | null>(null);

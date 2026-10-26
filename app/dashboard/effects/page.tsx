@@ -20,8 +20,8 @@ export default async function EffectsPage({ section }: { section?: "full" | "bg"
   return (
     <EffectsClient
       isPremium={isPremium}
-      particleEffect={profile.particleEffect}
-      cursorTrail={profile.cursorTrail}
+      particleEffect={profile.particleEffect ?? false}
+      cursorTrail={profile.cursorTrail ?? false}
       nameEffect={profile.nameEffect}
       bioEffect={profile.bioEffect}
       avatarRing={profile.avatarRing}

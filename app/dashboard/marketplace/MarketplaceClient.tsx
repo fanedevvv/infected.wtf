@@ -222,7 +222,17 @@ export default function MarketplaceClient({ tokens: initialTokens, profileSlug }
   }
 
   useEffect(() => {
-    Promise.all([loadBrowse(), loadMine()]).finally(() => setLoading(false));
+    let cancelled = false;
+    const get = (url: string) => fetch(url).then((r) => r.json() as Promise<{ themes?: Theme[] }>);
+    Promise.all([get("/api/marketplace"), get("/api/marketplace?mine=1")])
+      .then(([browse, mine]) => {
+        if (cancelled) return;
+        setThemes(browse.themes || []);
+        setMyThemes(mine.themes || []);
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, []);
 
   async function refreshAll() {

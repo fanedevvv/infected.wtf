@@ -7,6 +7,7 @@ import { publicImageDataUrl } from "@/lib/og-image";
 import { getProfileBadges } from "@/lib/badges";
 import { ALL_BADGES } from "@/lib/badge-defs";
 import { BADGE_ICON } from "@/lib/badge-icons";
+import { OG_ACCENT, OG_BG, OG_INK, OgMark } from "@/lib/og-brand";
 
 export const alt = "infected.wtf profile";
 export const size = { width: 1200, height: 630 };
@@ -50,14 +51,14 @@ export default async function Image({ params }: { params: Promise<{ username: st
   const { username: slug } = await params;
   const profile = await prisma.profile.findUnique({ where: { slug }, include: { user: { select: { username: true, banned: true } } } });
 
-  const [logo, fonts] = await Promise.all([publicImageDataUrl("assets/img/logo-icon.png", 72, 72, "contain"), loadFonts()]);
+  const fonts = await loadFonts();
   const options = { ...size, fonts };
 
   if (!profile || profile.user.banned) {
     return new ImageResponse(
       (
-        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 24, background: "#050507", color: "#fff", fontSize: 64, fontWeight: 800 }}>
-          {logo && <img src={logo} width={96} height={96} alt="" />}
+        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 28, background: OG_BG, color: OG_INK, fontSize: 72, fontWeight: 800, letterSpacing: 2, borderBottom: `14px solid ${OG_ACCENT}` }}>
+          <OgMark size={96} />
           INFECTED.WTF
         </div>
       ),
@@ -85,7 +86,7 @@ export default async function Image({ params }: { params: Promise<{ username: st
         <div style={{ position: "absolute", inset: 0, display: "flex", background: "linear-gradient(180deg, rgba(0,0,0,.25) 0%, rgba(0,0,0,.7) 100%)" }} />
 
         <div style={{ position: "absolute", top: 40, left: 48, display: "flex", alignItems: "center", gap: 14 }}>
-          {logo && <img src={logo} width={52} height={52} alt="" />}
+          <OgMark size={44} />
           <span style={{ color: "#fff", fontSize: 30, fontWeight: 800, letterSpacing: 1 }}>INFECTED.WTF</span>
         </div>
 

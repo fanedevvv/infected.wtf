@@ -209,7 +209,7 @@ export default function IntegrationsContent({
         showToast(t("Something went wrong connecting Discord."), "error");
       }
     }
-  }, [connected, error]);
+  }, [connected, error, t]);
 
   const hasDiscordUser = !!integration?.discordUserId;
   const hasDiscordServer = !!integration?.discordServerInvite;
@@ -476,7 +476,7 @@ export default function IntegrationsContent({
       </div>
 
       <div id="link-modal" className={socialModal ? "open" : ""} role="dialog" aria-modal="true" onClick={(e) => e.target === e.currentTarget && setSocialModal(null)}>
-        <div className="link-modal-box" style={{ ["--lm-color" as string]: socialModal ? PLATFORM_COLOR[socialModal] : "#6366f1", borderColor: `${socialModal ? PLATFORM_COLOR[socialModal] : "#6366f1"}30` }}>
+        <div className="link-modal-box" style={{ ["--lm-color" as string]: socialModal ? PLATFORM_COLOR[socialModal] : "var(--accent)", borderColor: `${socialModal ? PLATFORM_COLOR[socialModal] : "var(--accent)"}30` }}>
           <button className="link-modal-close" onClick={() => setSocialModal(null)}>×</button>
           {socialModal && (
             <>

@@ -361,9 +361,10 @@ function buildRenderers(): Record<string, Renderer> {
     })(),
     bg_underwater: (() => {
       const BC = 10;
-      let bb: any = null;
-      function init(W: number) {
-        bb = Array.from({ length: BC }, () => ({
+      type Bubble = { x: number; wo: number; sp: number; r: number; ph: number; pa: number; pop: boolean; pt: number; px: number; py: number };
+      let bb: Bubble[] | null = null;
+      function init(W: number): Bubble[] {
+        return Array.from({ length: BC }, () => ({
           x: Math.random() * W, wo: Math.random() * Math.PI * 2, sp: 0.3 + Math.random() * 0.5,
           r: 1.5 + Math.random() * 3.5, ph: Math.random() * 100, pa: 0.08 + Math.random() * 0.22,
           pop: false, pt: 0, px: 0, py: 0,
@@ -374,7 +375,7 @@ function buildRenderers(): Record<string, Renderer> {
         const g = ctx.createLinearGradient(0, 0, 0, H);
         g.addColorStop(0, "rgba(14,165,233,0.30)"); g.addColorStop(1, "rgba(7,89,133,0.10)");
         ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-        if (!bb) init(W);
+        if (!bb) bb = init(W);
         for (let i = 0; i < bb.length; i++) {
           const b = bb[i];
           const prog = ((t * b.sp + b.ph) % 100) / 100;
@@ -424,7 +425,8 @@ function buildRenderers(): Record<string, Renderer> {
       }
     },
     bg_fireworks: (() => {
-      const bursts: any[] = [];
+      type Spark = { x: number; y: number; vx: number; vy: number; life: number; trail: { x: number; y: number }[] };
+      const bursts: { particles: Spark[]; color: string; life: number; maxLife: number }[] = [];
       const COLORS = ["#ffd700", "#f97316", "#ef4444", "#a78bfa", "#34d399", "#60a5fa", "#f472b6"];
       let lastBurst = 0;
       function spawnBurst(W: number, H: number) {
@@ -433,7 +435,7 @@ function buildRenderers(): Record<string, Renderer> {
         const color = COLORS[Math.floor(Math.random() * COLORS.length)];
         const count = 18 + Math.floor(Math.random() * 10);
         const speed = 1.5 + Math.random() * 1.8;
-        const particles: any[] = [];
+        const particles: Spark[] = [];
         for (let i = 0; i < count; i++) {
           const a = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
           const s = speed * (0.5 + Math.random() * 0.8);
@@ -478,7 +480,7 @@ function buildRenderers(): Record<string, Renderer> {
       };
     })(),
     bg_hell: (() => {
-      let hellSeeds: any = null;
+      let hellSeeds: { xBase: number; xWobble: number; speed: number; phase: number; sz0: number }[] | null = null;
       return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
         ctx.clearRect(0, 0, W, H);
         const g = ctx.createLinearGradient(0, H, 0, 0);
@@ -490,7 +492,8 @@ function buildRenderers(): Record<string, Renderer> {
           for (let p = 0; p < 5; p++) {
             const a = rot + p * 4 * Math.PI / 5 - Math.PI / 2;
             const x = cx + r * Math.cos(a); const y = cy + r * Math.sin(a);
-            p === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            if (p === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
           }
           ctx.closePath(); ctx.stroke(); ctx.restore();
         };
@@ -656,7 +659,7 @@ function buildRenderers(): Record<string, Renderer> {
       ctx.strokeRect(2, 2, W - 4, H - 4); ctx.restore();
     },
     bg_matrix: (() => {
-      let cols: any = null;
+      let cols: { y: number; sp: number; len: number }[] = [];
       let initedFor = 0;
       const chars = "01アイウエオカキクケコ";
       return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
@@ -667,7 +670,7 @@ function buildRenderers(): Record<string, Renderer> {
         }
         ctx.fillStyle = "rgba(2,10,2,0.35)"; ctx.fillRect(0, 0, W, H);
         ctx.font = "11px monospace"; ctx.textAlign = "center";
-        cols.forEach((c: any, i: number) => {
+        cols.forEach((c, i) => {
           c.y += c.sp;
           if (c.y - c.len * 14 > H) { c.y = -20; c.sp = 1.5 + Math.random() * 2; }
           const x = i * 12 + 6;
@@ -685,7 +688,7 @@ function buildRenderers(): Record<string, Renderer> {
       };
     })(),
     bg_lightning: (() => {
-      let bolts: any[] = [];
+      let bolts: { x: number; y: number }[][] = [];
       let lastFlash = -100;
       function makeBolt(W: number, H: number) {
         const pts = [{ x: W * (0.2 + Math.random() * 0.6), y: 0 }];
@@ -716,7 +719,7 @@ function buildRenderers(): Record<string, Renderer> {
       };
     })(),
     bg_galaxy: (() => {
-      let stars: any = null;
+      let stars: { x: number; y: number; r: number; tw: number }[] = [];
       let initedFor = 0;
       return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
         if (initedFor !== W * 10000 + H) {
@@ -737,7 +740,7 @@ function buildRenderers(): Record<string, Renderer> {
       };
     })(),
     bg_neoncity: (() => {
-      let bld: any = null; let initedFor = 0;
+      let bld: { x: number; w: number; h: number; hue: number; ph: number }[] = []; let initedFor = 0;
       return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
         if (initedFor !== W) {
           const n = 10;
@@ -779,7 +782,8 @@ function buildRenderers(): Record<string, Renderer> {
       }
     },
     bg_meteors: (() => {
-      let stars: any = null; let initedFor = 0; let meteors: any[] = []; let lastSpawn = 0;
+      let stars: { x: number; y: number; r: number; tw: number }[] = []; let initedFor = 0;
+      let meteors: { x: number; y: number; vx: number; vy: number; life: number }[] = []; let lastSpawn = 0;
       return (ctx: CanvasRenderingContext2D, W: number, H: number, t: number) => {
         if (initedFor !== W * 10000 + H) { stars = Array.from({ length: 45 }, () => ({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.3 + 0.3, tw: Math.random() * Math.PI * 2 })); initedFor = W * 10000 + H; meteors = []; }
         ctx.clearRect(0, 0, W, H);

@@ -22,8 +22,7 @@ type Props = {
   loginSessions: LoginSession[];
 };
 
-const SENSITIVE_ACTIONS = ["change_username", "change_email", "change_password", "delete_account"] as const;
-type SensitiveAction = (typeof SENSITIVE_ACTIONS)[number];
+type SensitiveAction = "change_username" | "change_email" | "change_password" | "delete_account";
 
 export default function SettingsClient(props: Props) {
   const t = useT();

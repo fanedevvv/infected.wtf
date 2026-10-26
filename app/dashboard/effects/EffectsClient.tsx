@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { SHOP_EFFECTS } from "@/lib/shop";
 import { showToast } from "@/lib/toast";
@@ -342,8 +343,8 @@ export default function EffectsClient(props: Props) {
     });
   }
 
-  function PurchasedEffectGrid({ ids, type }: { ids: string[]; type: "bg" | "cursor" | "avatar" }) {
-  const t = useT();
+  // A render helper, not a component: a nested component would remount every preview canvas on each render.
+  function purchasedEffectGrid(ids: string[], type: "bg" | "cursor" | "avatar") {
     return (
       <>
         {ids.map((id) => {
@@ -372,10 +373,10 @@ export default function EffectsClient(props: Props) {
                   <ToggleSwitch active={isActive} onClick={() => togglePurchased(id, type)} />
                 </div>
               ) : (
-                <a href="/dashboard?page=shop#effects" className="pef-buy-link">
+                <Link href="/dashboard?page=shop#effects" className="pef-buy-link">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="13" height="13"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>
                   {t("Buy in Shop")}
-                </a>
+                </Link>
               )}
             </div>
           );
@@ -407,7 +408,7 @@ export default function EffectsClient(props: Props) {
               <ToggleSwitch active={particle} onClick={togglePar} />
             </div>
           </div>
-          <PurchasedEffectGrid ids={BG_IDS} type="bg" />
+          {purchasedEffectGrid(BG_IDS, "bg")}
         </div>
       </div>
       )}
@@ -428,7 +429,7 @@ export default function EffectsClient(props: Props) {
               <ToggleSwitch active={cursorTrail} onClick={toggleCur} />
             </div>
           </div>
-          <PurchasedEffectGrid ids={CURSOR_IDS} type="cursor" />
+          {purchasedEffectGrid(CURSOR_IDS, "cursor")}
         </div>
       </div>
       )}
@@ -525,7 +526,7 @@ export default function EffectsClient(props: Props) {
             )}
           </div>
 
-          <PurchasedEffectGrid ids={AVATAR_IDS} type="avatar" />
+          {purchasedEffectGrid(AVATAR_IDS, "avatar")}
         </div>
       </div>
 
