@@ -658,6 +658,12 @@ const ro: Record<string, string> = {
   "{name} connected!": "{name} conectat!",
   "{name} disconnected.": "{name} deconectat.",
   "Your widgets": "Widget-urile tale",
+  "Preview size": "Mărime preview",
+  "Editor sections": "Secțiuni editor",
+  "Identity": "Identitate",
+  "Content": "Conținut",
+  "Flair": "Stil",
+  "Reach": "Distribuire",
 };
 
 export default ro;

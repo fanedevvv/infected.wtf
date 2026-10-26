@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import ProfileInfoForm, { type ProfileInfoFormProps } from "../info/ProfileInfoForm";
-import { EDITOR_TILES, type EditorTile } from "./tiles";
+import { EDITOR_GROUPS, EDITOR_TILES, type EditorTile } from "./tiles";
 import { AliasesPanel, BestFriendPanel, SharingPanel, SkillsPanel, SocialEmbedPanel, WeatherClockPanel } from "./ExtraPanels";
 import { useT } from "@/lib/i18n/client";
 
@@ -156,6 +156,8 @@ export default function ProfileEditor({
   const [requestedTile, setRequestedTile] = useState(tile);
   const activeTile = pending ? requestedTile : tile;
   const current = EDITOR_TILES.find((x) => x.id === activeTile) ?? EDITOR_TILES[0];
+  const currentIndex = EDITOR_TILES.indexOf(current) + 1;
+  const num = (n: number) => String(n).padStart(2, "0");
 
   const onDraftChange = useCallback((d: Record<string, string>) => setDraft(d), []);
   const onSaveStateChange = useCallback((s: SaveState) => setSaveState(s), []);
@@ -176,46 +178,61 @@ export default function ProfileEditor({
 
   return (
     <div className="pe-page">
-      <div className="pe-head">
-        <h2>{t("Profile editor")}</h2>
-        <p>{t("Make it yours. Changes stay private until you save.")}</p>
-      </div>
-
-      <div className="pe-toolbar">
-        <div className="pe-device">
-          {(["desktop", "tablet", "phone"] as Device[]).map((d) => (
-            <button key={d} type="button" className={device === d ? "active" : ""} onClick={() => setDevice(d)} title={d === "desktop" ? t("Desktop") : d === "tablet" ? t("Tablet") : t("Phone")}>
-              {d === "desktop" ? (
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="4" width="20" height="13" rx="2" /><path d="M8 21h8M12 17v4" /></svg>
-              ) : d === "tablet" ? (
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2"><rect x="5" y="2" width="14" height="20" rx="2" /><path d="M12 18h.01" /></svg>
-              ) : (
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2"><rect x="7" y="2" width="10" height="20" rx="2" /><path d="M12 18h.01" /></svg>
-              )}
-            </button>
-          ))}
+      <div className="pe-top">
+        <div className="pe-head">
+          <h2>{t("Profile editor")}</h2>
+          <p>{t("Make it yours. Changes stay private until you save.")}</p>
         </div>
-        <a className="pe-live" href={`/${slug}`} target="_blank" rel="noopener">{t("Live page")}</a>
-        <button type="button" className="pe-save" disabled={!saveState?.dirty || saveState.saving} onClick={() => saveState?.save()}>
-          {saveState?.saving ? t("Saving…") : t("Save changes")}
-        </button>
-        {saveState?.dirty && (
-          <button type="button" className="pe-reset" onClick={() => saveState.reset()}>{t("Discard")}</button>
-        )}
-      </div>
 
-      <div className="pe-layout">
-        <div className="pe-main">
-          <div className="pe-tiles">
-            {EDITOR_TILES.map((x) => (
-              <button key={x.id} type="button" className={`pe-tile ${activeTile === x.id ? "active" : ""}`} onClick={() => selectTile(x.id)}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="24" height="24"><path d={x.icon} /></svg>
-                <span>{t(x.label)}</span>
+        <div className="pe-toolbar">
+          <div className="pe-device" role="group" aria-label={t("Preview size")}>
+            {(["desktop", "tablet", "phone"] as Device[]).map((d) => (
+              <button key={d} type="button" className={device === d ? "active" : ""} onClick={() => setDevice(d)} title={d === "desktop" ? t("Desktop") : d === "tablet" ? t("Tablet") : t("Phone")}>
+                {d === "desktop" ? (
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="4" width="20" height="13" rx="2" /><path d="M8 21h8M12 17v4" /></svg>
+                ) : d === "tablet" ? (
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2"><rect x="5" y="2" width="14" height="20" rx="2" /><path d="M12 18h.01" /></svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2"><rect x="7" y="2" width="10" height="20" rx="2" /><path d="M12 18h.01" /></svg>
+                )}
               </button>
             ))}
           </div>
+          <a className="lab-btn lab-btn--ghost pe-live" href={`/${slug}`} target="_blank" rel="noopener">{t("Live page")} ↗</a>
+          {saveState?.dirty && (
+            <button type="button" className="pe-reset" onClick={() => saveState.reset()}>{t("Discard")}</button>
+          )}
+          <button type="button" className={`lab-btn lab-btn--solid pe-save${saveState?.dirty ? " is-dirty" : ""}`} disabled={!saveState?.dirty || saveState.saving} onClick={() => saveState?.save()}>
+            {saveState?.saving ? t("Saving…") : t("Save changes")}
+          </button>
+        </div>
+      </div>
 
+      <div className="pe-layout">
+        <nav className="pe-index" aria-label={t("Editor sections")}>
+          {EDITOR_GROUPS.map((g) => (
+            <div key={g.id} className="pe-index-group">
+              <div className="pe-index-label">{t(g.label)}</div>
+              {EDITOR_TILES.filter((x) => x.group === g.id).map((x) => (
+                <button
+                  key={x.id}
+                  type="button"
+                  className={`pe-index-item${activeTile === x.id ? " is-active" : ""}`}
+                  onClick={() => selectTile(x.id)}
+                  aria-current={activeTile === x.id ? "page" : undefined}
+                >
+                  <span className="pe-index-num">{num(EDITOR_TILES.indexOf(x) + 1)}</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="15" height="15"><path d={x.icon} /></svg>
+                  <span className="pe-index-text">{t(x.label)}</span>
+                </button>
+              ))}
+            </div>
+          ))}
+        </nav>
+
+        <div className="pe-main">
           <div className="pe-section-head">
+            <span className="lab-label">{num(currentIndex)} / {num(EDITOR_TILES.length)} · {t(EDITOR_GROUPS.find((g) => g.id === current.group)!.label)}</span>
             <h3>{t(current.label)}</h3>
             <p>{t(current.desc)}</p>
           </div>

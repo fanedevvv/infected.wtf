@@ -658,6 +658,12 @@ const ru: Record<string, string> = {
   "{name} connected!": "{name} подключён!",
   "{name} disconnected.": "{name} отключён.",
   "Your widgets": "Твои виджеты",
+  "Preview size": "Размер превью",
+  "Editor sections": "Разделы редактора",
+  "Identity": "Профиль",
+  "Content": "Контент",
+  "Flair": "Стиль",
+  "Reach": "Охват",
 };
 
 export default ru;
