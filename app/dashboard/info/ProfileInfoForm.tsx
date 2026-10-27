@@ -65,6 +65,8 @@ export default function ProfileInfoForm(props: Props) {
   const [findingArtwork, setFindingArtwork] = useState(false);
   const [findingLyrics, setFindingLyrics] = useState(false);
   const [musicMetaSaving, setMusicMetaSaving] = useState(false);
+  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [findingFromYoutube, setFindingFromYoutube] = useState(false);
   const [playlistStyle, setPlaylistStyle] = useState(props.playlistStyle);
   const [layoutTemplate, setLayoutTemplate] = useState(props.layoutTemplate);
   const [cursorPath, setCursorPath] = useState(props.cursorPath);
@@ -347,12 +349,12 @@ export default function ProfileInfoForm(props: Props) {
     setPlaylistStyle(style);
   }
 
-  async function saveMusicMetadata(overrides?: { artworkUrl?: string; lyricsSynced?: string; lyricsPlain?: string; showLyrics?: boolean }) {
+  async function saveMusicMetadata(overrides?: { trackTitle?: string; trackArtist?: string; artworkUrl?: string; lyricsSynced?: string; lyricsPlain?: string; showLyrics?: boolean }) {
     setMusicMetaSaving(true);
     const fd = new FormData();
     fd.append("action", "set_music_metadata");
-    fd.append("track_title", trackTitle);
-    fd.append("track_artist", trackArtist);
+    fd.append("track_title", overrides?.trackTitle ?? trackTitle);
+    fd.append("track_artist", overrides?.trackArtist ?? trackArtist);
     fd.append("artwork_url", overrides?.artworkUrl ?? artworkUrl);
     fd.append("lyrics_synced", overrides?.lyricsSynced ?? lyricsSynced);
     fd.append("lyrics_plain", overrides?.lyricsPlain ?? lyricsPlain);
@@ -412,6 +414,40 @@ export default function ProfileInfoForm(props: Props) {
       showToast(t("Network error"), "error");
     } finally {
       setFindingLyrics(false);
+    }
+  }
+
+  async function findFromYoutube() {
+    if (!youtubeUrl.trim()) { showToast(t("Paste a YouTube link first."), "error"); return; }
+    setFindingFromYoutube(true);
+    try {
+      const res = await fetch("/api/music/lookup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ youtubeUrl }) });
+      const j = await res.json();
+      if (!j.success) {
+        showToast(j.error || "Couldn't read that video.", "error");
+        return;
+      }
+      const resolvedTitle = j.resolvedTitle || trackTitle;
+      const resolvedArtist = j.resolvedArtist || trackArtist;
+      setTrackTitle(resolvedTitle);
+      setTrackArtist(resolvedArtist);
+      if (j.artworkUrl) setArtworkUrl(j.artworkUrl);
+      setLyricsSynced(j.lyricsSynced || "");
+      setLyricsPlain(j.lyricsPlain || "");
+      await saveMusicMetadata({
+        trackTitle: resolvedTitle,
+        trackArtist: resolvedArtist,
+        artworkUrl: j.artworkUrl || artworkUrl,
+        lyricsSynced: j.lyricsSynced || "",
+        lyricsPlain: j.lyricsPlain || "",
+      });
+      if (j.lyricsSynced) showToast(t("Found the exact track — synced lyrics loaded!"), "success");
+      else if (j.lyricsPlain) showToast(t("Found the exact track — lyrics loaded (no sync available)."), "success");
+      else showToast(t("Matched the track, but no lyrics were found for it."), "error");
+    } catch {
+      showToast(t("Network error"), "error");
+    } finally {
+      setFindingFromYoutube(false);
     }
   }
 
@@ -696,6 +732,21 @@ export default function ProfileInfoForm(props: Props) {
             <div className="dash-card" style={{ marginTop: "1.25rem", background: "rgba(255,255,255,.02)" }}>
               <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: ".25rem" }}>{t("Track Info & Lyrics")}</h3>
               <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1rem" }}>{t("Find real artwork and synced lyrics for your profile track")}</p>
+
+              <div style={{ display: "flex", gap: ".6rem", flexWrap: "wrap", marginBottom: ".5rem" }}>
+                <input
+                  className="form-control"
+                  style={{ flex: "1 1 240px" }}
+                  placeholder={t("Paste a YouTube link for an exact match")}
+                  value={youtubeUrl}
+                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && findFromYoutube()}
+                />
+                <button type="button" className="int-btn int-btn-primary" onClick={findFromYoutube} disabled={findingFromYoutube}>
+                  {findingFromYoutube ? t("Matching…") : t("Fetch from YouTube")}
+                </button>
+              </div>
+              <p style={{ fontSize: ".75rem", color: "var(--text-muted)", marginBottom: "1rem" }}>{t("Reads the video's exact title/artist, so the lyrics match the song you meant — or fill the fields below yourself.")}</p>
 
               <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginBottom: "1rem" }}>
                 {artworkUrl && (
