@@ -147,8 +147,8 @@ export const DOC_PAGES: DocPage[] = [
         <H2 id="plus">Infected Plus</H2>
         <p>Infected Plus is a one-time <b>€7 lifetime</b> purchase, or can be activated with tokens at <b>100 tokens per day</b>. It adds:</p>
         <ul>
-          <li>The premium layouts — <b>Aurora</b>, <b>Cinematic</b> and <b>Dossier</b>.</li>
-          <li>The animated Infected Plus avatar ring, name glow and the Infected Plus badge.</li>
+          <li>The premium layouts — <b>Deck</b>, <b>Orbit</b>, <b>Terminal</b>, <b>Scrapbook</b>, <b>Hex Grid</b>, <b>Vinyl</b> and <b>Constellation</b>.</li>
+          <li>The Infected Plus name glow and the Infected Plus badge.</li>
           <li>The Analytics page — views by country, browser, device and OS, and your top links.</li>
           <li>Higher token earnings: 5 tokens per profile view (instead of 3) and 20 per referral (instead of 10).</li>
           <li>Premium custom domains, 3 pages, 10 aliases and 2 GB of image storage.</li>
@@ -248,7 +248,7 @@ export const DOC_PAGES: DocPage[] = [
     section: "Account",
     title: "Customization",
     summary: "Colors, layouts, fonts, backgrounds, music, effects and decorations.",
-    keywords: "colors accent layout template font background video music cursor effects decorations avatar shape ring theme marketplace embed",
+    keywords: "colors accent layout template font background video music cursor effects decorations avatar shape theme marketplace embed",
     toc: [
       { id: "look", label: "Colors & fonts" },
       { id: "layouts", label: "Layout templates" },
@@ -276,8 +276,8 @@ export const DOC_PAGES: DocPage[] = [
         <H2 id="effects">Effects &amp; decorations</H2>
         <ul>
           <li><b>Text effects</b> for your name and bio — glow, rainbow, shake, glitch, scramble, shine, typewriter and flip.</li>
-          <li><b>Avatar</b> — shapes (circle, rounded, square, heart, star, diamond and more) and rings.</li>
-          <li><b>Shop effects</b> — cursor trails, avatar effects and animated backgrounds bought with tokens.</li>
+          <li><b>Avatar</b> — shapes (circle, rounded, square, heart, star, diamond and more).</li>
+          <li><b>Shop effects</b> — cursor trails and animated backgrounds bought with tokens.</li>
           <li><b>Decorations</b> — 27 frames that sit on your avatar, from common to legendary. Win them on the daily spin or buy them in the shop.</li>
         </ul>
         <H2 id="themes">Theme marketplace</H2>

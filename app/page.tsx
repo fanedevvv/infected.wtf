@@ -194,7 +194,7 @@ export default async function Home() {
                 <p>One payment. Every effect, layout and perk — for life.</p>
               </div>
               <ul className="lx-dose-list">
-                {["Everything in Base", "Full analytics dashboard", "Visual effects & exclusive layouts", "Golden avatar ring & diamond badge", "More tokens per view & referral", "No watermark, priority support"].map((t) => <li key={t}>{t}</li>)}
+                {["Everything in Base", "Full analytics dashboard", "Visual effects & exclusive layouts", "Diamond badge & Plus name glow", "More tokens per view & referral", "No watermark, priority support"].map((t) => <li key={t}>{t}</li>)}
               </ul>
               <Link href="/dashboard?page=shop" className="lab-btn lab-btn--solid lab-btn--block">Unlock Infected Plus <Arrow /></Link>
               <div className="lx-dose-code" aria-hidden="true" />

@@ -78,11 +78,10 @@ function useSpotifyLive(initial: SpotifyNowPlaying | null, slug: string, enabled
  * and on top on phones, with home / widgets / projects tabs and floating likes, report and comments controls.
  */
 export default function ProfileImmersive({
-  p, entered, hasActiveAvatarEffect, liked, likeCount, disliked, dislikeCount, likeBusy, onRate, onReport,
+  p, entered, liked, likeCount, disliked, dislikeCount, likeBusy, onRate, onReport,
 }: {
   p: ProfileViewProps;
   entered: boolean;
-  hasActiveAvatarEffect: boolean;
   liked: boolean;
   likeCount: number;
   disliked: boolean;
@@ -144,22 +143,6 @@ export default function ProfileImmersive({
 
         <div className="im-avatar-col">
           <div className={`avatar-wrapper im-avatar avatar-shape-${p.avatarShape}`}>
-            {!hasActiveAvatarEffect && p.isPremium && p.avatarRing === "premium" ? (
-              <>
-                <div className="avatar-ring-pulse" />
-                <div className="avatar-ring-shell ring-premium"><div className="avatar-ring-spin" /></div>
-                <div className="avatar-orbit avatar-orbit-1"><span className="avatar-orbit-dot avatar-orbit-dot--gold" /></div>
-                <div className="avatar-orbit avatar-orbit-2"><span className="avatar-orbit-dot avatar-orbit-dot--gold" /></div>
-                <div className="avatar-orbit avatar-orbit-3"><span className="avatar-orbit-dot avatar-orbit-dot--gold" /></div>
-              </>
-            ) : !hasActiveAvatarEffect && p.avatarRing === "normal" ? (
-              <>
-                <div className="avatar-ring-shell ring-normal"><div className="avatar-ring-spin" /></div>
-                <div className="avatar-orbit avatar-orbit-1"><span className="avatar-orbit-dot" /></div>
-                <div className="avatar-orbit avatar-orbit-2"><span className="avatar-orbit-dot" /></div>
-              </>
-            ) : null}
-            <div className="avatar-ring-inner" />
             <div className="avatar-decoration-anchor">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -170,11 +153,6 @@ export default function ProfileImmersive({
               />
               <DecorationFrame id={p.activeDecoration} />
             </div>
-            {hasActiveAvatarEffect && (
-              <div className="pav-effect-wrap" data-effect={p.activeAvatarEffect}>
-                <canvas className="pav-canvas" id="pav-canvas" />
-              </div>
-            )}
           </div>
         </div>
 

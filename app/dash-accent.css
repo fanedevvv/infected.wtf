@@ -3,6 +3,4 @@ html.dash-custom-accent { --accent: var(--dash-accent); }
 html.dash-custom-accent .fx-glitch::after { color:var(--dash-accent); }
 html.dash-custom-accent .music-player--glow { box-shadow:0 4px 20px rgba(0,0,0,.4), 0 0 18px color-mix(in srgb, var(--dash-accent) 8%, transparent); }
 html.dash-custom-accent .music-player--glow .mp-play { background:color-mix(in srgb, var(--dash-accent) 12%, transparent); }
-@media (max-width:720px) {
 html.dash-custom-accent .rp-btn-primary { background:color-mix(in srgb, var(--dash-accent) 30%, transparent); }
-}

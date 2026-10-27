@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
   if (action === "equip_effect") {
     const id = String(body.effectId || "");
     const slot = String(body.slot || "");
-    if (!["cursor", "avatar", "bg", ""].includes(slot)) return NextResponse.json({ error: "Invalid slot." }, { status: 400 });
+    if (!["cursor", "bg", ""].includes(slot)) return NextResponse.json({ error: "Invalid slot." }, { status: 400 });
     const owned = new Set(parseStringArray(profile.purchasedEffects));
     if (id && !owned.has(id)) return NextResponse.json({ error: "You don't own this effect." }, { status: 400 });
 
@@ -107,7 +107,6 @@ export async function POST(req: NextRequest) {
       active[effectSlot] = id;
       if (effectSlot === "bg") freeFieldReset.particleEffect = false;
       if (effectSlot === "cursor") freeFieldReset.cursorTrail = false;
-      if (effectSlot === "avatar") freeFieldReset.avatarRing = "none";
     } else {
       delete active[effectSlot];
     }

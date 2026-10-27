@@ -204,7 +204,6 @@ export default async function ProfilePage({
       avatar={profile.avatar}
       banner={profile.banner}
       avatarShape={look.avatarShape}
-      avatarRing={look.avatarRing as "none" | "normal" | "premium"}
       activeDecoration={profile.activeDecoration}
       accentColor={look.accentColor}
       backgroundColor={look.backgroundColor}
@@ -261,7 +260,6 @@ export default async function ProfilePage({
       layoutTemplate={look.layoutTemplate}
       purchasedEffects={purchasedEffects}
       activeCursorEffect={activeEffects.cursor || ""}
-      activeAvatarEffect={activeEffects.avatar || ""}
       activeBgEffect={activeEffects.bg || ""}
       likeCount={likeCount}
       likedByViewer={!!likedByViewer}

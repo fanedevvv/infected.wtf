@@ -683,6 +683,10 @@ const ro: Record<string, string> = {
   "Vinyl": "Vinil",
   "Constellation": "Constelație",
   "Modern": "Modern",
+  "Diamond badge & Plus name glow": "Badge diamant & nume strălucitor Plus",
+  "7 exclusive profile layouts": "7 layout-uri de profil exclusive",
+  "Premium Layouts": "Layout-uri premium",
+  "Deck, Orbit, Terminal, Scrapbook, Hex Grid, Vinyl and Constellation.": "Deck, Orbit, Terminal, Scrapbook, Hex Grid, Vinyl și Constellation.",
 };
 
 export default ro;

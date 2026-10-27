@@ -45,25 +45,8 @@ export function hasWidgets(p: ProfileViewProps) {
 }
 
 export function Avatar({ p, withBanner = false, className = "" }: { p: ProfileViewProps; withBanner?: boolean; className?: string }) {
-  const hasActiveAvatarEffect = !!(p.activeAvatarEffect && p.purchasedEffects.includes(p.activeAvatarEffect));
   return (
     <div className={`avatar-wrapper fade-in avatar-shape-${p.avatarShape} ${withBanner ? "avatar-wrapper--with-banner" : ""} ${className}`}>
-      {!hasActiveAvatarEffect && p.isPremium && p.avatarRing === "premium" ? (
-        <>
-          <div className="avatar-ring-pulse" />
-          <div className="avatar-ring-shell ring-premium"><div className="avatar-ring-spin" /></div>
-          <div className="avatar-orbit avatar-orbit-1"><span className="avatar-orbit-dot avatar-orbit-dot--gold" /></div>
-          <div className="avatar-orbit avatar-orbit-2"><span className="avatar-orbit-dot avatar-orbit-dot--gold" /></div>
-          <div className="avatar-orbit avatar-orbit-3"><span className="avatar-orbit-dot avatar-orbit-dot--gold" /></div>
-        </>
-      ) : !hasActiveAvatarEffect && p.avatarRing === "normal" ? (
-        <>
-          <div className="avatar-ring-shell ring-normal"><div className="avatar-ring-spin" /></div>
-          <div className="avatar-orbit avatar-orbit-1"><span className="avatar-orbit-dot" /></div>
-          <div className="avatar-orbit avatar-orbit-2"><span className="avatar-orbit-dot" /></div>
-        </>
-      ) : null}
-      <div className="avatar-ring-inner" />
       <div className="avatar-decoration-anchor">
         {/* eslint-disable-next-line @next/next/no-img-element -- user uploads with an onError fallback */}
         <img
@@ -74,11 +57,6 @@ export function Avatar({ p, withBanner = false, className = "" }: { p: ProfileVi
         />
         <DecorationFrame id={p.activeDecoration} />
       </div>
-      {hasActiveAvatarEffect && (
-        <div className="pav-effect-wrap" data-effect={p.activeAvatarEffect}>
-          <canvas className="pav-canvas" id="pav-canvas" />
-        </div>
-      )}
     </div>
   );
 }

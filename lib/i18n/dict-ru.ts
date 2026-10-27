@@ -683,6 +683,10 @@ const ru: Record<string, string> = {
   "Vinyl": "Винил",
   "Constellation": "Созвездие",
   "Modern": "Модерн",
+  "Diamond badge & Plus name glow": "Значок-алмаз и сияние имени Plus",
+  "7 exclusive profile layouts": "7 эксклюзивных макетов профиля",
+  "Premium Layouts": "Премиум-макеты",
+  "Deck, Orbit, Terminal, Scrapbook, Hex Grid, Vinyl and Constellation.": "Deck, Orbit, Terminal, Scrapbook, Hex Grid, Vinyl и Constellation.",
 };
 
 export default ru;

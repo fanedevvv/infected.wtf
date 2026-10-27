@@ -14,7 +14,6 @@ type Props = {
   cursorTrail: boolean;
   nameEffect: string;
   bioEffect: string;
-  avatarRing: string;
   avatarShape: string;
   displayName: string;
   bio: string;
@@ -35,7 +34,6 @@ const SHAPES: { key: string; label: string; cls: string }[] = [
 
 const BG_IDS = Object.entries(SHOP_EFFECTS).filter(([, e]) => e.type === "bg").map(([id]) => id);
 const CURSOR_IDS = Object.entries(SHOP_EFFECTS).filter(([, e]) => e.type === "cursor").map(([id]) => id);
-const AVATAR_IDS = Object.entries(SHOP_EFFECTS).filter(([, e]) => e.type === "avatar").map(([id]) => id);
 
 function ParticlesPreview() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -151,7 +149,6 @@ export default function EffectsClient(props: Props) {
   const [cursorTrail, setCursorTrail] = useState(props.cursorTrail);
   const [nameEffect, setNameEffect] = useState(props.nameEffect);
   const [bioEffect, setBioEffect] = useState(props.bioEffect);
-  const [ring, setRing] = useState(props.avatarRing);
   const [shape, setShape] = useState(props.avatarShape);
   const [active, setActive] = useState<Record<string, string>>(props.activeEffects);
   const [dirty, setDirty] = useState(false);
@@ -162,11 +159,9 @@ export default function EffectsClient(props: Props) {
     cursorTrail: props.cursorTrail,
     nameEffect: props.nameEffect,
     bioEffect: props.bioEffect,
-    ring: props.avatarRing,
     shape: props.avatarShape,
     bg: props.activeEffects.bg ?? null,
     cursor: props.activeEffects.cursor ?? null,
-    avatar: props.activeEffects.avatar ?? null,
   });
 
   const owned = new Set(props.purchasedEffects);
@@ -176,7 +171,6 @@ export default function EffectsClient(props: Props) {
     cursorTrail?: boolean;
     nameEffect?: string;
     bioEffect?: string;
-    ring?: string;
     shape?: string;
     active?: Record<string, string>;
   }) {
@@ -184,7 +178,6 @@ export default function EffectsClient(props: Props) {
     const curCursorTrail = next?.cursorTrail ?? cursorTrail;
     const curNameEffect = next?.nameEffect ?? nameEffect;
     const curBioEffect = next?.bioEffect ?? bioEffect;
-    const curRing = next?.ring ?? ring;
     const curShape = next?.shape ?? shape;
     const curActive = next?.active ?? active;
     const o = original.current;
@@ -193,18 +186,16 @@ export default function EffectsClient(props: Props) {
       curCursorTrail !== o.cursorTrail ||
       curNameEffect !== o.nameEffect ||
       curBioEffect !== o.bioEffect ||
-      curRing !== o.ring ||
       curShape !== o.shape ||
       (curActive.bg ?? null) !== o.bg ||
-      (curActive.cursor ?? null) !== o.cursor ||
-      (curActive.avatar ?? null) !== o.avatar;
+      (curActive.cursor ?? null) !== o.cursor;
     setDirty(isDirty);
   }
 
   useEffect(() => {
     checkDirty();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [particle, cursorTrail, nameEffect, bioEffect, ring, shape, active]);
+  }, [particle, cursorTrail, nameEffect, bioEffect, shape, active]);
 
   function togglePar() {
     const on = !particle;
@@ -234,19 +225,7 @@ export default function EffectsClient(props: Props) {
   function selectBioEffect(id: string) {
     setBioEffect(id);
   }
-  function toggleRing(type: "normal" | "premium") {
-    const newRing = ring === type ? "none" : type;
-    setRing(newRing);
-    if (newRing !== "none") {
-      setActive((a) => {
-        const n = { ...a };
-        delete n.avatar;
-        return n;
-      });
-    }
-  }
-
-  function togglePurchased(effectId: string, effectType: "bg" | "cursor" | "avatar") {
+  function togglePurchased(effectId: string, effectType: "bg" | "cursor") {
     const isActive = active[effectType] === effectId;
     const newId = isActive ? null : effectId;
 
@@ -259,7 +238,6 @@ export default function EffectsClient(props: Props) {
     if (newId) {
       if (effectType === "bg") setParticle(false);
       if (effectType === "cursor") setCursorTrail(false);
-      if (effectType === "avatar") setRing("none");
     }
   }
 
@@ -274,7 +252,6 @@ export default function EffectsClient(props: Props) {
       freeFd.append("action", "effects-form");
       if (particle) freeFd.append("particle_effect", "1");
       if (cursorTrail) freeFd.append("cursor_trail", "1");
-      freeFd.append("avatar_ring", ring);
       freeFd.append("name_effect", nameEffect);
       freeFd.append("bio_effect", bioEffect);
 
@@ -295,7 +272,7 @@ export default function EffectsClient(props: Props) {
         return;
       }
 
-      const slots: Array<"bg" | "cursor" | "avatar"> = ["bg", "cursor", "avatar"];
+      const slots: Array<"bg" | "cursor"> = ["bg", "cursor"];
       for (const slot of slots) {
         const nextId = active[slot] ?? null;
         const prevId = original.current[slot];
@@ -317,11 +294,9 @@ export default function EffectsClient(props: Props) {
         cursorTrail,
         nameEffect,
         bioEffect,
-        ring,
         shape,
         bg: active.bg ?? null,
         cursor: active.cursor ?? null,
-        avatar: active.avatar ?? null,
       };
       checkDirty();
       showToast(t("Changes saved!"), "success");
@@ -338,7 +313,6 @@ export default function EffectsClient(props: Props) {
     setCursorTrail(o.cursorTrail);
     setNameEffect(o.nameEffect);
     setBioEffect(o.bioEffect);
-    setRing(o.ring);
     setShape(o.shape);
     setActive((prev) => {
       const next = { ...prev };
@@ -346,14 +320,12 @@ export default function EffectsClient(props: Props) {
       else delete next.bg;
       if (o.cursor) next.cursor = o.cursor;
       else delete next.cursor;
-      if (o.avatar) next.avatar = o.avatar;
-      else delete next.avatar;
       return next;
     });
   }
 
   // A render helper, not a component: a nested component would remount every preview canvas on each render.
-  function purchasedEffectGrid(ids: string[], type: "bg" | "cursor" | "avatar") {
+  function purchasedEffectGrid(ids: string[], type: "bg" | "cursor") {
     return (
       <>
         {ids.map((id) => {
@@ -483,67 +455,6 @@ export default function EffectsClient(props: Props) {
 
       {show("avatar") && (
       <>
-      <div className="fx-section">
-        <div className="fx-section-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="5" /></svg>
-          {t("Avatar Rings & Effects")}
-        </div>
-        <div className="effects-grid">
-          <div className={`effect-card ${ring === "normal" ? "active" : ""}`}>
-            <div className="effect-preview" style={{ overflow: "visible" }}>
-              <div className="ring-preview-wrap">
-                <div className="ring-preview-shell"><div className="ring-preview-spin rp-spin-accent" /></div>
-                <div className="ring-preview-inner" />
-                <div className="ring-preview-avatar" />
-                <div className="avatar-orbit avatar-orbit-1"><span className="avatar-orbit-dot" /></div>
-                <div className="avatar-orbit avatar-orbit-2"><span className="avatar-orbit-dot" /></div>
-              </div>
-            </div>
-            <div className="effect-card-name">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="11" height="11" style={{ color: "var(--accent)" }}><circle cx="12" cy="12" r="10" /></svg>
-              {t("Orbit Ring")}
-            </div>
-            <div className="effect-card-desc">{t("Spinning accent-colored ring with glowing particles orbiting your avatar")}</div>
-            <div className="effect-toggle-wrap">
-              <span className="effect-toggle-text">{ring === "normal" ? "Enabled" : "Disabled"}</span>
-              <ToggleSwitch active={ring === "normal"} onClick={() => toggleRing("normal")} />
-            </div>
-          </div>
-
-          <div className={`effect-card ${ring === "premium" ? "active" : ""} ${!props.isPremium ? "effect-locked" : ""}`}>
-            <div className="effect-preview" style={{ overflow: "visible" }}>
-              <div className="ring-preview-wrap">
-                <div className="ring-preview-shell rp-premium rp-glow"><div className="ring-preview-spin rp-spin-gold" /></div>
-                <div className="ring-preview-inner" style={{ inset: 5 }} />
-                <div className="ring-preview-avatar" />
-                <div className="ring-preview-pulse" />
-                <div className="avatar-orbit avatar-orbit-1"><span className="avatar-orbit-dot avatar-orbit-dot--gold" /></div>
-                <div className="avatar-orbit avatar-orbit-2"><span className="avatar-orbit-dot avatar-orbit-dot--gold" /></div>
-                <div className="avatar-orbit avatar-orbit-3"><span className="avatar-orbit-dot avatar-orbit-dot--gold" /></div>
-              </div>
-            </div>
-            <div className="effect-card-name">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" width="11" height="11"><circle cx="12" cy="12" r="10" /></svg>
-              {t("Nova Ring")}
-            </div>
-            <div className="effect-card-desc">{t("Shimmering golden ring with outer glow, pulse and orbiting sparks")}</div>
-            {props.isPremium ? (
-              <div className="effect-toggle-wrap">
-                <span className="effect-toggle-text">{ring === "premium" ? "Enabled" : "Disabled"}</span>
-                <ToggleSwitch active={ring === "premium"} onClick={() => toggleRing("premium")} />
-              </div>
-            ) : (
-              <div className="premium-ring-lock">
-                <svg viewBox="0 0 24 24" fill="none" width="16" height="16" style={{ color: "#fbbf24" }}><path d="M2.5 9L7 3h10l4.5 6L12 21 2.5 9z" fill="rgba(255,215,0,.35)" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><path d="M2.5 9h19M7 3l3 6h4l3-6" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" opacity=".8" /></svg>
-                <span>{t("Infected Plus Only")}</span>
-              </div>
-            )}
-          </div>
-
-          {purchasedEffectGrid(AVATAR_IDS, "avatar")}
-        </div>
-      </div>
-
       <div className="fx-section">
         <div className="fx-section-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="12" cy="12" r="4" /></svg>

@@ -9,8 +9,7 @@ type SearchUser = { id: number; username: string; avatar: string };
 const PRO_FEATURES = [
   { title: "2× Profile View Tokens", desc: "Earn 5 tokens per profile view instead of 3." },
   { title: "2× Referral Tokens", desc: "Earn 20 tokens per referral instead of 10." },
-  { title: "Wide Layout Template", desc: "Unlock the Wide profile layout template." },
-  { title: "Infected Plus Avatar Ring", desc: "Exclusive animated ring around your avatar." },
+  { title: "Premium Layouts", desc: "Deck, Orbit, Terminal, Scrapbook, Hex Grid, Vinyl and Constellation." },
   { title: "Particle Background", desc: "Animated particles across your profile background." },
   { title: "Cursor Trail", desc: "A glowing trail follows visitors' cursor on your page." },
   { title: "Infected Plus Name Glow", desc: "Your display name gets a glowing Plus highlight." },

@@ -10,7 +10,7 @@ const SITE_NAME = "INFECTED.WTF";
 const ADMIN_EMAIL = `admin@${SITE_NAME.toLowerCase().replace(/[^a-z0-9.]/gi, "")}`;
 
 type BadgeItem = { name: string; price: number; desc: string; color: string };
-type EffectItem = { name: string; price: number; type: "cursor" | "avatar" | "bg"; desc: string; color: string };
+type EffectItem = { name: string; price: number; type: "cursor" | "bg"; desc: string; color: string };
 type Bundle = { id: number; name: string; price: number; priceType: string; badges: string[]; effects: string[]; premiumDays: number; owned: boolean };
 
 type Props = {
@@ -39,10 +39,6 @@ const EFFECT_TYPE_LABEL: Record<string, { label: string; icon: React.ReactNode }
   cursor: {
     label: "Cursor Trail Effects",
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M4 4l7.07 17 2.51-7.39L21 11.07z" /></svg>,
-  },
-  avatar: {
-    label: "Avatar Effects",
-    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7" /></svg>,
   },
   bg: {
     label: "Background Effects",
@@ -275,7 +271,7 @@ export default function ShopClient(props: Props) {
                   "Full Analytics dashboard",
                   "Visual Effects access",
                   "Exclusive Diamond badge",
-                  "Golden 3D avatar ring",
+                  "7 exclusive profile layouts",
                   "Double referral rewards (20 tokens)",
                   "5 tokens per profile view (vs 3)",
                   "Priority support when you need it",
@@ -488,7 +484,7 @@ export default function ShopClient(props: Props) {
           <h3 className="shop-section-title">{t("Power up your profile with visual effects")}</h3>
         </div>
 
-        {(["cursor", "avatar", "bg"] as const).map((typeKey) => (
+        {(["cursor", "bg"] as const).map((typeKey) => (
           <div style={{ marginBottom: "2rem" }} key={typeKey}>
             <div style={{ display: "flex", alignItems: "center", gap: ".55rem", fontSize: ".7rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: ".13em", color: "rgba(255,255,255,.32)", marginBottom: "1rem" }}>
               {EFFECT_TYPE_LABEL[typeKey].icon}

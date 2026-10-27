@@ -199,15 +199,13 @@ export async function POST(req: NextRequest) {
   if (action === "effects-form") {
     const particle = form.get("particle_effect") !== null;
     const cursorTrail = form.get("cursor_trail") !== null;
-    let ring = String(form.get("avatar_ring") || "none").trim();
-    if (!["none", "normal", "premium"].includes(ring)) ring = "none";
     let nameEffect = String(form.get("name_effect") || "none").trim();
     if (!ALLOWED_TEXT_EFFECTS.includes(nameEffect)) nameEffect = "none";
     let bioEffect = String(form.get("bio_effect") || "none").trim();
     if (!ALLOWED_TEXT_EFFECTS.includes(bioEffect)) bioEffect = "none";
 
     await prisma.profile.updateMany({ where: { id: activeProfileId },
-      data: { particleEffect: particle, cursorTrail, avatarRing: ring, nameEffect, bioEffect },
+      data: { particleEffect: particle, cursorTrail, nameEffect, bioEffect },
     });
 
     const row = await prisma.profile.findFirst({ where: { id: activeProfileId }, select: { activeEffects: true } });
@@ -215,7 +213,6 @@ export async function POST(req: NextRequest) {
     let changed = false;
     if (particle && active.bg) { delete active.bg; changed = true; }
     if (cursorTrail && active.cursor) { delete active.cursor; changed = true; }
-    if (ring !== "none" && active.avatar) { delete active.avatar; changed = true; }
     if (changed) await prisma.profile.updateMany({ where: { id: activeProfileId }, data: { activeEffects: active } });
 
     return ok("Effects saved!");

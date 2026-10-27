@@ -7,7 +7,7 @@ export const SHOP_BADGES: Record<string, { name: string; price: number; desc: st
   the_killer: { name: "The Killer", price: 1500, desc: "The most exclusive badge on the platform.", color: "#ef4444" },
 };
 
-export const SHOP_EFFECTS: Record<string, { name: string; price: number; type: "cursor" | "avatar" | "bg"; desc: string; color: string }> = {
+export const SHOP_EFFECTS: Record<string, { name: string; price: number; type: "cursor" | "bg"; desc: string; color: string }> = {
   cursor_smoke: { name: "Smoke Trail", price: 200, type: "cursor", desc: "Gray smoke particles trailing your cursor", color: "#888" },
   cursor_fire: { name: "Fire Trail", price: 300, type: "cursor", desc: "Intense fire particles that burn behind you", color: "#ff4500" },
   cursor_soundwave: { name: "Sound Wave", price: 400, type: "cursor", desc: "Expanding sound rings from your cursor", color: "#39ff14" },
@@ -21,12 +21,6 @@ export const SHOP_EFFECTS: Record<string, { name: string; price: number; type: "
   cursor_hearts: { name: "Hearts Trail", price: 400, type: "cursor", desc: "Floating hearts drifting up from your cursor", color: "#fb7185" },
   cursor_butterflies: { name: "Butterflies Trail", price: 700, type: "cursor", desc: "Fluttering butterflies following your cursor", color: "#c084fc" },
   cursor_matrix: { name: "Matrix Trail", price: 900, type: "cursor", desc: "Digital code characters trailing your cursor", color: "#39ff14" },
-  avatar_rocks: { name: "Rock Ring", price: 100, type: "avatar", desc: "Rocks orbiting around your avatar frame", color: "#78716c" },
-  avatar_crown: { name: "Crown 3D", price: 350, type: "avatar", desc: "Glowing 3D crown floating above your profile", color: "#ffd700" },
-  avatar_bloodrain: { name: "Blood Rain", price: 550, type: "avatar", desc: "Dark blood dripping down over your avatar", color: "#dc2626" },
-  avatar_darkeyes: { name: "Dark Eyes", price: 900, type: "avatar", desc: "Eerie eyes appearing beside your avatar frame", color: "#7c3aed" },
-  avatar_sparkle: { name: "Sparkle Aura", price: 300, type: "avatar", desc: "Twinkling sparkles orbiting your avatar", color: "#fde047" },
-  avatar_petals: { name: "Petal Orbit", price: 320, type: "avatar", desc: "Cherry blossom petals drifting around your avatar", color: "#f9a8d4" },
   bg_fallingleaves: { name: "Falling Leaves", price: 150, type: "bg", desc: "Gentle autumn leaves drifting across the bg", color: "#84cc16" },
   bg_underwater: { name: "Underwater", price: 250, type: "bg", desc: "Bubbles and rays in an underwater scene", color: "#0369a1" },
   bg_gas: { name: "Gas Effect", price: 300, type: "bg", desc: "Swirling fog and gas clouds across the bg", color: "#6d28d9" },

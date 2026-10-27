@@ -24,7 +24,6 @@ export default async function EffectsPage({ section }: { section?: "full" | "bg"
       cursorTrail={profile.cursorTrail ?? false}
       nameEffect={profile.nameEffect}
       bioEffect={profile.bioEffect}
-      avatarRing={profile.avatarRing}
       avatarShape={profile.avatarShape}
       displayName={profile.displayName || user.username}
       bio={profile.bio || ""}

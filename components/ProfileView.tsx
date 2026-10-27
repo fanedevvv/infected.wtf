@@ -23,7 +23,6 @@ export interface ProfileViewProps {
   banner: string | null;
   avatar: string | null;
   avatarShape: string;
-  avatarRing: "none" | "normal" | "premium";
   activeDecoration?: string | null;
   accentColor: string;
   backgroundColor: string;
@@ -60,7 +59,6 @@ export interface ProfileViewProps {
   layoutTemplate: string;
   purchasedEffects: string[];
   activeCursorEffect: string;
-  activeAvatarEffect: string;
   activeBgEffect: string;
   likeCount: number;
   likedByViewer: boolean;
@@ -126,7 +124,6 @@ export default function ProfileView(p: ProfileViewProps) {
     setEntered(true);
   }
 
-  const hasActiveAvatarEffect = !!(p.activeAvatarEffect && p.purchasedEffects.includes(p.activeAvatarEffect));
   const layout = resolveLayout(p.layoutTemplate, p.isPremium);
   const votes = { liked, likeCount, disliked, dislikeCount, likeBusy, onRate: rate, onReport: () => setReportOpen(true) };
 
@@ -173,9 +170,7 @@ export default function ProfileView(p: ProfileViewProps) {
           <PurchasedEffectsEngine
             purchasedEffects={p.purchasedEffects}
             activeCursorEffect={p.activeCursorEffect}
-            activeAvatarEffect={p.activeAvatarEffect}
             activeBgEffect={p.activeBgEffect}
-            avatarShape={p.avatarShape}
             cursorTrailEnabled={p.isPremium && p.cursorTrail}
             customCursorUrl={p.cursorPath ? `/${p.cursorPath}` : null}
           />
@@ -195,7 +190,7 @@ export default function ProfileView(p: ProfileViewProps) {
 
         {/* Modern is the full-bleed sidebar + tabs page; Classic Card keeps its tilting card; the rest live in ProfileLayout. */}
         {layout === "modern" ? (
-          <ProfileImmersive p={p} entered={entered} hasActiveAvatarEffect={hasActiveAvatarEffect} {...votes} />
+          <ProfileImmersive p={p} entered={entered} {...votes} />
         ) : layout === "classic" ? (
           <ProfileClassic p={p} entered={entered} {...votes} />
         ) : (
