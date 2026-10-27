@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth-helpers";
 
 type LrcLibResult = { trackName?: string; artistName?: string; syncedLyrics?: string | null; plainLyrics?: string | null };
-type ItunesResult = { artworkUrl100?: string };
+type ItunesResult = { trackName?: string; artworkUrl100?: string };
 
 async function fetchJson(url: string, timeoutMs = 6000): Promise<unknown> {
   const controller = new AbortController();
@@ -22,7 +22,7 @@ function normalize(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
-/** Picks the result whose title/artist most closely matches what was searched, instead of just the first one with lyrics. */
+/** Picks the result whose title/artist most closely matches what was searched — never a loosely-related track, even if nothing scores well. */
 function bestLyricsMatch(results: LrcLibResult[] | null, title: string, artist: string): LrcLibResult | null {
   if (!results?.length) return null;
   const nTitle = normalize(title);
@@ -30,21 +30,44 @@ function bestLyricsMatch(results: LrcLibResult[] | null, title: string, artist: 
   const withLyrics = results.filter((r) => r.syncedLyrics || r.plainLyrics);
   if (withLyrics.length === 0) return null;
 
-  function score(r: LrcLibResult): number {
+  function score(r: LrcLibResult): { total: number; titleScore: number } {
     const rt = normalize(r.trackName || "");
     const ra = normalize(r.artistName || "");
-    let s = 0;
-    if (rt === nTitle) s += 10;
-    else if (rt.includes(nTitle) || nTitle.includes(rt)) s += 5;
+    let titleScore = 0;
+    if (rt === nTitle) titleScore = 10;
+    else if (rt.includes(nTitle) || nTitle.includes(rt)) titleScore = 5;
+    let s = titleScore;
     if (nArtist) {
       if (ra === nArtist) s += 10;
       else if (ra.includes(nArtist) || nArtist.includes(ra)) s += 5;
     }
     if (r.syncedLyrics) s += 2;
-    return s;
+    return { total: s, titleScore };
   }
 
-  return withLyrics.reduce((best, r) => (score(r) > score(best) ? r : best), withLyrics[0]);
+  const best = withLyrics.reduce((b, r) => (score(r).total > score(b).total ? r : b), withLyrics[0]);
+  // Require at least a partial title match — a result that's only "best" because nothing else scored
+  // anything is a different song, not a usable match.
+  return score(best).titleScore > 0 ? best : null;
+}
+
+/** Same idea for iTunes artwork: don't show cover art for an unrelated track just because it was result #1. */
+function bestArtworkMatch(results: { trackName?: string; artworkUrl100?: string }[] | undefined, title: string): string | null {
+  if (!results?.length) return null;
+  const nTitle = normalize(title);
+  let best: { trackName?: string; artworkUrl100?: string } | null = null;
+  let bestScore = 0;
+  for (const r of results) {
+    const rt = normalize(r.trackName || "");
+    let s = 0;
+    if (rt === nTitle) s = 10;
+    else if (rt.includes(nTitle) || nTitle.includes(rt)) s = 5;
+    if (s > bestScore) {
+      bestScore = s;
+      best = r;
+    }
+  }
+  return bestScore > 0 ? best?.artworkUrl100 || null : null;
 }
 
 /** lyrics.ovh has broader (but sync-free) coverage — used when lrclib has nothing for the track. */
@@ -76,6 +99,8 @@ async function resolveYoutubeTitle(url: string): Promise<{ title: string; artist
   let clean = data.title.replace(/[([][^)\]]*[)\]]/g, " ").trim();
   // Strip "ft./feat. X" — it hurts exact-title matching on lyrics providers.
   clean = clean.replace(/\s+(ft\.|feat\.?|featuring)\s+.+$/i, "").trim();
+  // Strip straight/smart quotes some channels wrap the title in — they corrupt iTunes' quoted-phrase search.
+  clean = clean.replace(/["'“”‘’]/g, "").replace(/\s+/g, " ").trim();
 
   const parts = clean.split(/\s[-–—]\s/);
   let title = clean;
@@ -114,20 +139,16 @@ export async function POST(req: NextRequest) {
   if (!title) return NextResponse.json({ success: false, error: "Track title is required." }, { status: 400 });
 
   const [itunesData, lrcData] = await Promise.all([
-    fetchJson(`https://itunes.apple.com/search?term=${encodeURIComponent(`${title} ${artist}`)}&entity=song&limit=1`) as Promise<{ results?: ItunesResult[] } | null>,
+    fetchJson(`https://itunes.apple.com/search?term=${encodeURIComponent(`${title} ${artist}`)}&entity=song&limit=5`) as Promise<{ results?: ItunesResult[] } | null>,
     searchLrcLib(title, artist),
   ]);
 
-  const artworkRaw = itunesData?.results?.[0]?.artworkUrl100;
+  const artworkRaw = bestArtworkMatch(itunesData?.results, title);
   const artworkUrl = artworkRaw ? artworkRaw.replace("100x100bb", "600x600bb") : null;
 
-  let lyricsMatch = bestLyricsMatch(lrcData, title, artist);
-
-  // The artist field is free text and often wrong/mismatched — retry title-only before giving up.
-  if (!lyricsMatch && artist) {
-    const titleOnly = await searchLrcLib(title, "");
-    lyricsMatch = bestLyricsMatch(titleOnly, title, artist);
-  }
+  // Deliberately no "search by title only" fallback here: dropping the artist to find *a* match
+  // with the right title is exactly how this returned a different artist's song before.
+  const lyricsMatch = bestLyricsMatch(lrcData, title, artist);
 
   const lyricsSynced = lyricsMatch?.syncedLyrics || null;
   let lyricsPlain = lyricsMatch?.plainLyrics || null;
