@@ -780,6 +780,23 @@ body.sidebar-collapsed .navbar-dashboard { left:0; }
 .mp-lyric--vinyl { color:var(--accent); }
 @keyframes lyricFade { from { opacity:0; transform:translateY(2px); } to { opacity:.85; transform:translateY(0); } }
 
+/* Karaoke-style lyrics: prev/current/next, below the player. */
+.mp-karaoke { position:fixed; top:5.5rem; left:1rem; z-index:99; display:flex; flex-direction:column; align-items:flex-start; gap:.3rem; max-width:min(80vw, 360px); background:rgba(8,8,15,0.78); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,.1); border-radius:14px; padding:.75rem 1rem; }
+.mp-karaoke-line { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; transition:opacity .25s, transform .25s; }
+.mp-karaoke-prev, .mp-karaoke-next { font-size:.72rem; color:rgba(255,255,255,.35); }
+.mp-karaoke-current { font-size:1rem; font-weight:700; color:var(--accent); animation:lyricFade .3s ease; }
+
+/* Full-lyrics toggle + scrollable panel. */
+.mp-lyrics-toggle { background:rgba(255,255,255,.08); border:none; color:rgba(255,255,255,.6); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:color .2s, background .2s; }
+.mp-lyrics-toggle:hover { color:var(--accent); background:rgba(255,255,255,.14); }
+.mp-lyrics-block { position:fixed; top:1rem; right:1rem; z-index:101; width:min(86vw, 320px); max-height:min(70vh, 480px); display:flex; flex-direction:column; background:rgba(8,8,15,0.92); backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,.12); border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.5); overflow:hidden; }
+.mp-lyrics-block-header { display:flex; align-items:center; justify-content:space-between; padding:.7rem .9rem; border-bottom:1px solid rgba(255,255,255,.08); font-size:.8rem; font-weight:700; color:#fff; }
+.mp-lyrics-close { background:none; border:none; color:rgba(255,255,255,.5); font-size:1.1rem; cursor:pointer; line-height:1; padding:0 .2rem; }
+.mp-lyrics-close:hover { color:#fff; }
+.mp-lyrics-block-body { overflow-y:auto; padding:.75rem .9rem 1.5rem; display:flex; flex-direction:column; gap:.55rem; }
+.mp-lyrics-block-row { font-size:.82rem; color:rgba(255,255,255,.35); line-height:1.4; transition:color .25s, transform .25s; }
+.mp-lyrics-block-row.active { color:var(--accent); font-weight:700; transform:scale(1.03); transform-origin:left; }
+
 @media (max-width:640px) {
   .music-player { top:.6rem; left:.6rem; }
   .mp-glow-track, .mp-vinyl-track { display:none; }

@@ -225,6 +225,7 @@ export default async function ProfilePage({
       musicLyricsSynced={profile.musicShowLyrics ? profile.musicLyricsSynced : null}
       musicLyricsPlain={profile.musicShowLyrics ? profile.musicLyricsPlain : null}
       musicLyricsOffsetMs={profile.musicLyricsOffsetMs ?? 0}
+      musicLyricsStyle={profile.musicLyricsStyle || "line"}
       musicShowLyrics={profile.musicShowLyrics}
       profileFont={look.profileFont || "Syne"}
       cursorPath={profile.cursorPath}

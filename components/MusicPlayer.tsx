@@ -2,6 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
+const LYRICS_ICON = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="13" height="13">
+    <line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="12" x2="16" y2="12" /><line x1="4" y1="18" x2="12" y2="18" />
+  </svg>
+);
+
 type LyricLine = { time: number; text: string };
 
 function parseLrc(lrc: string): LyricLine[] {
@@ -28,6 +34,7 @@ export default function MusicPlayer({
   lyricsSynced,
   lyricsPlain,
   lyricsOffsetMs,
+  lyricsStyle,
   showLyrics,
 }: {
   tracks: string[];
@@ -39,6 +46,7 @@ export default function MusicPlayer({
   lyricsSynced?: string | null;
   lyricsPlain?: string | null;
   lyricsOffsetMs?: number;
+  lyricsStyle?: string;
   showLyrics?: boolean;
 }) {
   const [index, setIndex] = useState(0);
@@ -47,8 +55,10 @@ export default function MusicPlayer({
   const [muted, setMuted] = useState(false);
   const [lyricIdx, setLyricIdx] = useState(-1);
   const [plainLyricIdx, setPlainLyricIdx] = useState(0);
+  const [blockOpen, setBlockOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const startedRef = useRef(false);
+  const activeLineRef = useRef<HTMLDivElement>(null);
 
   const lyricLines = useMemo(() => (lyricsSynced ? parseLrc(lyricsSynced) : []), [lyricsSynced]);
   const lyricsActive = !!(showLyrics && lyricLines.length > 0 && index === 0);
@@ -138,11 +148,56 @@ export default function MusicPlayer({
     }
   }
 
+  const effectiveLyricsStyle = lyricsActive ? (lyricsStyle || "line") : "line";
+  const hasAnyLyrics = lyricsActive || plainActive;
+
+  useEffect(() => {
+    if (effectiveLyricsStyle !== "block" || !blockOpen) return;
+    activeLineRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [lyricIdx, effectiveLyricsStyle, blockOpen]);
+
   if (tracks.length === 0) return null;
   const hasMeta = index === 0 && !!trackTitle;
   const trackName = hasMeta ? `${trackTitle}${trackArtist ? ` · ${trackArtist}` : ""}` : (tracks[index].split("/").pop() || "").replace(/\.[^.]+$/, "");
   const showArtwork = index === 0 && !!artworkUrl;
-  const currentLyric = lyricsActive ? lyricLines[lyricIdx]?.text : plainActive ? plainLines[plainLyricIdx] : null;
+  const currentLyric =
+    effectiveLyricsStyle === "line" ? (lyricsActive ? lyricLines[lyricIdx]?.text : plainActive ? plainLines[plainLyricIdx] : null) : null;
+
+  const karaokePanel = effectiveLyricsStyle === "karaoke" && lyricsActive && (
+    <div className="mp-karaoke">
+      {lyricLines[lyricIdx - 1] && <div className="mp-karaoke-line mp-karaoke-prev">{lyricLines[lyricIdx - 1].text}</div>}
+      <div className="mp-karaoke-line mp-karaoke-current">{lyricLines[lyricIdx]?.text || ""}</div>
+      {lyricLines[lyricIdx + 1] && <div className="mp-karaoke-line mp-karaoke-next">{lyricLines[lyricIdx + 1].text}</div>}
+    </div>
+  );
+
+  const blockToggle = effectiveLyricsStyle === "block" && hasAnyLyrics && (
+    <button type="button" className="mp-lyrics-toggle" onClick={() => setBlockOpen((o) => !o)} title="Lyrics">
+      {LYRICS_ICON}
+    </button>
+  );
+
+  const blockPanel = effectiveLyricsStyle === "block" && blockOpen && (
+    <div className="mp-lyrics-block">
+      <div className="mp-lyrics-block-header">
+        <span>{trackName}</span>
+        <button type="button" className="mp-lyrics-close" onClick={() => setBlockOpen(false)}>×</button>
+      </div>
+      <div className="mp-lyrics-block-body">
+        {lyricsActive
+          ? lyricLines.map((l, i) => (
+              <div key={i} ref={i === lyricIdx ? activeLineRef : undefined} className={`mp-lyrics-block-row ${i === lyricIdx ? "active" : ""}`}>
+                {l.text}
+              </div>
+            ))
+          : plainLines.map((l, i) => (
+              <div key={i} className={`mp-lyrics-block-row ${i === plainLyricIdx ? "active" : ""}`}>
+                {l}
+              </div>
+            ))}
+      </div>
+    </div>
+  );
 
   const playIcon = (
     <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M8 5v14l11-7z" /></svg>
@@ -167,73 +222,88 @@ export default function MusicPlayer({
 
   if (style === "compact") {
     return (
-      <div className="music-player music-player--compact">
-        {audioEl}
-        {showArtwork && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={artworkUrl!} alt="" className="mp-artwork mp-artwork--compact" />
-        )}
-        {tracks.length > 1 && <button className="mp-nav" onClick={prev} title="Previous">{prevIcon}</button>}
-        <button className="mp-play" onClick={togglePlay} title={playing ? "Pause" : "Play"}>{playing ? pauseIcon : playIcon}</button>
-        {tracks.length > 1 && <button className="mp-nav" onClick={next} title="Next">{nextIcon}</button>}
-        {tracks.length > 1 && (
-          <div className="mp-dots">
-            {tracks.map((_, i) => <span key={i} className={`mp-dot ${i === index ? "active" : ""}`} />)}
-          </div>
-        )}
-        {currentLyric && <span className="mp-lyric mp-lyric--compact">{currentLyric}</span>}
-      </div>
+      <>
+        <div className="music-player music-player--compact">
+          {audioEl}
+          {showArtwork && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={artworkUrl!} alt="" className="mp-artwork mp-artwork--compact" />
+          )}
+          {tracks.length > 1 && <button className="mp-nav" onClick={prev} title="Previous">{prevIcon}</button>}
+          <button className="mp-play" onClick={togglePlay} title={playing ? "Pause" : "Play"}>{playing ? pauseIcon : playIcon}</button>
+          {tracks.length > 1 && <button className="mp-nav" onClick={next} title="Next">{nextIcon}</button>}
+          {tracks.length > 1 && (
+            <div className="mp-dots">
+              {tracks.map((_, i) => <span key={i} className={`mp-dot ${i === index ? "active" : ""}`} />)}
+            </div>
+          )}
+          {currentLyric && <span className="mp-lyric mp-lyric--compact">{currentLyric}</span>}
+          {blockToggle}
+        </div>
+        {karaokePanel}
+        {blockPanel}
+      </>
     );
   }
 
   if (style === "vinyl") {
     return (
-      <div className="music-player music-player--vinyl">
-        {audioEl}
-        <button className={`mp-vinyl-disc ${playing ? "spinning" : ""}`} onClick={togglePlay} title={playing ? "Pause" : "Play"}>
-          {showArtwork ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={artworkUrl!} alt="" className="mp-vinyl-art" />
-          ) : null}
-          <span className="mp-vinyl-hole" />
-        </button>
-        <div className="mp-vinyl-info">
-          <span className="mp-vinyl-track">{trackName}</span>
-          {currentLyric && <span className="mp-lyric mp-lyric--vinyl">{currentLyric}</span>}
-          {tracks.length > 1 && (
-            <div className="mp-vinyl-controls">
-              <button className="mp-nav" onClick={prev} title="Previous">{prevIcon}</button>
-              <button className="mp-nav" onClick={next} title="Next">{nextIcon}</button>
-            </div>
-          )}
+      <>
+        <div className="music-player music-player--vinyl">
+          {audioEl}
+          <button className={`mp-vinyl-disc ${playing ? "spinning" : ""}`} onClick={togglePlay} title={playing ? "Pause" : "Play"}>
+            {showArtwork ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={artworkUrl!} alt="" className="mp-vinyl-art" />
+            ) : null}
+            <span className="mp-vinyl-hole" />
+          </button>
+          <div className="mp-vinyl-info">
+            <span className="mp-vinyl-track">{trackName}</span>
+            {currentLyric && <span className="mp-lyric mp-lyric--vinyl">{currentLyric}</span>}
+            {tracks.length > 1 && (
+              <div className="mp-vinyl-controls">
+                <button className="mp-nav" onClick={prev} title="Previous">{prevIcon}</button>
+                <button className="mp-nav" onClick={next} title="Next">{nextIcon}</button>
+              </div>
+            )}
+          </div>
+          {blockToggle}
         </div>
-      </div>
+        {karaokePanel}
+        {blockPanel}
+      </>
     );
   }
 
   // glow (default)
   return (
-    <div className="music-player music-player--glow">
-      {audioEl}
-      <div className="mp-glow-row">
-        {showArtwork && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={artworkUrl!} alt="" className="mp-artwork mp-artwork--glow" />
-        )}
-        {tracks.length > 1 && <button className="mp-nav" onClick={prev} title="Previous">{prevIcon}</button>}
-        <button className="mp-play" onClick={togglePlay} title={playing ? "Pause" : "Play"}>{playing ? pauseIcon : playIcon}</button>
-        {tracks.length > 1 && <button className="mp-nav" onClick={next} title="Next">{nextIcon}</button>}
-        <button className="mp-nav" onClick={toggleMute} title="Mute / Unmute">{muted ? muteIcon : volIcon}</button>
-        <input
-          type="range"
-          className="vol-slider"
-          min={0} max={1} step={0.05}
-          value={muted ? 0 : volume}
-          onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
-        />
+    <>
+      <div className="music-player music-player--glow">
+        {audioEl}
+        <div className="mp-glow-row">
+          {showArtwork && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={artworkUrl!} alt="" className="mp-artwork mp-artwork--glow" />
+          )}
+          {tracks.length > 1 && <button className="mp-nav" onClick={prev} title="Previous">{prevIcon}</button>}
+          <button className="mp-play" onClick={togglePlay} title={playing ? "Pause" : "Play"}>{playing ? pauseIcon : playIcon}</button>
+          {tracks.length > 1 && <button className="mp-nav" onClick={next} title="Next">{nextIcon}</button>}
+          <button className="mp-nav" onClick={toggleMute} title="Mute / Unmute">{muted ? muteIcon : volIcon}</button>
+          <input
+            type="range"
+            className="vol-slider"
+            min={0} max={1} step={0.05}
+            value={muted ? 0 : volume}
+            onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
+          />
+          {blockToggle}
+        </div>
+        {(tracks.length > 1 || hasMeta) && <span className="mp-glow-track">{trackName}</span>}
+        {currentLyric && <span className="mp-lyric mp-lyric--glow">{currentLyric}</span>}
       </div>
-      {(tracks.length > 1 || hasMeta) && <span className="mp-glow-track">{trackName}</span>}
-      {currentLyric && <span className="mp-lyric mp-lyric--glow">{currentLyric}</span>}
-    </div>
+      {karaokePanel}
+      {blockPanel}
+    </>
   );
 }

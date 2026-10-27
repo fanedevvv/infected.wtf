@@ -99,6 +99,7 @@ model Profile {
   musicLyricsSynced String?  @map("music_lyrics_synced") @db.LongText
   musicLyricsPlain String?  @map("music_lyrics_plain") @db.LongText
   musicLyricsOffsetMs Int   @default(0) @map("music_lyrics_offset_ms")
+  musicLyricsStyle String   @default("line") @map("music_lyrics_style") @db.VarChar(10)
   musicShowLyrics  Boolean   @default(false) @map("music_show_lyrics")
   layoutTemplate   String    @default("modern") @map("layout_template") @db.VarChar(20)
   cursorPath       String?   @map("cursor_path") @db.VarChar(500)

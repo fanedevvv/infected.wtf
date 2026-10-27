@@ -70,6 +70,7 @@ export default async function EditorPage({ searchParams }: { searchParams: Promi
         musicLyricsSynced: profile.musicLyricsSynced || "",
         musicLyricsPlain: profile.musicLyricsPlain || "",
         musicLyricsOffsetMs: profile.musicLyricsOffsetMs ?? 0,
+        musicLyricsStyle: profile.musicLyricsStyle || "line",
         musicShowLyrics: profile.musicShowLyrics,
         playlistStyle: profile.playlistStyle,
         layoutTemplate: profile.layoutTemplate,

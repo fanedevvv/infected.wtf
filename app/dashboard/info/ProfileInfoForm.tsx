@@ -23,6 +23,7 @@ type Props = {
   musicLyricsPlain: string;
   musicShowLyrics: boolean;
   musicLyricsOffsetMs: number;
+  musicLyricsStyle: string;
   playlistStyle: string;
   layoutTemplate: string;
   isPremium: boolean;
@@ -64,6 +65,7 @@ export default function ProfileInfoForm(props: Props) {
   const [lyricsPlain, setLyricsPlain] = useState(props.musicLyricsPlain);
   const [showLyrics, setShowLyrics] = useState(props.musicShowLyrics);
   const [lyricsOffsetMs, setLyricsOffsetMs] = useState(props.musicLyricsOffsetMs);
+  const [lyricsStyle, setLyricsStyle] = useState(props.musicLyricsStyle);
   const [findingArtwork, setFindingArtwork] = useState(false);
   const [findingLyrics, setFindingLyrics] = useState(false);
   const [musicMetaSaving, setMusicMetaSaving] = useState(false);
@@ -351,7 +353,7 @@ export default function ProfileInfoForm(props: Props) {
     setPlaylistStyle(style);
   }
 
-  async function saveMusicMetadata(overrides?: { trackTitle?: string; trackArtist?: string; artworkUrl?: string; lyricsSynced?: string; lyricsPlain?: string; showLyrics?: boolean; lyricsOffsetMs?: number; silent?: boolean }) {
+  async function saveMusicMetadata(overrides?: { trackTitle?: string; trackArtist?: string; artworkUrl?: string; lyricsSynced?: string; lyricsPlain?: string; showLyrics?: boolean; lyricsOffsetMs?: number; lyricsStyle?: string; silent?: boolean }) {
     setMusicMetaSaving(true);
     const fd = new FormData();
     fd.append("action", "set_music_metadata");
@@ -362,6 +364,7 @@ export default function ProfileInfoForm(props: Props) {
     fd.append("lyrics_plain", overrides?.lyricsPlain ?? lyricsPlain);
     fd.append("show_lyrics", (overrides?.showLyrics ?? showLyrics) ? "1" : "0");
     fd.append("lyrics_offset_ms", String(overrides?.lyricsOffsetMs ?? lyricsOffsetMs));
+    fd.append("lyrics_style", overrides?.lyricsStyle ?? lyricsStyle);
     try {
       const res = await fetch("/api/update_profile", { method: "POST", body: fd });
       const j = await res.json();
@@ -467,6 +470,11 @@ export default function ProfileInfoForm(props: Props) {
     const next = Math.max(-15000, Math.min(15000, lyricsOffsetMs + deltaMs));
     setLyricsOffsetMs(next);
     await saveMusicMetadata({ lyricsOffsetMs: next, silent: true });
+  }
+
+  async function selectLyricsStyle(style: string) {
+    setLyricsStyle(style);
+    await saveMusicMetadata({ lyricsStyle: style, silent: true });
   }
 
   function selectFont(id: string) {
@@ -785,6 +793,34 @@ export default function ProfileInfoForm(props: Props) {
                   <input type="checkbox" checked={showLyrics} onChange={toggleShowLyrics} />
                   {lyricsSynced ? t("Show synced lyrics on profile") : t("Show lyrics on profile")}
                 </label>
+              )}
+
+              {(lyricsSynced || lyricsPlain) && showLyrics && (
+                <div style={{ marginBottom: "1rem" }}>
+                  <label style={{ display: "block", fontSize: ".75rem", fontWeight: 700, color: "rgba(255,255,255,.45)", marginBottom: ".4rem", letterSpacing: ".04em", textTransform: "uppercase" }}>
+                    {t("Lyrics display style")}
+                  </label>
+                  <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
+                    {[
+                      { id: "line", label: t("Current line"), desc: t("One line, same as today") },
+                      { id: "karaoke", label: t("Karaoke"), desc: t("Prev / current / next, bigger text"), disabled: !lyricsSynced },
+                      { id: "block", label: t("Full lyrics"), desc: t("Scrollable panel, click to open") },
+                    ].map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        className={`int-btn ${lyricsStyle === s.id ? "int-btn-primary" : "int-btn-outline"}`}
+                        style={{ flex: "1 1 140px", flexDirection: "column", alignItems: "flex-start", gap: ".15rem", opacity: s.disabled ? 0.4 : 1, cursor: s.disabled ? "not-allowed" : "pointer" }}
+                        onClick={() => !s.disabled && selectLyricsStyle(s.id)}
+                        disabled={s.disabled}
+                        title={s.disabled ? t("Needs synced lyrics") : undefined}
+                      >
+                        <span style={{ fontWeight: 700 }}>{s.label}</span>
+                        <span style={{ fontSize: ".7rem", opacity: 0.7, fontWeight: 400 }}>{s.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
 
               {lyricsSynced && (
