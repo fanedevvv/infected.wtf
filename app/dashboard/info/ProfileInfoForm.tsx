@@ -382,6 +382,8 @@ export default function ProfileInfoForm(props: Props) {
         await saveMusicMetadata({ artworkUrl: j.artworkUrl });
         showToast(t("Artwork found!"), "success");
       } else {
+        setArtworkUrl("");
+        await saveMusicMetadata({ artworkUrl: "" });
         showToast(t("Couldn't find artwork for that track."), "error");
       }
     } catch {
@@ -431,19 +433,20 @@ export default function ProfileInfoForm(props: Props) {
       const resolvedArtist = j.resolvedArtist || trackArtist;
       setTrackTitle(resolvedTitle);
       setTrackArtist(resolvedArtist);
-      if (j.artworkUrl) setArtworkUrl(j.artworkUrl);
+      setArtworkUrl(j.artworkUrl || "");
       setLyricsSynced(j.lyricsSynced || "");
       setLyricsPlain(j.lyricsPlain || "");
       await saveMusicMetadata({
         trackTitle: resolvedTitle,
         trackArtist: resolvedArtist,
-        artworkUrl: j.artworkUrl || artworkUrl,
+        artworkUrl: j.artworkUrl || "",
         lyricsSynced: j.lyricsSynced || "",
         lyricsPlain: j.lyricsPlain || "",
       });
       if (j.lyricsSynced) showToast(t("Found the exact track — synced lyrics loaded!"), "success");
       else if (j.lyricsPlain) showToast(t("Found the exact track — lyrics loaded (no sync available)."), "success");
       else showToast(t("Matched the track, but no lyrics were found for it."), "error");
+      if (!j.artworkUrl) showToast(t("No cover art found for this exact track."), "error");
     } catch {
       showToast(t("Network error"), "error");
     } finally {
