@@ -26,6 +26,7 @@ export default function MusicPlayer({
   trackTitle,
   trackArtist,
   lyricsSynced,
+  lyricsPlain,
   showLyrics,
 }: {
   tracks: string[];
@@ -35,6 +36,7 @@ export default function MusicPlayer({
   trackTitle?: string | null;
   trackArtist?: string | null;
   lyricsSynced?: string | null;
+  lyricsPlain?: string | null;
   showLyrics?: boolean;
 }) {
   const [index, setIndex] = useState(0);
@@ -42,11 +44,18 @@ export default function MusicPlayer({
   const [volume, setVolume] = useState(0.35);
   const [muted, setMuted] = useState(false);
   const [lyricIdx, setLyricIdx] = useState(-1);
+  const [plainLyricIdx, setPlainLyricIdx] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
   const startedRef = useRef(false);
 
   const lyricLines = useMemo(() => (lyricsSynced ? parseLrc(lyricsSynced) : []), [lyricsSynced]);
   const lyricsActive = !!(showLyrics && lyricLines.length > 0 && index === 0);
+
+  const plainLines = useMemo(
+    () => (lyricsPlain ? lyricsPlain.split("\n").map((l) => l.trim()).filter(Boolean) : []),
+    [lyricsPlain]
+  );
+  const plainActive = !!(showLyrics && !lyricsActive && plainLines.length > 0 && index === 0);
 
   useEffect(() => {
     if (!lyricsActive || !audioRef.current) return;
@@ -63,6 +72,13 @@ export default function MusicPlayer({
     el.addEventListener("timeupdate", onTimeUpdate);
     return () => el.removeEventListener("timeupdate", onTimeUpdate);
   }, [lyricsActive, lyricLines]);
+
+  // No timing data for plain lyrics — just cycle through the lines while a track plays.
+  useEffect(() => {
+    if (!plainActive || !playing) return;
+    const id = setInterval(() => setPlainLyricIdx((i) => (i + 1) % plainLines.length), 3200);
+    return () => clearInterval(id);
+  }, [plainActive, playing, plainLines.length]);
 
   useEffect(() => {
     if (active && !startedRef.current && audioRef.current) {
@@ -122,7 +138,7 @@ export default function MusicPlayer({
   const hasMeta = index === 0 && !!trackTitle;
   const trackName = hasMeta ? `${trackTitle}${trackArtist ? ` · ${trackArtist}` : ""}` : (tracks[index].split("/").pop() || "").replace(/\.[^.]+$/, "");
   const showArtwork = index === 0 && !!artworkUrl;
-  const currentLyric = lyricsActive ? lyricLines[lyricIdx]?.text : null;
+  const currentLyric = lyricsActive ? lyricLines[lyricIdx]?.text : plainActive ? plainLines[plainLyricIdx] : null;
 
   const playIcon = (
     <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M8 5v14l11-7z" /></svg>

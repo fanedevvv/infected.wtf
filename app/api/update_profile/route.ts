@@ -9,6 +9,7 @@ import { getActiveProfileId } from "@/lib/active-profile";
 import { parseStringArray, serializeStringArray, parseJsonObject } from "@/lib/json-array";
 import { isKnownFont, isPremiumFont, DEFAULT_PROFILE_FONT } from "@/lib/profile-fonts";
 import { DEFAULT_LAYOUT, isPremiumLayout, resolveLayout } from "@/lib/profile-layouts";
+import { resolveShape } from "@/lib/avatar-shapes";
 
 function ok(message = "OK") {
   return NextResponse.json({ success: true, message });
@@ -79,6 +80,7 @@ export async function POST(req: NextRequest) {
         musicTrackArtist: null,
         musicArtworkUrl: null,
         musicLyricsSynced: null,
+        musicLyricsPlain: null,
         musicShowLyrics: false,
       },
     });
@@ -90,11 +92,12 @@ export async function POST(req: NextRequest) {
     const trackArtist = String(form.get("track_artist") || "").trim().slice(0, 150) || null;
     const artworkUrl = String(form.get("artwork_url") || "").trim().slice(0, 500) || null;
     const lyricsSynced = String(form.get("lyrics_synced") || "").trim() || null;
+    const lyricsPlain = String(form.get("lyrics_plain") || "").trim() || null;
     const showLyrics = form.get("show_lyrics") === "1";
     if (artworkUrl && !/^https:\/\//i.test(artworkUrl)) return err("Invalid artwork URL.");
     await prisma.profile.updateMany({
       where: { id: activeProfileId },
-      data: { musicTrackTitle: trackTitle, musicTrackArtist: trackArtist, musicArtworkUrl: artworkUrl, musicLyricsSynced: lyricsSynced, musicShowLyrics: showLyrics },
+      data: { musicTrackTitle: trackTitle, musicTrackArtist: trackArtist, musicArtworkUrl: artworkUrl, musicLyricsSynced: lyricsSynced, musicLyricsPlain: lyricsPlain, musicShowLyrics: showLyrics },
     });
     return ok("Saved!");
   }
@@ -219,9 +222,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (action === "save_avatar_shape") {
-    const allowed = ["square", "soft", "rounded", "circle", "eye", "diamond", "egg"];
-    let shape = String(form.get("avatar_shape") || "circle").trim();
-    if (!allowed.includes(shape)) shape = "circle";
+    const shape = resolveShape(String(form.get("avatar_shape") || "").trim());
     await prisma.profile.updateMany({ where: { id: activeProfileId }, data: { avatarShape: shape } });
     return ok("Avatar shape saved!");
   }

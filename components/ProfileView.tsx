@@ -42,6 +42,7 @@ export interface ProfileViewProps {
   musicTrackArtist?: string | null;
   musicArtworkUrl?: string | null;
   musicLyricsSynced?: string | null;
+  musicLyricsPlain?: string | null;
   musicShowLyrics?: boolean;
   profileFont: string;
   views: number;
@@ -184,6 +185,7 @@ export default function ProfileView(p: ProfileViewProps) {
             trackTitle={p.musicTrackTitle}
             trackArtist={p.musicTrackArtist}
             lyricsSynced={p.musicLyricsSynced}
+            lyricsPlain={p.musicLyricsPlain}
             showLyrics={p.musicShowLyrics}
           />
         )}

@@ -18,6 +18,12 @@ async function fetchJson(url: string, timeoutMs = 6000): Promise<unknown> {
   }
 }
 
+/** lyrics.ovh has broader (but sync-free) coverage — used when lrclib has nothing for the track. */
+async function fetchOvhLyrics(title: string, artist: string): Promise<string | null> {
+  const data = (await fetchJson(`https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`)) as { lyrics?: string } | null;
+  return data?.lyrics?.trim() || null;
+}
+
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
@@ -37,7 +43,11 @@ export async function POST(req: NextRequest) {
 
   const lyricsMatch = lrcData?.find((r) => r.syncedLyrics) || lrcData?.find((r) => r.plainLyrics) || null;
   const lyricsSynced = lyricsMatch?.syncedLyrics || null;
-  const lyricsPlain = lyricsMatch?.plainLyrics || null;
+  let lyricsPlain = lyricsMatch?.plainLyrics || null;
+
+  if (!lyricsSynced && !lyricsPlain) {
+    lyricsPlain = await fetchOvhLyrics(title, artist);
+  }
 
   return NextResponse.json({
     success: true,

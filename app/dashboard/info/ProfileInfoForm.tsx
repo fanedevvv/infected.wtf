@@ -20,6 +20,7 @@ type Props = {
   musicTrackArtist: string;
   musicArtworkUrl: string;
   musicLyricsSynced: string;
+  musicLyricsPlain: string;
   musicShowLyrics: boolean;
   playlistStyle: string;
   layoutTemplate: string;
@@ -59,6 +60,7 @@ export default function ProfileInfoForm(props: Props) {
   const [trackArtist, setTrackArtist] = useState(props.musicTrackArtist);
   const [artworkUrl, setArtworkUrl] = useState(props.musicArtworkUrl);
   const [lyricsSynced, setLyricsSynced] = useState(props.musicLyricsSynced);
+  const [lyricsPlain, setLyricsPlain] = useState(props.musicLyricsPlain);
   const [showLyrics, setShowLyrics] = useState(props.musicShowLyrics);
   const [findingArtwork, setFindingArtwork] = useState(false);
   const [findingLyrics, setFindingLyrics] = useState(false);
@@ -332,6 +334,7 @@ export default function ProfileInfoForm(props: Props) {
         setTrackArtist("");
         setArtworkUrl("");
         setLyricsSynced("");
+        setLyricsPlain("");
         setShowLyrics(false);
         showToast(t("Track removed!"), "success");
       } else showToast(j.error || "Error", "error");
@@ -344,7 +347,7 @@ export default function ProfileInfoForm(props: Props) {
     setPlaylistStyle(style);
   }
 
-  async function saveMusicMetadata(overrides?: { artworkUrl?: string; lyricsSynced?: string; showLyrics?: boolean }) {
+  async function saveMusicMetadata(overrides?: { artworkUrl?: string; lyricsSynced?: string; lyricsPlain?: string; showLyrics?: boolean }) {
     setMusicMetaSaving(true);
     const fd = new FormData();
     fd.append("action", "set_music_metadata");
@@ -352,6 +355,7 @@ export default function ProfileInfoForm(props: Props) {
     fd.append("track_artist", trackArtist);
     fd.append("artwork_url", overrides?.artworkUrl ?? artworkUrl);
     fd.append("lyrics_synced", overrides?.lyricsSynced ?? lyricsSynced);
+    fd.append("lyrics_plain", overrides?.lyricsPlain ?? lyricsPlain);
     fd.append("show_lyrics", (overrides?.showLyrics ?? showLyrics) ? "1" : "0");
     try {
       const res = await fetch("/api/update_profile", { method: "POST", body: fd });
@@ -393,12 +397,16 @@ export default function ProfileInfoForm(props: Props) {
       const j = await res.json();
       if (j.success && j.lyricsSynced) {
         setLyricsSynced(j.lyricsSynced);
-        await saveMusicMetadata({ lyricsSynced: j.lyricsSynced });
+        setLyricsPlain(j.lyricsPlain || "");
+        await saveMusicMetadata({ lyricsSynced: j.lyricsSynced, lyricsPlain: j.lyricsPlain || "" });
         showToast(t("Synced lyrics found!"), "success");
-      } else if (j.success && j.found?.lyrics) {
-        showToast(t("Only plain lyrics exist for this track (no synced timing)."), "error");
+      } else if (j.success && j.lyricsPlain) {
+        setLyricsSynced("");
+        setLyricsPlain(j.lyricsPlain);
+        await saveMusicMetadata({ lyricsSynced: "", lyricsPlain: j.lyricsPlain });
+        showToast(t("Lyrics found (no line-by-line sync available for this track)."), "success");
       } else {
-        showToast(t("Couldn't find lyrics for that track."), "error");
+        showToast(t("Couldn't find lyrics for that track in any of our sources."), "error");
       }
     } catch {
       showToast(t("Network error"), "error");
@@ -709,10 +717,10 @@ export default function ProfileInfoForm(props: Props) {
                 </button>
               </div>
 
-              {lyricsSynced && (
+              {(lyricsSynced || lyricsPlain) && (
                 <label style={{ display: "flex", alignItems: "center", gap: ".5rem", fontSize: ".85rem", color: "var(--text-muted)", cursor: "pointer" }}>
                   <input type="checkbox" checked={showLyrics} onChange={toggleShowLyrics} />
-                  {t("Show synced lyrics on profile")}
+                  {lyricsSynced ? t("Show synced lyrics on profile") : t("Show lyrics on profile")}
                 </label>
               )}
             </div>
