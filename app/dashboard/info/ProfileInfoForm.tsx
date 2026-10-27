@@ -703,8 +703,8 @@ export default function ProfileInfoForm(props: Props) {
                   <img src={artworkUrl} alt="" style={{ width: 72, height: 72, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />
                 )}
                 <div style={{ display: "flex", flexDirection: "column", gap: ".5rem", flex: 1, minWidth: 200 }}>
-                  <input className="form-control" placeholder={t("Track title")} value={trackTitle} onChange={(e) => setTrackTitle(e.target.value)} onBlur={() => saveMusicMetadata()} />
-                  <input className="form-control" placeholder={t("Artist")} value={trackArtist} onChange={(e) => setTrackArtist(e.target.value)} onBlur={() => saveMusicMetadata()} />
+                  <input className="form-control" placeholder={t("Exact song title (e.g. Bad Guy)")} value={trackTitle} onChange={(e) => setTrackTitle(e.target.value)} onBlur={() => saveMusicMetadata()} />
+                  <input className="form-control" placeholder={t("Performing artist (e.g. Billie Eilish)")} value={trackArtist} onChange={(e) => setTrackArtist(e.target.value)} onBlur={() => saveMusicMetadata()} />
                 </div>
               </div>
 
