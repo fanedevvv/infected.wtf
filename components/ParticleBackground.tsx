@@ -8,8 +8,19 @@ interface Star {
 interface Shot {
   x: number; y: number; vx: number; vy: number; angle: number; len: number; life: number;
 }
+interface Blob {
+  x: number; y: number; r: number; vx: number; vy: number; op: number;
+}
 
-export default function ParticleBackground() {
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const m = hex.replace("#", "").match(/.{1,2}/g);
+  if (!m || m.length < 3) return { r: 57, g: 255, b: 20 };
+  const [r, g, b] = m.map((h) => parseInt(h, 16));
+  return { r, g, b };
+}
+
+/** "Accent Drift": soft drifting glow cells in the profile's accent color, behind a twinkling starfield — gives every profile a distinct look. */
+export default function ParticleBackground({ color = "#39ff14" }: { color?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -18,7 +29,8 @@ export default function ParticleBackground() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const opts = { count: 130, speed: 0.25, sizeMin: 0.4, sizeMax: 2.2, opMin: 0.1, opMax: 0.75, shootInterval: 3500 };
+    const rgb = hexToRgb(color);
+    const opts = { count: 110, speed: 0.25, sizeMin: 0.4, sizeMax: 2.2, opMin: 0.1, opMax: 0.75, shootInterval: 3500, blobCount: 4 };
     const r = (a: number, b: number) => Math.random() * (b - a) + a;
     const mkStar = (rand = false): Star => ({
       x: r(0, canvas.width),
@@ -41,6 +53,14 @@ export default function ParticleBackground() {
         life: 1,
       };
     };
+    const mkBlob = (): Blob => ({
+      x: r(0, canvas.width),
+      y: r(0, canvas.height),
+      r: r(140, 260),
+      vx: r(-0.12, 0.12),
+      vy: r(-0.08, 0.08),
+      op: r(0.06, 0.13),
+    });
 
     function resize() {
       if (!canvas) return;
@@ -51,6 +71,7 @@ export default function ParticleBackground() {
     window.addEventListener("resize", resize);
 
     const stars: Star[] = Array.from({ length: opts.count }, () => mkStar(true));
+    const blobs: Blob[] = Array.from({ length: opts.blobCount }, mkBlob);
     const shots: Shot[] = [];
     let lastShot = 0;
     let raf = 0;
@@ -58,6 +79,24 @@ export default function ParticleBackground() {
     function loop() {
       if (!ctx || !canvas) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (const b of blobs) {
+        b.x += b.vx;
+        b.y += b.vy;
+        if (b.x < -b.r) b.x = canvas.width + b.r;
+        if (b.x > canvas.width + b.r) b.x = -b.r;
+        if (b.y < -b.r) b.y = canvas.height + b.r;
+        if (b.y > canvas.height + b.r) b.y = -b.r;
+        const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+        g.addColorStop(0, `rgba(${rgb.r},${rgb.g},${rgb.b},${b.op})`);
+        g.addColorStop(1, `rgba(${rgb.r},${rgb.g},${rgb.b},0)`);
+        ctx.save();
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
 
       for (let i = 0; i < stars.length; i++) {
         const s = stars[i];
@@ -112,7 +151,7 @@ export default function ParticleBackground() {
       window.removeEventListener("resize", resize);
       cancelAnimationFrame(raf);
     };
-  }, []);
+  }, [color]);
 
   return <canvas ref={canvasRef} id="particle-canvas" />;
 }

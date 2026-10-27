@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Geist, Geist_Mono, Big_Shoulders_Stencil } from "next/font/google";
 import "./globals.css";
 import "./lab.css";
+import "./profile-layouts.css";
 import { HALLOWEEN_CHECK } from "@/lib/seasonal";
 
 // Inter stays loaded for public profiles, which render in it unless the owner picked another font.

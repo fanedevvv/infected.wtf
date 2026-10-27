@@ -694,6 +694,15 @@ body.sidebar-collapsed .navbar-dashboard { left:0; }
 .avatar-ring-pulse { position:absolute; inset:-11px; border-radius:50%; border:2px solid rgba(255,215,0,.35); animation:premiumPulse 2.2s ease-in-out infinite; pointer-events:none; z-index:0; }
 @keyframes premiumPulse { 0%,100%{box-shadow:0 0 10px 2px rgba(255,215,0,.4); opacity:1;} 50%{box-shadow:0 0 28px 10px rgba(255,215,0,.15); opacity:.7;} }
 
+/* Orbiting spores: small glowing particles circling the avatar, independent of its shape so they work on every layout. */
+.avatar-orbit { position:absolute; inset:-16px; border-radius:50%; pointer-events:none; z-index:3; }
+.avatar-orbit-1 { animation:orbitSpin 5.5s linear infinite; }
+.avatar-orbit-2 { inset:-23px; animation:orbitSpin 8s linear infinite reverse; }
+.avatar-orbit-3 { inset:-30px; animation:orbitSpin 4.2s linear infinite; }
+@keyframes orbitSpin { to { transform:rotate(360deg); } }
+.avatar-orbit-dot { position:absolute; top:-2px; left:50%; width:5px; height:5px; margin-left:-2.5px; border-radius:50%; background:var(--accent,#39ff14); box-shadow:0 0 7px 2px var(--accent,#39ff14); opacity:.9; }
+.avatar-orbit-dot--gold { background:#ffd700; box-shadow:0 0 9px 3px rgba(255,215,0,.8); width:6px; height:6px; margin-left:-3px; }
+
 .avatar-shape-square .avatar-ring-shell, .avatar-shape-square .avatar-ring-inner, .avatar-shape-square .avatar-img, .avatar-shape-square .avatar-ring-pulse { border-radius:8px; }
 .avatar-shape-soft .avatar-ring-shell, .avatar-shape-soft .avatar-ring-inner, .avatar-shape-soft .avatar-img, .avatar-shape-soft .avatar-ring-pulse { border-radius:22px; }
 .avatar-shape-rounded .avatar-ring-shell, .avatar-shape-rounded .avatar-ring-inner, .avatar-shape-rounded .avatar-img, .avatar-shape-rounded .avatar-ring-pulse { border-radius:36px; }

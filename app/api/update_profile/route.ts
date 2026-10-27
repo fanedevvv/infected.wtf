@@ -8,6 +8,7 @@ import { destroySession } from "@/lib/session";
 import { getActiveProfileId } from "@/lib/active-profile";
 import { parseStringArray, serializeStringArray, parseJsonObject } from "@/lib/json-array";
 import { isKnownFont, isPremiumFont, DEFAULT_PROFILE_FONT } from "@/lib/profile-fonts";
+import { DEFAULT_LAYOUT, isPremiumLayout, resolveLayout } from "@/lib/profile-layouts";
 
 function ok(message = "OK") {
   return NextResponse.json({ success: true, message });
@@ -27,8 +28,6 @@ async function deleteFile(relPath: string | null | undefined) {
 }
 
 const ALLOWED_TEXT_EFFECTS = ["none", "glow", "rainbow", "shake", "glitch", "scramble", "shine", "typewriter", "flip"];
-const ALLOWED_LAYOUTS = ["modern", "classic", "editorial", "terminal", "banner", "compact", "aurora", "cinematic", "dossier"];
-const PREMIUM_LAYOUTS = ["aurora", "cinematic", "dossier"];
 
 export async function POST(req: NextRequest) {
   let user;
@@ -116,12 +115,12 @@ export async function POST(req: NextRequest) {
   }
 
   if (action === "set_layout_template") {
-    let layoutTemplate = String(form.get("layout_template") || "modern").trim();
-    if (!ALLOWED_LAYOUTS.includes(layoutTemplate)) layoutTemplate = "modern";
+    const requested = String(form.get("layout_template") || DEFAULT_LAYOUT).trim();
     const isPremium = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date());
-    if (PREMIUM_LAYOUTS.includes(layoutTemplate) && !isPremium) {
+    if (isPremiumLayout(requested) && !isPremium) {
       return err("This layout is an Infected Plus feature.");
     }
+    const layoutTemplate = resolveLayout(requested, isPremium);
     await prisma.profile.updateMany({ where: { id: activeProfileId }, data: { layoutTemplate } });
     return ok("Layout saved!");
   }
@@ -152,9 +151,7 @@ export async function POST(req: NextRequest) {
     if (isPremiumFont(font) && !isPremium) font = DEFAULT_PROFILE_FONT;
     let playlistStyle = String(form.get("playlist_style") || "glow").trim();
     if (!["glow", "compact", "vinyl"].includes(playlistStyle)) playlistStyle = "glow";
-    let layoutTemplate = String(form.get("layout_template") || "modern").trim();
-    if (!ALLOWED_LAYOUTS.includes(layoutTemplate)) layoutTemplate = "modern";
-    if (PREMIUM_LAYOUTS.includes(layoutTemplate) && !isPremium) layoutTemplate = "modern";
+    const layoutTemplate = resolveLayout(String(form.get("layout_template") || DEFAULT_LAYOUT).trim(), isPremium);
     let avatar = String(form.get("avatar") || "").trim();
     if (avatar && !/^uploads\/avatars\/[a-zA-Z0-9_\-.]+$/.test(avatar)) avatar = "";
     const bgImg = String(form.get("background_image") || "").trim();

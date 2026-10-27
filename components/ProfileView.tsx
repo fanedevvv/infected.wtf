@@ -10,6 +10,8 @@ import type { ProfileProjectCard } from "./ProfileProjects";
 import ReportProfileModal from "./ReportProfileModal";
 import ProfileImmersive from "./ProfileImmersive";
 import ProfileClassic from "./ProfileClassic";
+import ProfileLayout from "./profile-layouts/ProfileLayouts";
+import { resolveLayout } from "@/lib/profile-layouts";
 
 export interface ProfileViewProps {
   username: string;
@@ -125,8 +127,8 @@ export default function ProfileView(p: ProfileViewProps) {
   }
 
   const hasActiveAvatarEffect = !!(p.activeAvatarEffect && p.purchasedEffects.includes(p.activeAvatarEffect));
-  const PREMIUM_LAYOUTS = ["aurora", "cinematic", "dossier"];
-  const effectiveLayout = PREMIUM_LAYOUTS.includes(p.layoutTemplate) && !p.isPremium ? "modern" : p.layoutTemplate;
+  const layout = resolveLayout(p.layoutTemplate, p.isPremium);
+  const votes = { liked, likeCount, disliked, dislikeCount, likeBusy, onRate: rate, onReport: () => setReportOpen(true) };
 
   const bgStyle: React.CSSProperties =
     p.backgroundType === "color" || p.backgroundType === "gradient"
@@ -165,7 +167,7 @@ export default function ProfileView(p: ProfileViewProps) {
             <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)" }} />
           </div>
         )}
-        {entered && p.isPremium && p.particleEffect && <ParticleBackground />}
+        {entered && p.isPremium && p.particleEffect && <ParticleBackground color={p.accentColor} />}
         {entered && p.isPremium && p.cursorTrail && <CursorTrail color={p.accentColor} />}
         {entered && (
           <PurchasedEffectsEngine
@@ -191,35 +193,13 @@ export default function ProfileView(p: ProfileViewProps) {
           />
         )}
 
-        {/* "modern" is the full-bleed sidebar+tabs layout (lethal.wtf-style); every
-            other value renders the original card family via ProfileClassic, with
-            the same profile-card--{layout} CSS the dashboard picker has always had. */}
-        {effectiveLayout === "modern" ? (
-          <ProfileImmersive
-            p={p}
-            entered={entered}
-            hasActiveAvatarEffect={hasActiveAvatarEffect}
-            liked={liked}
-            likeCount={likeCount}
-            disliked={disliked}
-            dislikeCount={dislikeCount}
-            likeBusy={likeBusy}
-            onRate={rate}
-            onReport={() => setReportOpen(true)}
-          />
+        {/* Modern is the full-bleed sidebar + tabs page; Classic Card keeps its tilting card; the rest live in ProfileLayout. */}
+        {layout === "modern" ? (
+          <ProfileImmersive p={p} entered={entered} hasActiveAvatarEffect={hasActiveAvatarEffect} {...votes} />
+        ) : layout === "classic" ? (
+          <ProfileClassic p={p} entered={entered} {...votes} />
         ) : (
-          <ProfileClassic
-            p={p}
-            entered={entered}
-            layout={effectiveLayout}
-            liked={liked}
-            likeCount={likeCount}
-            disliked={disliked}
-            dislikeCount={dislikeCount}
-            likeBusy={likeBusy}
-            onRate={rate}
-            onReport={() => setReportOpen(true)}
-          />
+          <ProfileLayout layout={layout} p={p} entered={entered} {...votes} />
         )}
 
         {reportOpen && <ReportProfileModal slug={p.username} onClose={() => setReportOpen(false)} />}

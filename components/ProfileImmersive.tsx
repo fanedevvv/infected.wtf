@@ -148,9 +148,16 @@ export default function ProfileImmersive({
               <>
                 <div className="avatar-ring-pulse" />
                 <div className="avatar-ring-shell ring-premium"><div className="avatar-ring-spin" /></div>
+                <div className="avatar-orbit avatar-orbit-1"><span className="avatar-orbit-dot avatar-orbit-dot--gold" /></div>
+                <div className="avatar-orbit avatar-orbit-2"><span className="avatar-orbit-dot avatar-orbit-dot--gold" /></div>
+                <div className="avatar-orbit avatar-orbit-3"><span className="avatar-orbit-dot avatar-orbit-dot--gold" /></div>
               </>
             ) : !hasActiveAvatarEffect && p.avatarRing === "normal" ? (
-              <div className="avatar-ring-shell ring-normal"><div className="avatar-ring-spin" /></div>
+              <>
+                <div className="avatar-ring-shell ring-normal"><div className="avatar-ring-spin" /></div>
+                <div className="avatar-orbit avatar-orbit-1"><span className="avatar-orbit-dot" /></div>
+                <div className="avatar-orbit avatar-orbit-2"><span className="avatar-orbit-dot" /></div>
+              </>
             ) : null}
             <div className="avatar-ring-inner" />
             <div className="avatar-decoration-anchor">

@@ -39,6 +39,12 @@ const AVATAR_IDS = Object.entries(SHOP_EFFECTS).filter(([, e]) => e.type === "av
 
 function ParticlesPreview() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const glowStyle: React.CSSProperties = {
+    position: "absolute",
+    inset: 0,
+    background: "radial-gradient(circle at 30% 60%, color-mix(in srgb, var(--accent) 35%, transparent), transparent 65%)",
+    pointerEvents: "none",
+  };
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -101,7 +107,8 @@ function ParticlesPreview() {
     return () => cancelAnimationFrame(raf);
   }, []);
   return (
-    <div className="effect-preview">
+    <div className="effect-preview" style={{ position: "relative" }}>
+      <div style={glowStyle} />
       <canvas ref={canvasRef} />
     </div>
   );
@@ -114,11 +121,13 @@ function CursorTrailPreview() {
     if (!wrap) return;
     const colors = ["#39ff14", "#ff4dff", "#ffd700", "#00ffb8", "#ff6b6b", "#a78bfa", "#fb923c"];
     const dots: HTMLDivElement[] = [];
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < 7; i++) {
       const d = document.createElement("div");
       d.className = "cursor-dot";
-      const sz = Math.max(5, 16 - i * 1.3);
-      d.style.cssText = `width:${sz}px;height:${sz}px;background:${colors[i % colors.length]};left:50%;top:50%;opacity:0;animation:ct-move ${2 + i * 0.2}s ease-in-out ${i * 0.16}s infinite;`;
+      const sz = Math.max(4, 15 - i * 1.6);
+      const glow = Math.max(0, 12 - i * 1.6);
+      const c = colors[i % colors.length];
+      d.style.cssText = `width:${sz}px;height:${sz}px;background:${c};box-shadow:0 0 ${glow}px ${glow * 0.6}px ${c};left:50%;top:50%;opacity:0;animation:ct-move ${2 + i * 0.2}s ease-in-out ${i * 0.16}s infinite;`;
       wrap.appendChild(d);
       dots.push(d);
     }

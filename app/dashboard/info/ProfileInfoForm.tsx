@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { showToast } from "@/lib/toast";
 import { useT } from "@/lib/i18n/client";
 import { PROFILE_FONTS, googleFontsHref } from "@/lib/profile-fonts";
+import { PROFILE_LAYOUTS, isPremiumLayout } from "@/lib/profile-layouts";
+import LayoutThumb from "@/components/profile-layouts/LayoutThumb";
 
-const LAYOUT_TEMPLATES = ["modern", "classic", "editorial", "terminal", "banner", "compact", "aurora", "cinematic", "dossier"] as const;
-const PREMIUM_LAYOUT_TEMPLATES = ["aurora", "cinematic", "dossier"] as const;
 
 type Props = {
   tab: string;
@@ -423,13 +423,9 @@ export default function ProfileInfoForm(props: Props) {
     setFont(id);
   }
 
-  async function selectLayoutTemplate(tpl: string) {
-    if (PREMIUM_LAYOUT_TEMPLATES.includes(tpl as (typeof PREMIUM_LAYOUT_TEMPLATES)[number]) && !props.isPremium) {
+  function selectLayoutTemplate(tpl: string) {
+    if (isPremiumLayout(tpl) && !props.isPremium) {
       showToast(t("This layout is an Infected Plus feature."), "error");
-      return;
-    }
-    if (!LAYOUT_TEMPLATES.includes(tpl as (typeof LAYOUT_TEMPLATES)[number])) {
-      showToast(t("Invalid layout."), "error");
       return;
     }
     setLayoutTemplate(tpl);
@@ -864,50 +860,39 @@ export default function ProfileInfoForm(props: Props) {
 
       {show("template") && (
         <div className="dash-card">
-          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: ".25rem" }}>{t("Template")}</h3>
-          <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>{t("Choose your profile layout")}</p>
-          <div className="template-card-grid">
-            {[
-              { id: "modern", label: "Modern", premium: false, desc: "Sidebar profile with Home, Widgets and Projects tabs — the current default.", features: ["Full-bleed background", "Sidebar + tabbed sections", "Comments in a slide-out drawer"] },
-              { id: "classic", label: "Classic Card", premium: false, desc: "Avatar and name perfectly centered — the clean baseline.", features: ["Centered design", "Mobile optimized", "Clean & minimal"] },
-              { id: "editorial", label: "Editorial", premium: false, desc: "A two-column layout — your identity pinned left, everything else flows right.", features: ["Left identity column", "Left-aligned content", "Magazine-style feel"] },
-              { id: "terminal", label: "Terminal", premium: false, desc: "A monospace hacker console with a blinking cursor and sharp corners.", features: ["Monospace font", "No blur, sharp edges", "Left-aligned console feel"] },
-              { id: "banner", label: "Banner", premium: false, desc: "A tall hero banner with your avatar overlapping dramatically.", features: ["240px hero banner", "Overlapping avatar", "Bold entrance"] },
-              { id: "compact", label: "Compact", premium: false, desc: "A tight, dense little card — fits more above the fold.", features: ["Smaller everything", "Denser spacing", "Fast to scan"] },
-              { id: "aurora", label: "Aurora", premium: true, desc: "An oversized centered avatar wrapped in a glowing ambient halo.", features: ["Oversized avatar", "Ambient glow halo", "Infected Plus exclusive"] },
-              { id: "cinematic", label: "Cinematic", premium: true, desc: "A full-bleed hero banner with your avatar and name pinned bottom-left.", features: ["270px hero banner", "Avatar+name side-by-side", "Infected Plus exclusive"] },
-              { id: "dossier", label: "Dossier", premium: true, desc: "A wide identity-card layout with corner brackets and a big photo column.", features: ["1100px wide 2-column card", "Corner bracket accents", "Infected Plus exclusive"] },
-            ].map((tpl) => {
-              const locked = tpl.premium && !props.isPremium;
+          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: ".25rem" }}>{t("Choose your layout")}</h3>
+          <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1.1rem" }}>{t("Your content stays with you.")}</p>
+          <div className="layout-picker">
+            {PROFILE_LAYOUTS.map((l) => {
+              const locked = l.premium && !props.isPremium;
+              const selected = layoutTemplate === l.id;
+              const applied = original.current.layoutTemplate === l.id;
               return (
-                <div key={tpl.id} className={`template-card ${layoutTemplate === tpl.id ? "active" : ""}`}>
-                  <div className="template-card-preview">
-                    <div className={`template-card-preview-inner tpl-${tpl.id}`}>
-                      <span className="tpl-dot" />
-                      <span className="tpl-lines">
-                        <span className="tpl-line" />
-                        <span className="tpl-line short" />
-                      </span>
-                    </div>
-                  </div>
-                  <div className="template-card-name">{t(tpl.label)}</div>
-                  <span className={`template-card-badge ${tpl.premium ? "pro" : "free"}`}>{tpl.premium ? "PRO" : "FREE"}</span>
-                  <p className="template-card-desc">{t(tpl.desc)}</p>
-                  <ul className="template-card-features">
-                    {tpl.features.map((f) => <li key={f}>{t(f)}</li>)}
-                  </ul>
-                  <button
-                    type="button"
-                    className="btn btn-secondary btn-full btn-sm"
-                    disabled={locked}
-                    onClick={() => selectLayoutTemplate(tpl.id)}
-                  >
-                    {locked ? "🔒 Infected Plus" : layoutTemplate === tpl.id ? t("Selected") : t("Select")}
-                  </button>
-                </div>
+                <button
+                  key={l.id}
+                  type="button"
+                  className={`layout-option${selected ? " is-selected" : ""}${l.comingSoon ? " is-soon" : ""}${locked ? " is-locked" : ""}`}
+                  disabled={l.comingSoon}
+                  onClick={() => selectLayoutTemplate(l.id)}
+                  aria-pressed={selected}
+                >
+                  <LayoutThumb id={l.id} />
+                  <span className="layout-option-name">{t(l.label)}</span>
+                  {l.comingSoon ? (
+                    <span className="layout-option-tag">{t("Coming soon")}</span>
+                  ) : l.premium ? (
+                    <span className="layout-option-tag layout-option-tag--plus">
+                      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="5" y="11" width="14" height="10" rx="1" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+                      {t("Premium")}
+                    </span>
+                  ) : null}
+                  {applied && <span className="layout-option-applied">{t("Applied")}</span>}
+                  {selected && <span className="layout-option-check" aria-hidden="true">✓</span>}
+                </button>
               );
             })}
           </div>
+          <p className="layout-picker-foot">{t("Switch layouts without losing your content.")}</p>
         </div>
       )}
 
