@@ -95,6 +95,7 @@ export default async function ProfileInfoPage({
                   musicArtworkUrl={profile.musicArtworkUrl || ""}
                   musicLyricsSynced={profile.musicLyricsSynced || ""}
                   musicLyricsPlain={profile.musicLyricsPlain || ""}
+                  musicLyricsOffsetMs={profile.musicLyricsOffsetMs ?? 0}
                   musicShowLyrics={profile.musicShowLyrics}
                   playlistStyle={profile.playlistStyle}
                   layoutTemplate={profile.layoutTemplate}

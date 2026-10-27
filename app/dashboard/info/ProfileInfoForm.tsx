@@ -22,6 +22,7 @@ type Props = {
   musicLyricsSynced: string;
   musicLyricsPlain: string;
   musicShowLyrics: boolean;
+  musicLyricsOffsetMs: number;
   playlistStyle: string;
   layoutTemplate: string;
   isPremium: boolean;
@@ -62,6 +63,7 @@ export default function ProfileInfoForm(props: Props) {
   const [lyricsSynced, setLyricsSynced] = useState(props.musicLyricsSynced);
   const [lyricsPlain, setLyricsPlain] = useState(props.musicLyricsPlain);
   const [showLyrics, setShowLyrics] = useState(props.musicShowLyrics);
+  const [lyricsOffsetMs, setLyricsOffsetMs] = useState(props.musicLyricsOffsetMs);
   const [findingArtwork, setFindingArtwork] = useState(false);
   const [findingLyrics, setFindingLyrics] = useState(false);
   const [musicMetaSaving, setMusicMetaSaving] = useState(false);
@@ -349,7 +351,7 @@ export default function ProfileInfoForm(props: Props) {
     setPlaylistStyle(style);
   }
 
-  async function saveMusicMetadata(overrides?: { trackTitle?: string; trackArtist?: string; artworkUrl?: string; lyricsSynced?: string; lyricsPlain?: string; showLyrics?: boolean }) {
+  async function saveMusicMetadata(overrides?: { trackTitle?: string; trackArtist?: string; artworkUrl?: string; lyricsSynced?: string; lyricsPlain?: string; showLyrics?: boolean; lyricsOffsetMs?: number; silent?: boolean }) {
     setMusicMetaSaving(true);
     const fd = new FormData();
     fd.append("action", "set_music_metadata");
@@ -359,10 +361,11 @@ export default function ProfileInfoForm(props: Props) {
     fd.append("lyrics_synced", overrides?.lyricsSynced ?? lyricsSynced);
     fd.append("lyrics_plain", overrides?.lyricsPlain ?? lyricsPlain);
     fd.append("show_lyrics", (overrides?.showLyrics ?? showLyrics) ? "1" : "0");
+    fd.append("lyrics_offset_ms", String(overrides?.lyricsOffsetMs ?? lyricsOffsetMs));
     try {
       const res = await fetch("/api/update_profile", { method: "POST", body: fd });
       const j = await res.json();
-      if (j.success) showToast(t("Saved!"), "success");
+      if (j.success) { if (!overrides?.silent) showToast(t("Saved!"), "success"); }
       else showToast(j.error || "Error", "error");
     } catch {
       showToast(t("Network error"), "error");
@@ -458,6 +461,12 @@ export default function ProfileInfoForm(props: Props) {
     const next = !showLyrics;
     setShowLyrics(next);
     await saveMusicMetadata({ showLyrics: next });
+  }
+
+  async function nudgeLyricsOffset(deltaMs: number) {
+    const next = Math.max(-15000, Math.min(15000, lyricsOffsetMs + deltaMs));
+    setLyricsOffsetMs(next);
+    await saveMusicMetadata({ lyricsOffsetMs: next, silent: true });
   }
 
   function selectFont(id: string) {
@@ -772,10 +781,29 @@ export default function ProfileInfoForm(props: Props) {
               </div>
 
               {(lyricsSynced || lyricsPlain) && (
-                <label style={{ display: "flex", alignItems: "center", gap: ".5rem", fontSize: ".85rem", color: "var(--text-muted)", cursor: "pointer" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: ".5rem", fontSize: ".85rem", color: "var(--text-muted)", cursor: "pointer", marginBottom: lyricsSynced ? ".75rem" : 0 }}>
                   <input type="checkbox" checked={showLyrics} onChange={toggleShowLyrics} />
                   {lyricsSynced ? t("Show synced lyrics on profile") : t("Show lyrics on profile")}
                 </label>
+              )}
+
+              {lyricsSynced && (
+                <div>
+                  <label style={{ display: "block", fontSize: ".75rem", fontWeight: 700, color: "rgba(255,255,255,.45)", marginBottom: ".4rem", letterSpacing: ".04em", textTransform: "uppercase" }}>
+                    {t("Lyrics timing")}
+                  </label>
+                  <p style={{ fontSize: ".75rem", color: "var(--text-muted)", marginBottom: ".5rem" }}>
+                    {t("If your uploaded audio doesn't match the official timing, nudge it here while the track plays on your profile.")}
+                  </p>
+                  <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap" }}>
+                    <button type="button" className="int-btn int-btn-outline" onClick={() => nudgeLyricsOffset(-500)}>{t("− 0.5s (earlier)")}</button>
+                    <span style={{ fontSize: ".85rem", color: "#fff", minWidth: 60, textAlign: "center" }}>{(lyricsOffsetMs / 1000).toFixed(1)}s</span>
+                    <button type="button" className="int-btn int-btn-outline" onClick={() => nudgeLyricsOffset(500)}>{t("+ 0.5s (later)")}</button>
+                    {lyricsOffsetMs !== 0 && (
+                      <button type="button" className="int-btn int-btn-outline" onClick={() => nudgeLyricsOffset(-lyricsOffsetMs)}>{t("Reset")}</button>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           )}

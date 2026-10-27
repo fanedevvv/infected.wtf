@@ -224,6 +224,7 @@ export default async function ProfilePage({
       musicArtworkUrl={profile.musicArtworkUrl}
       musicLyricsSynced={profile.musicShowLyrics ? profile.musicLyricsSynced : null}
       musicLyricsPlain={profile.musicShowLyrics ? profile.musicLyricsPlain : null}
+      musicLyricsOffsetMs={profile.musicLyricsOffsetMs ?? 0}
       musicShowLyrics={profile.musicShowLyrics}
       profileFont={look.profileFont || "Syne"}
       cursorPath={profile.cursorPath}

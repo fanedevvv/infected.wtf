@@ -89,9 +89,9 @@ function isYoutubeUrl(url: string): boolean {
   return /^https:\/\/(www\.|m\.)?(youtube\.com\/(watch\?|shorts\/)|youtu\.be\/)/i.test(url);
 }
 
-async function resolveYoutubeTitle(url: string): Promise<{ title: string; artist: string } | null> {
+async function resolveYoutubeTitle(url: string): Promise<{ title: string; artist: string; thumbnailUrl: string | null } | null> {
   const data = (await fetchJson(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`)) as
-    | { title?: string; author_name?: string }
+    | { title?: string; author_name?: string; thumbnail_url?: string }
     | null;
   if (!data?.title) return null;
 
@@ -111,7 +111,7 @@ async function resolveYoutubeTitle(url: string): Promise<{ title: string; artist
     title = parts.slice(1).join(" - ").trim();
   }
 
-  return { title: title || clean, artist };
+  return { title: title || clean, artist, thumbnailUrl: data.thumbnail_url || null };
 }
 
 export async function POST(req: NextRequest) {
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
   const youtubeUrl = String(body.youtubeUrl || "").trim();
   let title = String(body.title || "").trim();
   let artist = String(body.artist || "").trim();
-  let resolvedFromYoutube: { title: string; artist: string } | null = null;
+  let resolvedFromYoutube: { title: string; artist: string; thumbnailUrl: string | null } | null = null;
 
   if (youtubeUrl) {
     if (!isYoutubeUrl(youtubeUrl)) {
@@ -144,7 +144,8 @@ export async function POST(req: NextRequest) {
   ]);
 
   const artworkRaw = bestArtworkMatch(itunesData?.results, title);
-  const artworkUrl = artworkRaw ? artworkRaw.replace("100x100bb", "600x600bb") : null;
+  // No official cover on iTunes — fall back to the YouTube video's own thumbnail so it's not blank.
+  const artworkUrl = artworkRaw ? artworkRaw.replace("100x100bb", "600x600bb") : resolvedFromYoutube?.thumbnailUrl || null;
 
   // Deliberately no "search by title only" fallback here: dropping the artist to find *a* match
   // with the right title is exactly how this returned a different artist's song before.

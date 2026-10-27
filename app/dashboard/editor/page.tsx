@@ -69,6 +69,7 @@ export default async function EditorPage({ searchParams }: { searchParams: Promi
         musicArtworkUrl: profile.musicArtworkUrl || "",
         musicLyricsSynced: profile.musicLyricsSynced || "",
         musicLyricsPlain: profile.musicLyricsPlain || "",
+        musicLyricsOffsetMs: profile.musicLyricsOffsetMs ?? 0,
         musicShowLyrics: profile.musicShowLyrics,
         playlistStyle: profile.playlistStyle,
         layoutTemplate: profile.layoutTemplate,

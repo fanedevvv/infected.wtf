@@ -82,6 +82,7 @@ export async function POST(req: NextRequest) {
         musicLyricsSynced: null,
         musicLyricsPlain: null,
         musicShowLyrics: false,
+        musicLyricsOffsetMs: 0,
       },
     });
     return ok("Track removed!");
@@ -94,10 +95,11 @@ export async function POST(req: NextRequest) {
     const lyricsSynced = String(form.get("lyrics_synced") || "").trim() || null;
     const lyricsPlain = String(form.get("lyrics_plain") || "").trim() || null;
     const showLyrics = form.get("show_lyrics") === "1";
+    const offsetMs = Math.max(-15000, Math.min(15000, parseInt(String(form.get("lyrics_offset_ms") || "0"), 10) || 0));
     if (artworkUrl && !/^https:\/\//i.test(artworkUrl)) return err("Invalid artwork URL.");
     await prisma.profile.updateMany({
       where: { id: activeProfileId },
-      data: { musicTrackTitle: trackTitle, musicTrackArtist: trackArtist, musicArtworkUrl: artworkUrl, musicLyricsSynced: lyricsSynced, musicLyricsPlain: lyricsPlain, musicShowLyrics: showLyrics },
+      data: { musicTrackTitle: trackTitle, musicTrackArtist: trackArtist, musicArtworkUrl: artworkUrl, musicLyricsSynced: lyricsSynced, musicLyricsPlain: lyricsPlain, musicShowLyrics: showLyrics, musicLyricsOffsetMs: offsetMs },
     });
     return ok("Saved!");
   }

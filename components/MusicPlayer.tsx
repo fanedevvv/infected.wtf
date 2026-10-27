@@ -27,6 +27,7 @@ export default function MusicPlayer({
   trackArtist,
   lyricsSynced,
   lyricsPlain,
+  lyricsOffsetMs,
   showLyrics,
 }: {
   tracks: string[];
@@ -37,6 +38,7 @@ export default function MusicPlayer({
   trackArtist?: string | null;
   lyricsSynced?: string | null;
   lyricsPlain?: string | null;
+  lyricsOffsetMs?: number;
   showLyrics?: boolean;
 }) {
   const [index, setIndex] = useState(0);
@@ -57,11 +59,13 @@ export default function MusicPlayer({
   );
   const plainActive = !!(showLyrics && !lyricsActive && plainLines.length > 0 && index === 0);
 
+  const offsetSeconds = (lyricsOffsetMs || 0) / 1000;
+
   useEffect(() => {
     if (!lyricsActive || !audioRef.current) return;
     const el = audioRef.current;
     const onTimeUpdate = () => {
-      const t = el.currentTime;
+      const t = el.currentTime - offsetSeconds;
       let i = -1;
       for (let n = 0; n < lyricLines.length; n++) {
         if (lyricLines[n].time <= t) i = n;
@@ -71,7 +75,7 @@ export default function MusicPlayer({
     };
     el.addEventListener("timeupdate", onTimeUpdate);
     return () => el.removeEventListener("timeupdate", onTimeUpdate);
-  }, [lyricsActive, lyricLines]);
+  }, [lyricsActive, lyricLines, offsetSeconds]);
 
   // No timing data for plain lyrics — just cycle through the lines while a track plays.
   useEffect(() => {
