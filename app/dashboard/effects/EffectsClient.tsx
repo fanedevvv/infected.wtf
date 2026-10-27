@@ -410,8 +410,8 @@ export default function EffectsClient(props: Props) {
         <div className="effects-grid">
           <div className={`effect-card ${particle ? "active" : ""}`}>
             <ParticlesPreview />
-            <div className="effect-card-name">{t("Particles / Stars")}</div>
-            <div className="effect-card-desc">{t("Stars and shooting stars animation on your profile background")}</div>
+            <div className="effect-card-name">{t("Accent Drift")}</div>
+            <div className="effect-card-desc">{t("Drifting glow cells in your accent color behind a twinkling starfield")}</div>
             <div className="effect-toggle-wrap">
               <span className="effect-toggle-text">{particle ? "Enabled" : "Disabled"}</span>
               <ToggleSwitch active={particle} onClick={togglePar} />
@@ -431,8 +431,8 @@ export default function EffectsClient(props: Props) {
         <div className="effects-grid">
           <div className={`effect-card ${cursorTrail ? "active" : ""}`}>
             <CursorTrailPreview />
-            <div className="effect-card-name">{t("Cursor Trail")}</div>
-            <div className="effect-card-desc">{t("Leaves a colorful trail as visitors move their mouse on your profile")}</div>
+            <div className="effect-card-name">{t("Spore Trail")}</div>
+            <div className="effect-card-desc">{t("A glowing comet trail that sheds drifting spores as visitors move their mouse")}</div>
             <div className="effect-toggle-wrap">
               <span className="effect-toggle-text">{cursorTrail ? "Enabled" : "Disabled"}</span>
               <ToggleSwitch active={cursorTrail} onClick={toggleCur} />
@@ -495,13 +495,15 @@ export default function EffectsClient(props: Props) {
                 <div className="ring-preview-shell"><div className="ring-preview-spin rp-spin-accent" /></div>
                 <div className="ring-preview-inner" />
                 <div className="ring-preview-avatar" />
+                <div className="avatar-orbit avatar-orbit-1"><span className="avatar-orbit-dot" /></div>
+                <div className="avatar-orbit avatar-orbit-2"><span className="avatar-orbit-dot" /></div>
               </div>
             </div>
             <div className="effect-card-name">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="11" height="11" style={{ color: "var(--accent)" }}><circle cx="12" cy="12" r="10" /></svg>
-              {t("Accent Ring")}
+              {t("Orbit Ring")}
             </div>
-            <div className="effect-card-desc">{t("Spinning gradient ring using your profile accent colors")}</div>
+            <div className="effect-card-desc">{t("Spinning accent-colored ring with glowing particles orbiting your avatar")}</div>
             <div className="effect-toggle-wrap">
               <span className="effect-toggle-text">{ring === "normal" ? "Enabled" : "Disabled"}</span>
               <ToggleSwitch active={ring === "normal"} onClick={() => toggleRing("normal")} />
@@ -515,13 +517,16 @@ export default function EffectsClient(props: Props) {
                 <div className="ring-preview-inner" style={{ inset: 5 }} />
                 <div className="ring-preview-avatar" />
                 <div className="ring-preview-pulse" />
+                <div className="avatar-orbit avatar-orbit-1"><span className="avatar-orbit-dot avatar-orbit-dot--gold" /></div>
+                <div className="avatar-orbit avatar-orbit-2"><span className="avatar-orbit-dot avatar-orbit-dot--gold" /></div>
+                <div className="avatar-orbit avatar-orbit-3"><span className="avatar-orbit-dot avatar-orbit-dot--gold" /></div>
               </div>
             </div>
             <div className="effect-card-name">
               <svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" width="11" height="11"><circle cx="12" cy="12" r="10" /></svg>
-              {t("Gold Ring")}
+              {t("Nova Ring")}
             </div>
-            <div className="effect-card-desc">{t("Shimmering golden ring with outer glow and pulse animation")}</div>
+            <div className="effect-card-desc">{t("Shimmering golden ring with outer glow, pulse and orbiting sparks")}</div>
             {props.isPremium ? (
               <div className="effect-toggle-wrap">
                 <span className="effect-toggle-text">{ring === "premium" ? "Enabled" : "Disabled"}</span>
