@@ -66,6 +66,20 @@ export default function ProfileInfoForm(props: Props) {
   const [showLyrics, setShowLyrics] = useState(props.musicShowLyrics);
   const [lyricsOffsetMs, setLyricsOffsetMs] = useState(props.musicLyricsOffsetMs);
   const [lyricsStyle, setLyricsStyle] = useState(props.musicLyricsStyle);
+  // Mirrors the fields above so a save always sends the latest values, even if two saves
+  // (e.g. a text input's onBlur and a button click) fire in quick succession — otherwise
+  // whichever request's closure was captured first can win the race and overwrite the other.
+  const musicSaveQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const musicMetaRef = useRef({
+    trackTitle: props.musicTrackTitle,
+    trackArtist: props.musicTrackArtist,
+    artworkUrl: props.musicArtworkUrl,
+    lyricsSynced: props.musicLyricsSynced,
+    lyricsPlain: props.musicLyricsPlain,
+    showLyrics: props.musicShowLyrics,
+    lyricsOffsetMs: props.musicLyricsOffsetMs,
+    lyricsStyle: props.musicLyricsStyle,
+  });
   const [findingArtwork, setFindingArtwork] = useState(false);
   const [findingLyrics, setFindingLyrics] = useState(false);
   const [musicMetaSaving, setMusicMetaSaving] = useState(false);
@@ -342,6 +356,11 @@ export default function ProfileInfoForm(props: Props) {
         setLyricsSynced("");
         setLyricsPlain("");
         setShowLyrics(false);
+        setLyricsOffsetMs(0);
+        setLyricsStyle("line");
+        Object.assign(musicMetaRef.current, {
+          trackTitle: "", trackArtist: "", artworkUrl: "", lyricsSynced: "", lyricsPlain: "", showLyrics: false, lyricsOffsetMs: 0, lyricsStyle: "line",
+        });
         showToast(t("Track removed!"), "success");
       } else showToast(j.error || "Error", "error");
     } catch {
@@ -354,27 +373,39 @@ export default function ProfileInfoForm(props: Props) {
   }
 
   async function saveMusicMetadata(overrides?: { trackTitle?: string; trackArtist?: string; artworkUrl?: string; lyricsSynced?: string; lyricsPlain?: string; showLyrics?: boolean; lyricsOffsetMs?: number; lyricsStyle?: string; silent?: boolean }) {
-    setMusicMetaSaving(true);
-    const fd = new FormData();
-    fd.append("action", "set_music_metadata");
-    fd.append("track_title", overrides?.trackTitle ?? trackTitle);
-    fd.append("track_artist", overrides?.trackArtist ?? trackArtist);
-    fd.append("artwork_url", overrides?.artworkUrl ?? artworkUrl);
-    fd.append("lyrics_synced", overrides?.lyricsSynced ?? lyricsSynced);
-    fd.append("lyrics_plain", overrides?.lyricsPlain ?? lyricsPlain);
-    fd.append("show_lyrics", (overrides?.showLyrics ?? showLyrics) ? "1" : "0");
-    fd.append("lyrics_offset_ms", String(overrides?.lyricsOffsetMs ?? lyricsOffsetMs));
-    fd.append("lyrics_style", overrides?.lyricsStyle ?? lyricsStyle);
-    try {
-      const res = await fetch("/api/update_profile", { method: "POST", body: fd });
-      const j = await res.json();
-      if (j.success) { if (!overrides?.silent) showToast(t("Saved!"), "success"); }
-      else showToast(j.error || "Error", "error");
-    } catch {
-      showToast(t("Network error"), "error");
-    } finally {
-      setMusicMetaSaving(false);
-    }
+    // Merge into the ref immediately (synchronously) so every in-flight save already knows
+    // about this change, then chain the actual request after whatever save is already running —
+    // never two of these in flight at once — so a slow earlier request can't land after a
+    // later one and overwrite it with stale data.
+    Object.assign(musicMetaRef.current, overrides);
+    const silent = overrides?.silent;
+    const run = async () => {
+      const m = musicMetaRef.current;
+      setMusicMetaSaving(true);
+      const fd = new FormData();
+      fd.append("action", "set_music_metadata");
+      fd.append("track_title", m.trackTitle || "");
+      fd.append("track_artist", m.trackArtist || "");
+      fd.append("artwork_url", m.artworkUrl || "");
+      fd.append("lyrics_synced", m.lyricsSynced || "");
+      fd.append("lyrics_plain", m.lyricsPlain || "");
+      fd.append("show_lyrics", m.showLyrics ? "1" : "0");
+      fd.append("lyrics_offset_ms", String(m.lyricsOffsetMs));
+      fd.append("lyrics_style", m.lyricsStyle);
+      try {
+        const res = await fetch("/api/update_profile", { method: "POST", body: fd });
+        const j = await res.json();
+        if (j.success) { if (!silent) showToast(t("Saved!"), "success"); }
+        else showToast(j.error || "Error", "error");
+      } catch {
+        showToast(t("Network error"), "error");
+      } finally {
+        setMusicMetaSaving(false);
+      }
+    };
+    const next = musicSaveQueueRef.current.then(run);
+    musicSaveQueueRef.current = next;
+    return next;
   }
 
   async function findArtwork() {
@@ -774,8 +805,8 @@ export default function ProfileInfoForm(props: Props) {
                   <img src={artworkUrl} alt="" style={{ width: 72, height: 72, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />
                 )}
                 <div style={{ display: "flex", flexDirection: "column", gap: ".5rem", flex: 1, minWidth: 200 }}>
-                  <input className="form-control" placeholder={t("Exact song title (e.g. Bad Guy)")} value={trackTitle} onChange={(e) => setTrackTitle(e.target.value)} onBlur={() => saveMusicMetadata()} />
-                  <input className="form-control" placeholder={t("Performing artist (e.g. Billie Eilish)")} value={trackArtist} onChange={(e) => setTrackArtist(e.target.value)} onBlur={() => saveMusicMetadata()} />
+                  <input className="form-control" placeholder={t("Exact song title (e.g. Bad Guy)")} value={trackTitle} onChange={(e) => setTrackTitle(e.target.value)} onBlur={() => saveMusicMetadata({ trackTitle })} />
+                  <input className="form-control" placeholder={t("Performing artist (e.g. Billie Eilish)")} value={trackArtist} onChange={(e) => setTrackArtist(e.target.value)} onBlur={() => saveMusicMetadata({ trackArtist })} />
                 </div>
               </div>
 
