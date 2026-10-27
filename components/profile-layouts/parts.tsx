@@ -14,6 +14,7 @@ import { DecorationFrame } from "../DecorationSVGs";
 import { PLATFORM_ICON } from "../platform-icons";
 import { BADGE_ICON } from "@/lib/badge-icons";
 import { openSteamInApp } from "@/lib/app-links";
+import { shapeStyle } from "@/lib/avatar-shapes";
 import type { ProfileViewProps } from "../ProfileView";
 
 // Shared building blocks for the card-family profile layouts (everything except Modern).
@@ -46,7 +47,7 @@ export function hasWidgets(p: ProfileViewProps) {
 
 export function Avatar({ p, withBanner = false, className = "" }: { p: ProfileViewProps; withBanner?: boolean; className?: string }) {
   return (
-    <div className={`avatar-wrapper fade-in avatar-shape-${p.avatarShape} ${withBanner ? "avatar-wrapper--with-banner" : ""} ${className}`}>
+    <div className={`avatar-wrapper fade-in ${withBanner ? "avatar-wrapper--with-banner" : ""} ${className}`} style={shapeStyle(p.avatarShape)}>
       <div className="avatar-decoration-anchor">
         {/* eslint-disable-next-line @next/next/no-img-element -- user uploads with an onError fallback */}
         <img

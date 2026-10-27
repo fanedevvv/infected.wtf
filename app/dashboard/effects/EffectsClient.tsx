@@ -7,6 +7,8 @@ import { showToast } from "@/lib/toast";
 import EffectPreviewCanvas from "@/components/EffectPreviewCanvas";
 import EffectText, { TEXT_EFFECTS } from "@/components/EffectText";
 import { useT } from "@/lib/i18n/client";
+import { AVATAR_SHAPES, resolveShape, shapeStyle } from "@/lib/avatar-shapes";
+import { DecorationFrame } from "@/components/DecorationSVGs";
 
 type Props = {
   isPremium: boolean;
@@ -15,6 +17,8 @@ type Props = {
   nameEffect: string;
   bioEffect: string;
   avatarShape: string;
+  avatar: string | null;
+  activeDecoration: string | null;
   displayName: string;
   bio: string;
   purchasedEffects: string[];
@@ -22,15 +26,6 @@ type Props = {
   section?: "full" | "bg" | "cursor" | "text" | "avatar";
 };
 
-const SHAPES: { key: string; label: string; cls: string }[] = [
-  { key: "square", label: "Square", cls: "sq" },
-  { key: "soft", label: "Soft", cls: "sft" },
-  { key: "rounded", label: "Rounded", cls: "rnd" },
-  { key: "circle", label: "Circle", cls: "cir" },
-  { key: "eye", label: "Eye", cls: "eye" },
-  { key: "diamond", label: "Diamond", cls: "dia" },
-  { key: "egg", label: "Egg", cls: "egg" },
-];
 
 const BG_IDS = Object.entries(SHOP_EFFECTS).filter(([, e]) => e.type === "bg").map(([id]) => id);
 const CURSOR_IDS = Object.entries(SHOP_EFFECTS).filter(([, e]) => e.type === "cursor").map(([id]) => id);
@@ -149,7 +144,7 @@ export default function EffectsClient(props: Props) {
   const [cursorTrail, setCursorTrail] = useState(props.cursorTrail);
   const [nameEffect, setNameEffect] = useState(props.nameEffect);
   const [bioEffect, setBioEffect] = useState(props.bioEffect);
-  const [shape, setShape] = useState(props.avatarShape);
+  const [shape, setShape] = useState<string>(resolveShape(props.avatarShape));
   const [active, setActive] = useState<Record<string, string>>(props.activeEffects);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -159,7 +154,7 @@ export default function EffectsClient(props: Props) {
     cursorTrail: props.cursorTrail,
     nameEffect: props.nameEffect,
     bioEffect: props.bioEffect,
-    shape: props.avatarShape,
+    shape: resolveShape(props.avatarShape) as string,
     bg: props.activeEffects.bg ?? null,
     cursor: props.activeEffects.cursor ?? null,
   });
@@ -460,12 +455,19 @@ export default function EffectsClient(props: Props) {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="12" cy="12" r="4" /></svg>
           {t("Profile Picture Shape")}
         </div>
+        <p className="shape-hint">{t("Every shape fits inside the avatar's circle, so your decoration frames it the same way.")}</p>
         <div className="shape-grid">
-          {SHAPES.map((s) => (
-            <div key={s.key} className={`shape-card ${shape === s.key ? "selected" : ""}`} onClick={() => selectShape(s.key)}>
-              <div className={`shape-preview ${s.cls}`} />
-              <div className="shape-label">{s.label}</div>
-            </div>
+          {AVATAR_SHAPES.map((s) => (
+            <button key={s.id} type="button" className={`shape-card ${shape === s.id ? "selected" : ""}`} onClick={() => selectShape(s.id)} aria-pressed={shape === s.id}>
+              <span className="shape-sample" style={shapeStyle(s.id)}>
+                <span className="avatar-decoration-anchor">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- the owner's own upload */}
+                  <img className="avatar-img" src={props.avatar ? `/${props.avatar}` : "/assets/img/default-avatar.png"} alt="" />
+                  <DecorationFrame id={props.activeDecoration} />
+                </span>
+              </span>
+              <span className="shape-label">{t(s.label)}</span>
+            </button>
           ))}
         </div>
       </div>

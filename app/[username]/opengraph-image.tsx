@@ -76,7 +76,8 @@ export default async function Image({ params }: { params: Promise<{ username: st
   const background = profile.backgroundType === "color" || profile.backgroundType === "gradient"
     ? profile.backgroundValue || profile.backgroundColor
     : profile.backgroundColor;
-  const avatarRadius = profile.avatarShape === "square" ? 24 : profile.avatarShape === "soft" || profile.avatarShape === "rounded" ? 56 : 110;
+  // Every avatar shape is inscribed in the avatar's circle, so the embed card uses that circle.
+  const avatarRadius = 110;
   const bio = (profile.bio || "").length > 110 ? `${profile.bio!.slice(0, 107)}…` : profile.bio || "";
 
   return new ImageResponse(

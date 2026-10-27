@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { showToast } from "@/lib/toast";
 import EffectText from "@/components/EffectText";
 import { useT } from "@/lib/i18n/client";
+import { shapeStyle } from "@/lib/avatar-shapes";
 
 type Theme = {
   id: number;
@@ -41,7 +42,7 @@ function ThemePreview({ theme }: { theme: Theme }) {
     >
       {p.particleEffect && <div className="theme-preview-particles" />}
       <div className="theme-preview-card" style={{ background: `color-mix(in srgb, ${p.overlayColor} 85%, transparent)` }}>
-        <div className={`avatar-shape-${p.avatarShape}`}>
+        <div className="avatar-shaped" style={shapeStyle(p.avatarShape)}>
           {theme.creatorAvatar ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img className="avatar-img theme-preview-avatar" src={`/${theme.creatorAvatar}`} alt="" />

@@ -25,6 +25,8 @@ export default async function EffectsPage({ section }: { section?: "full" | "bg"
       nameEffect={profile.nameEffect}
       bioEffect={profile.bioEffect}
       avatarShape={profile.avatarShape}
+      avatar={profile.avatar}
+      activeDecoration={profile.activeDecoration}
       displayName={profile.displayName || user.username}
       bio={profile.bio || ""}
       purchasedEffects={purchasedEffects}

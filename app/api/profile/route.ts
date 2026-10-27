@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
+import { resolveShape } from "@/lib/avatar-shapes";
 
 const ALLOWED_BG_TYPES = ["color", "gradient", "image", "video", "particles"];
-const ALLOWED_SHAPES = ["square", "soft", "rounded", "circle", "heart", "star", "eye", "diamond", "egg", "sun"];
 
 export async function PATCH(req: NextRequest) {
   let user;
@@ -33,8 +33,7 @@ export async function PATCH(req: NextRequest) {
   if (typeof body.particleEffect === "boolean") data.particleEffect = body.particleEffect;
   if (typeof body.nameEffect === "string") data.nameEffect = body.nameEffect.slice(0, 20);
   if (typeof body.bioEffect === "string") data.bioEffect = body.bioEffect.slice(0, 20);
-  if (typeof body.avatarShape === "string" && ALLOWED_SHAPES.includes(body.avatarShape))
-    data.avatarShape = body.avatarShape;
+  if (typeof body.avatarShape === "string") data.avatarShape = resolveShape(body.avatarShape);
 
   await prisma.profile.updateMany({ where: { userId: user.id, isPrimary: true }, data });
   const profile = await prisma.profile.findFirst({ where: { userId: user.id, isPrimary: true } });

@@ -16,6 +16,7 @@ import { BADGE_ICON } from "@/lib/badge-icons";
 import { openSteamInApp } from "@/lib/app-links";
 import { profileFontFamily, googleFontsHref } from "@/lib/profile-fonts";
 import ClockWidget from "./ClockWidget";
+import { shapeStyle } from "@/lib/avatar-shapes";
 import type { ProfileViewProps } from "./ProfileView";
 
 type Tab = "home" | "widgets" | "projects";
@@ -142,7 +143,7 @@ export default function ProfileImmersive({
         )}
 
         <div className="im-avatar-col">
-          <div className={`avatar-wrapper im-avatar avatar-shape-${p.avatarShape}`}>
+          <div className="avatar-wrapper im-avatar" style={shapeStyle(p.avatarShape)}>
             <div className="avatar-decoration-anchor">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
