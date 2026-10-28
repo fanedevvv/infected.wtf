@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import ToastContainer from "./ToastContainer";
+import CommandPalette from "./CommandPalette";
 import { LabWordmark } from "./lab/LabMark";
 import { LanguagePicker, ThemePicker } from "./DashPrefs";
 import { useT } from "@/lib/i18n/client";
@@ -134,6 +135,7 @@ export default function DashboardShell({ children, initialMode, initialAccent }:
               <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
             </svg>
           </button>
+          <CommandPalette username={me?.username ?? null} isModerator={isModerator} />
         </div>
         <div className="navbar-dash-right" style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
           <LanguagePicker />

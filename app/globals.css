@@ -184,6 +184,28 @@ textarea.form-control { resize:vertical; min-height:100px; }
     transition:left .25s cubic-bezier(.4,0,.2,1);
 }
 .navbar-left { display:flex; align-items:center; gap:1rem; }
+
+/* Command palette (Ctrl+K) */
+.cmdk-trigger { display:flex; align-items:center; gap:.5rem; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:.45rem .7rem; color:rgba(255,255,255,.4); font-size:.82rem; cursor:pointer; transition:border-color .2s, color .2s, background .2s; }
+.cmdk-trigger:hover { border-color:color-mix(in srgb, var(--accent, #39ff14) 40%, transparent); color:rgba(255,255,255,.7); background:rgba(255,255,255,.07); }
+.cmdk-trigger-text { display:none; }
+.cmdk-trigger-kbd { font-family:var(--font-mono); font-size:.68rem; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); border-radius:5px; padding:.1rem .35rem; color:rgba(255,255,255,.4); }
+@media (min-width:860px) { .cmdk-trigger { min-width:220px; } .cmdk-trigger-text { display:inline; flex:1; text-align:left; } }
+
+.cmdk-overlay { position:fixed; inset:0; z-index:1200; background:rgba(0,0,0,.6); backdrop-filter:blur(4px); display:flex; align-items:flex-start; justify-content:center; padding:12vh 1rem 1rem; }
+.cmdk-panel { width:100%; max-width:560px; background:rgba(14,14,20,.97); border:1px solid rgba(255,255,255,.12); border-radius:16px; box-shadow:0 30px 90px rgba(0,0,0,.6); overflow:hidden; animation:cmdkIn .15s ease; }
+@keyframes cmdkIn { from { opacity:0; transform:translateY(-8px) scale(.98); } to { opacity:1; transform:none; } }
+.cmdk-input-row { display:flex; align-items:center; gap:.7rem; padding:1rem 1.1rem; border-bottom:1px solid rgba(255,255,255,.08); color:rgba(255,255,255,.4); }
+.cmdk-input { flex:1; background:none; border:none; outline:none; color:#fff; font-size:.98rem; font-family:inherit; }
+.cmdk-input::placeholder { color:rgba(255,255,255,.3); }
+.cmdk-esc { font-family:var(--font-mono); font-size:.68rem; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); border-radius:5px; padding:.1rem .4rem; color:rgba(255,255,255,.4); }
+.cmdk-list { max-height:min(55vh, 420px); overflow-y:auto; padding:.5rem; }
+.cmdk-item { display:flex; align-items:center; gap:.7rem; width:100%; text-align:left; background:none; border:none; border-radius:10px; padding:.65rem .75rem; color:rgba(255,255,255,.65); font-size:.88rem; cursor:pointer; transition:background .12s, color .12s; }
+.cmdk-item svg { width:16px; height:16px; flex-shrink:0; opacity:.7; }
+.cmdk-item.active, .cmdk-item:hover { background:color-mix(in srgb, var(--accent, #39ff14) 14%, transparent); color:#fff; }
+.cmdk-item.active svg, .cmdk-item:hover svg { opacity:1; color:var(--accent, #39ff14); }
+.cmdk-item-ext { margin-left:auto; opacity:.4; font-size:.8rem; }
+.cmdk-empty { padding:2rem 1rem; text-align:center; color:rgba(255,255,255,.3); font-size:.85rem; }
 .navbar-brand {
     display:inline-flex; align-items:center; gap:.45rem;
     font-family:var(--font-sans); font-size:1.3rem; font-weight:800;
