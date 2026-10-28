@@ -118,7 +118,8 @@ export default async function ProfilePage({
     const ip = (h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0].trim() || "0.0.0.0");
     const ua = h.get("user-agent") || "";
     const country = h.get("cf-ipcountry") || "";
-    recordProfileView(profile.id, user.id, ip, ua, country).catch(() => {});
+    const referer = h.get("referer") || "";
+    recordProfileView(profile.id, user.id, ip, ua, country, referer).catch(() => {});
   }
 
   const badges = await getProfileBadges(profile.id);

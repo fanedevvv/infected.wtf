@@ -7,7 +7,7 @@ import type { ChartInstance, ChartTooltipItem, ChartScriptableContext } from "@/
 
 
 type Country = { code: string; name: string; cnt: number };
-type NamedCount = { cnt: number; browser?: string; os_name?: string };
+type NamedCount = { cnt: number; browser?: string; os_name?: string; referrer?: string };
 type LinkItem = { link_id: number; link_title: string | null; link_url: string | null; cnt: number };
 type Data = {
   labels: string[];
@@ -17,6 +17,7 @@ type Data = {
   total_ctr_views: number;
   browsers: NamedCount[];
   os: NamedCount[];
+  referrers: NamedCount[];
   top_links: LinkItem[];
   total_link_clicks: number;
   stats: { total: number; peak: number; daily_avg: number; today: number; days: number };
@@ -50,7 +51,12 @@ function osAbbr(name: string) {
   return o.slice(0, 3).toUpperCase();
 }
 
-function GenericList({ items, nameKey, iconFn }: { items: NamedCount[]; nameKey: "browser" | "os_name"; iconFn: (s: string) => string }) {
+function referrerAbbr(name: string) {
+  if (name === "Direct") return "•";
+  return name.slice(0, 2).toUpperCase();
+}
+
+function GenericList({ items, nameKey, iconFn }: { items: NamedCount[]; nameKey: "browser" | "os_name" | "referrer"; iconFn: (s: string) => string }) {
   const t = useT();
   const total = items.reduce((s, i) => s + i.cnt, 0);
   if (items.length === 0) {
@@ -428,6 +434,19 @@ export default function AnalyticsClient() {
               );
             })
           )}
+        </div>
+      </div>
+
+      <div className="an-bottom-row" style={{ gridTemplateColumns: "1fr" }}>
+        <div className="an-card">
+          <div className="an-card-header">
+            <span className="an-card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /><path d="M3 12h12" /></svg>
+              {t("Top Referrers")}
+            </span>
+            <span className="an-card-badge">{d ? `${fmt(d.referrers.reduce((s, r) => s + r.cnt, 0))} views` : "—"}</span>
+          </div>
+          {d ? <GenericList items={d.referrers} nameKey="referrer" iconFn={referrerAbbr} /> : <div className="an-empty"><div className="an-spinner" /></div>}
         </div>
       </div>
     </>

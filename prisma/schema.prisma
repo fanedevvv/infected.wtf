@@ -170,6 +170,7 @@ model ViewsLog {
   countryName   String?  @default("Unknown") @map("country_name") @db.VarChar(80)
   browser       String?  @default("Unknown") @db.VarChar(50)
   osName        String?  @default("Unknown") @map("os_name") @db.VarChar(50)
+  referrer      String?  @default("Direct") @db.VarChar(100)
   viewedAt      DateTime @map("viewed_at") @db.Date
   profile       Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "views_log_profile")
   profileUser   User     @relation(fields: [profileUserId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "views_log_ibfk_1")

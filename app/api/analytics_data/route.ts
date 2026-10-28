@@ -89,6 +89,15 @@ export async function GET(req: NextRequest) {
   });
   const os = osRaw.map((o) => ({ os_name: o.osName || "Unknown", cnt: o._count._all })).sort((a, b) => b.cnt - a.cnt);
 
+  const referrerRaw = await prisma.viewsLog.groupBy({
+    by: ["referrer"],
+    where: { profileUserId: userId, viewedAt: { gte: startDate } },
+    _count: { _all: true },
+    orderBy: { _count: { profileUserId: "desc" } },
+    take: 8,
+  });
+  const referrers = referrerRaw.map((r) => ({ referrer: r.referrer || "Direct", cnt: r._count._all })).sort((a, b) => b.cnt - a.cnt);
+
   const linksRaw = await prisma.linkClick.groupBy({
     by: ["linkId", "linkTitle", "linkUrl"],
     where: { profileUserId: userId, clickedAt: { gte: startDate } },
@@ -114,6 +123,7 @@ export async function GET(req: NextRequest) {
     total_ctr_views: totalCtrViews,
     browsers,
     os,
+    referrers,
     top_links: topLinks,
     total_link_clicks: totalLinkClicks,
     stats: {

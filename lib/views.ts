@@ -28,8 +28,39 @@ function parseOS(ua: string): string {
   return "Unknown";
 }
 
+const REFERRER_LABELS: { test: RegExp; label: string }[] = [
+  { test: /(^|\.)discord\.com$/i, label: "Discord" },
+  { test: /(^|\.)discordapp\.com$/i, label: "Discord" },
+  { test: /(^|\.)(twitter\.com|x\.com|t\.co)$/i, label: "Twitter / X" },
+  { test: /(^|\.)instagram\.com$/i, label: "Instagram" },
+  { test: /(^|\.)tiktok\.com$/i, label: "TikTok" },
+  { test: /(^|\.)youtube\.com$/i, label: "YouTube" },
+  { test: /(^|\.)reddit\.com$/i, label: "Reddit" },
+  { test: /(^|\.)facebook\.com$/i, label: "Facebook" },
+  { test: /(^|\.)google\.[a-z.]+$/i, label: "Google" },
+  { test: /(^|\.)bing\.com$/i, label: "Bing" },
+  { test: /(^|\.)duckduckgo\.com$/i, label: "DuckDuckGo" },
+  { test: /(^|\.)telegram\.org$|(^|\.)t\.me$/i, label: "Telegram" },
+  { test: /(^|\.)pinterest\.[a-z.]+$/i, label: "Pinterest" },
+  { test: /(^|\.)twitch\.tv$/i, label: "Twitch" },
+  { test: /(^|\.)snapchat\.com$/i, label: "Snapchat" },
+  { test: /(^|\.)infected\.wtf$/i, label: "infected.wtf" },
+];
+
+/** Groups an incoming Referer header into a short, human label. Pure — safe to unit-test. */
+export function parseReferrer(referer: string): string {
+  if (!referer) return "Direct";
+  try {
+    const host = new URL(referer).hostname.toLowerCase();
+    for (const r of REFERRER_LABELS) if (r.test.test(host)) return r.label;
+    return host.replace(/^www\./, "").slice(0, 100);
+  } catch {
+    return "Direct";
+  }
+}
+
 /** Records a one-time-per-IP profile view for a specific page and awards view tokens to its owner; mirrors incrementViews() in helpers.php. */
-export async function recordProfileView(profileId: number, profileUserId: number, ip: string, ua: string, countryCode: string) {
+export async function recordProfileView(profileId: number, profileUserId: number, ip: string, ua: string, countryCode: string, referer: string = "") {
   const today = new Date();
   today.setUTCHours(0, 0, 0, 0);
   const ipHash = sha256(ip);
@@ -45,6 +76,7 @@ export async function recordProfileView(profileId: number, profileUserId: number
         countryName: countryCode ? countryCode : "Unknown",
         browser: parseBrowser(ua),
         osName: parseOS(ua),
+        referrer: parseReferrer(referer),
         viewedAt: today,
       },
     });
