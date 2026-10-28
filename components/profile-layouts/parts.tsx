@@ -151,14 +151,14 @@ export function SocialIcons({ p, className = "" }: { p: ProfileViewProps; classN
   return (
     <div className={`social-icons fade-in-d3 ${className}`}>
       {p.socialLinks.map((link) => (
-        <SocialLink key={link.id} link={link} className="social-icon" />
+        <SocialLink key={link.id} link={link} className="social-icon" monochrome={p.monochromeIcons} />
       ))}
     </div>
   );
 }
 
 /** One social link with the platform icon; children replace the default (icon-only) content. */
-export function SocialLink({ link, className, style, children }: { link: ProfileViewProps["socialLinks"][number]; className: string; style?: React.CSSProperties; children?: React.ReactNode }) {
+export function SocialLink({ link, className, style, children, monochrome }: { link: ProfileViewProps["socialLinks"][number]; className: string; style?: React.CSSProperties; children?: React.ReactNode; monochrome?: boolean }) {
   return (
     <a
       href={link.url}
@@ -168,7 +168,7 @@ export function SocialLink({ link, className, style, children }: { link: Profile
       className={className}
       data-tooltip={platformLabel(link.platform)}
       aria-label={platformLabel(link.platform)}
-      style={{ ["--platform-color" as string]: PLATFORM_COLOR[link.platform] || "#555", ...style }}
+      style={{ ["--platform-color" as string]: monochrome ? "var(--accent)" : PLATFORM_COLOR[link.platform] || "#555", ...style }}
     >
       {children ?? (PLATFORM_ICON[link.platform] || PLATFORM_ICON.website)}
     </a>

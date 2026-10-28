@@ -175,6 +175,7 @@ export async function POST(req: NextRequest) {
     const nameColor = hexColor("name_color", "#ffffff");
     const bioColor = hexColor("bio_color", "#c9c9d1");
     const overlayColor = hexColor("overlay_color", "#060610");
+    const monochromeIcons = form.get("monochrome_icons") === "1";
 
     await prisma.profile.updateMany({ where: { id: activeProfileId },
       data: {
@@ -194,6 +195,7 @@ export async function POST(req: NextRequest) {
         nameColor,
         bioColor,
         overlayColor,
+        monochromeIcons,
       },
     });
 

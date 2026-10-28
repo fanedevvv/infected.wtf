@@ -63,7 +63,7 @@ function Split({ p, entered, ...votes }: LayoutProps) {
             <div className="pl-kicker">Links</div>
             <div className="pl-linklist">
               {p.socialLinks.map((l) => (
-                <SocialLink key={l.id} link={l} className="pl-linkrow">
+                <SocialLink key={l.id} link={l} monochrome={p.monochromeIcons} className="pl-linkrow">
                   <span className="pl-linkrow-icon">{platformIcon(l.platform)}</span>
                   <span className="pl-linkrow-text"><b>{platformLabel(l.platform)}</b><span>{linkHost(l.url)}</span></span>
                   <span className="pl-linkrow-go" aria-hidden="true">↗</span>
@@ -101,7 +101,7 @@ function Dock({ p, entered, ...votes }: LayoutProps) {
       {p.socialLinks.length > 0 && (
         <nav className="pl-dock" aria-label="Links">
           {p.socialLinks.map((l) => (
-            <SocialLink key={l.id} link={l} className="pl-dock-item">
+            <SocialLink key={l.id} link={l} monochrome={p.monochromeIcons} className="pl-dock-item">
               {platformIcon(l.platform)}
               <span className="pl-dock-tip">{platformLabel(l.platform)}</span>
             </SocialLink>
@@ -131,7 +131,7 @@ function Deck({ p, entered, ...votes }: LayoutProps) {
       key: "links", title: "Links", body: (
         <div className="pl-linklist">
           {p.socialLinks.map((l) => (
-            <SocialLink key={l.id} link={l} className="pl-linkrow">
+            <SocialLink key={l.id} link={l} monochrome={p.monochromeIcons} className="pl-linkrow">
               <span className="pl-linkrow-icon">{platformIcon(l.platform)}</span>
               <span className="pl-linkrow-text"><b>{platformLabel(l.platform)}</b><span>{linkHost(l.url)}</span></span>
               <span className="pl-linkrow-go" aria-hidden="true">↗</span>
@@ -214,7 +214,7 @@ function Orbit({ p, entered, ...votes }: LayoutProps) {
             <span key={i} className="pl-orbit-dust" style={{ ["--a" as string]: `${d.a}deg`, ["--r" as string]: d.r, width: d.s, height: d.s }} />
           ))}
           {links.map((l, i) => (
-            <SocialLink key={l.id} link={l} className="pl-orbit-planet" style={{ ["--a" as string]: `${(i / links.length) * 360 - 90}deg` }}>
+            <SocialLink key={l.id} link={l} monochrome={p.monochromeIcons} className="pl-orbit-planet" style={{ ["--a" as string]: `${(i / links.length) * 360 - 90}deg` }}>
               <span className="pl-orbit-planet-inner">{platformIcon(l.platform)}</span>
             </SocialLink>
           ))}
@@ -276,7 +276,7 @@ function Terminal({ p, entered, ...votes }: LayoutProps) {
               {prompt("ls ~/links")}
               <div className="pl-term-ls">
                 {p.socialLinks.map((l) => (
-                  <SocialLink key={l.id} link={l} className="pl-term-link">
+                  <SocialLink key={l.id} link={l} monochrome={p.monochromeIcons} className="pl-term-link">
                     <span className="pl-term-link-icon">{platformIcon(l.platform)}</span>
                     {l.platform}<span className="pl-term-arrow"> → </span><span className="pl-term-host">{linkHost(l.url)}</span>
                   </SocialLink>
@@ -329,7 +329,7 @@ function Scrapbook({ p, entered, ...votes }: LayoutProps) {
       {p.socialLinks.length > 0 && (
         <div className="pl-scrap-tags">
           {p.socialLinks.map((l) => (
-            <SocialLink key={l.id} link={l} className="pl-scrap-tag" style={{ ["--tilt" as string]: tilt() }}>
+            <SocialLink key={l.id} link={l} monochrome={p.monochromeIcons} className="pl-scrap-tag" style={{ ["--tilt" as string]: tilt() }}>
               {platformIcon(l.platform)}<span>{platformLabel(l.platform)}</span>
             </SocialLink>
           ))}
@@ -366,7 +366,7 @@ function HexGrid({ p, entered, ...votes }: LayoutProps) {
           const link = links[i];
           const style = { ["--x" as string]: x, ["--y" as string]: y, ["--i" as string]: i };
           return link ? (
-            <SocialLink key={link.id} link={link} className="pl-hex-cell pl-hex-cell--link" style={style}>
+            <SocialLink key={link.id} link={link} monochrome={p.monochromeIcons} className="pl-hex-cell pl-hex-cell--link" style={style}>
               {platformIcon(link.platform)}
             </SocialLink>
           ) : (
@@ -420,7 +420,7 @@ function Vinyl({ p, entered, ...votes }: LayoutProps) {
           <ol className="pl-vinyl-tracks">
             {p.socialLinks.map((l, i) => (
               <li key={l.id}>
-                <SocialLink link={l} className="pl-vinyl-track">
+                <SocialLink link={l} monochrome={p.monochromeIcons} className="pl-vinyl-track">
                   <span className="pl-vinyl-track-n">{side(i)}</span>
                   <span className="pl-vinyl-track-icon">{platformIcon(l.platform)}</span>
                   <span className="pl-vinyl-track-name">{platformLabel(l.platform)}</span>
@@ -466,7 +466,7 @@ function Constellation({ p, entered, ...votes }: LayoutProps) {
           {stars.map((s, i) => <line key={i} x1="50" y1="50" x2={s.x} y2={s.y} className="pl-const-spoke" />)}
         </svg>
         {stars.map((s) => (
-          <SocialLink key={s.link.id} link={s.link} className="pl-const-star" style={{ left: `${s.x}%`, top: `${s.y}%` }}>
+          <SocialLink key={s.link.id} link={s.link} monochrome={p.monochromeIcons} className="pl-const-star" style={{ left: `${s.x}%`, top: `${s.y}%` }}>
             <span className="pl-const-star-dot">{platformIcon(s.link.platform)}</span>
             <span className="pl-const-star-name">{platformLabel(s.link.platform)}</span>
           </SocialLink>

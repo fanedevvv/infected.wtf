@@ -29,6 +29,7 @@ export interface ProfileViewProps {
   nameColor: string;
   bioColor: string;
   overlayColor: string;
+  monochromeIcons: boolean;
   backgroundType: string;
   backgroundValue: string;
   isPremium: boolean;

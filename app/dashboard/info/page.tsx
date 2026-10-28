@@ -115,6 +115,7 @@ export default async function ProfileInfoPage({
                   nameColor={profile.nameColor}
                   bioColor={profile.bioColor}
                   overlayColor={profile.overlayColor}
+                  monochromeIcons={profile.monochromeIcons}
                 />
               )}
           </div>

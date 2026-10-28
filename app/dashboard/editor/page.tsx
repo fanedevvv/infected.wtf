@@ -89,6 +89,7 @@ export default async function EditorPage({ searchParams }: { searchParams: Promi
         nameColor: profile.nameColor,
         bioColor: profile.bioColor,
         overlayColor: profile.overlayColor,
+        monochromeIcons: profile.monochromeIcons,
       }}
     />
   );

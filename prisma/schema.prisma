@@ -132,6 +132,7 @@ model Profile {
   showWeather Boolean @default(true) @map("show_weather")
   showClock   Boolean @default(false) @map("show_clock")
   clock24h    Boolean @default(true) @map("clock_24h")
+  monochromeIcons Boolean @default(false) @map("monochrome_icons")
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "profiles_ibfk_1")
   viewsLogs        ViewsLog[]
   profileDomains   ProfileDomain[]

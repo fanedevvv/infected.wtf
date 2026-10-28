@@ -210,6 +210,7 @@ export default async function ProfilePage({
       nameColor={look.nameColor}
       bioColor={look.bioColor}
       overlayColor={look.overlayColor}
+      monochromeIcons={look.monochromeIcons}
       backgroundType={look.backgroundType}
       backgroundValue={look.backgroundValue ?? ""}
       isPremium={isPremium}

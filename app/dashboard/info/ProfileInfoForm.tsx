@@ -41,6 +41,7 @@ type Props = {
   nameColor: string;
   bioColor: string;
   overlayColor: string;
+  monochromeIcons: boolean;
   /** Editor mode: render exactly these sections (visuals, audio, profile, colors, fonts, bg, template) instead of tab/sub. */
   sections?: string[];
   /** Editor mode: reports unsaved field values so the live preview can show them. */
@@ -102,6 +103,7 @@ export default function ProfileInfoForm(props: Props) {
   const [nameColor, setNameColor] = useState(props.nameColor);
   const [bioColor, setBioColor] = useState(props.bioColor);
   const [overlayColor, setOverlayColor] = useState(props.overlayColor);
+  const [monochromeIcons, setMonochromeIcons] = useState(props.monochromeIcons);
 
   const original = useRef({
     displayName: props.displayName,
@@ -119,6 +121,7 @@ export default function ProfileInfoForm(props: Props) {
     nameColor: props.nameColor,
     bioColor: props.bioColor,
     overlayColor: props.overlayColor,
+    monochromeIcons: props.monochromeIcons,
   });
 
   const [dirty, setDirty] = useState(false);
@@ -153,6 +156,7 @@ export default function ProfileInfoForm(props: Props) {
       nameColor,
       bioColor,
       overlayColor,
+      monochromeIcons,
       ...next,
     };
     const o = original.current;
@@ -171,6 +175,7 @@ export default function ProfileInfoForm(props: Props) {
       cur.nameColor !== o.nameColor ||
       cur.bioColor !== o.bioColor ||
       cur.overlayColor !== o.overlayColor ||
+      cur.monochromeIcons !== o.monochromeIcons ||
       cur.blur !== o.blur;
     setDirty(isDirty);
   }
@@ -178,7 +183,7 @@ export default function ProfileInfoForm(props: Props) {
   useEffect(() => {
     checkDirty();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [displayName, location, job, birthDate, bio, font, playlistStyle, layoutTemplate, opacity, blur, accentColor, backgroundColor, nameColor, bioColor, overlayColor]);
+  }, [displayName, location, job, birthDate, bio, font, playlistStyle, layoutTemplate, opacity, blur, accentColor, backgroundColor, nameColor, bioColor, overlayColor, monochromeIcons]);
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -590,12 +595,13 @@ export default function ProfileInfoForm(props: Props) {
     fd.append("name_color", nameColor);
     fd.append("bio_color", bioColor);
     fd.append("overlay_color", overlayColor);
+    fd.append("monochrome_icons", monochromeIcons ? "1" : "0");
     try {
       const res = await fetch("/api/update_profile", { method: "POST", body: fd });
       const j = await res.json();
       if (j.success) {
         showToast(t("Profile saved!"), "success");
-        original.current = { displayName, location, job, birthDate, bio, font, playlistStyle, layoutTemplate, opacity, blur, accentColor, backgroundColor, nameColor, bioColor, overlayColor };
+        original.current = { displayName, location, job, birthDate, bio, font, playlistStyle, layoutTemplate, opacity, blur, accentColor, backgroundColor, nameColor, bioColor, overlayColor, monochromeIcons };
         checkDirty();
       } else {
         showToast(j.error || "Error", "error");
@@ -643,6 +649,7 @@ export default function ProfileInfoForm(props: Props) {
     setNameColor(o.nameColor);
     setBioColor(o.bioColor);
     setOverlayColor(o.overlayColor);
+    setMonochromeIcons(o.monochromeIcons);
   }
 
   return (
@@ -965,6 +972,14 @@ export default function ProfileInfoForm(props: Props) {
               </div>
             ))}
           </div>
+
+          <label style={{ display: "flex", alignItems: "center", gap: ".6rem", fontSize: ".85rem", color: "var(--text-muted)", cursor: "pointer", marginTop: "1.25rem" }}>
+            <div className={`effect-toggle-switch ${monochromeIcons ? "active" : ""}`} onClick={() => setMonochromeIcons((v) => !v)}>
+              <div className="effect-toggle-knob" />
+            </div>
+            {t("Monochrome icons")}
+            <span style={{ fontSize: ".75rem", opacity: 0.6 }}>{t("— social/platform icons use your accent color instead of brand colors")}</span>
+          </label>
         </div>
       )}
 
