@@ -76,9 +76,23 @@ function toggleSpectate(serverId: number): void {
     flags.spectating = true;
 }
 
+/** Add-on cars can be tens of MB; the first spawn may need to download/stream them. */
+const VEHICLE_LOAD_TIMEOUT_MS = 30_000;
+
 async function spawnVehicle(name: string): Promise<void> {
-    const model = await loadModel(name);
-    if (model === undefined || !IsModelAVehicle(model)) return notify('That vehicle model is not valid.');
+    const hash = GetHashKey(name);
+    // Not in the game's archives at all: unknown model, or the car resource's stream/ files are missing.
+    if (!IsModelInCdimage(hash) || !IsModelValid(hash)) {
+        return notify(`"${name}" is not installed on this server. If it is an add-on car, check that its resource and stream/ files are on the server.`);
+    }
+    if (!IsModelAVehicle(hash)) return notify(`"${name}" is not a vehicle model.`);
+
+    notify(`Loading ${name}…`);
+    const model = await loadModel(hash, VEHICLE_LOAD_TIMEOUT_MS);
+    if (model === undefined) {
+        return notify(`"${name}" did not finish loading in ${VEHICLE_LOAD_TIMEOUT_MS / 1000}s (large add-on car still downloading?). Try again in a moment.`);
+    }
+
     const ped = PlayerPedId();
     const [x = 0, y = 0, z = 0] = GetOffsetFromEntityInWorldCoords(ped, 0, 4, 0);
     const vehicle = CreateVehicle(model, x, y, z, GetEntityHeading(ped), true, false);
