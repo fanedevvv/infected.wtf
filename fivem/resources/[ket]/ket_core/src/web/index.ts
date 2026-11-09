@@ -28,8 +28,11 @@ const COPY = {
 let mode: AuthMode = 'login';
 let busy = false;
 
-byId('brand-name').textContent = BRAND.name;
-byId('brand-tagline').textContent = BRAND.tagline;
+// Branding is decorative: fill in whichever brand elements the markup has (either may be removed).
+for (const [id, text] of [['brand-name', BRAND.name], ['brand-tagline', BRAND.tagline]] as const) {
+    const element = document.getElementById(id);
+    if (element) element.textContent = text;
+}
 
 const storage = {
     get: () => {
