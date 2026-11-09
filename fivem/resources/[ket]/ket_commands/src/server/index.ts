@@ -69,6 +69,7 @@ const SUGGESTIONS: [name: string, help: string, params?: { name: string; help: s
     ['/clearchat', 'Clear your chat window.'],
     ['/bike', 'Rent a bike at the rental attendant.'],
     ['/unrentbike', 'Return your rental bike.'],
+    ['/speedo', 'Toggle speedometer options.', [{ name: 'rpm|gear|sounds|metric', help: 'Option to toggle' }]],
 ];
 
 const sendSuggestions = (source: number) => SUGGESTIONS.forEach(([name, help, params]) => addSuggestion(source, name, help, params));
