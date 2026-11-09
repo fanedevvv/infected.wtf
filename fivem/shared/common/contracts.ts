@@ -1,4 +1,4 @@
-import type { Account, AdminCommandInfo, AuthRequest, ChatMessage, CustomVehicle, Result, Settings } from './types.ts';
+import type { Account, AdminCommandInfo, AuthRequest, ChatMessage, CustomVehicle, Result, Settings, SupportAction, SupportKind, SupportView } from './types.ts';
 
 /**
  * Client → server RPCs: name → handler signature (without the implicit player source).
@@ -8,6 +8,7 @@ export interface ServerRpc {
     'ket_core:auth': (request: AuthRequest) => Result<Account>;
     'ket_core:updateSettings': (patch: Partial<Settings>) => Result<Settings>;
     'ket_chat:commandExists': (name: string) => boolean;
+    'ket_admin:support': (action: SupportAction) => Result<SupportView>;
 }
 
 /** Server → client RPCs, registered with `onRpc` (client) and invoked with `callClient` (server). */
@@ -21,6 +22,8 @@ export interface ClientNetEvents {
     'ket_admin:open': (commands: AdminCommandInfo[], level: number) => void;
     'ket_admin:action': (action: AdminAction) => void;
     'ket_admin:carlist': (custom: CustomVehicle[]) => void;
+    /** A support queue changed; clients with that menu open refresh it. */
+    'ket_admin:supportChanged': (kind: SupportKind) => void;
     'chat:addMessage': (message: ChatMessage) => void;
     'chat:addSuggestion': (name: string, help: string, params?: { name: string; help?: string }[]) => void;
     'chat:removeSuggestion': (name: string) => void;

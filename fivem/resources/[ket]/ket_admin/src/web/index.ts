@@ -2,6 +2,7 @@ import type { AdminCommandInfo } from '@shared/common/types.ts';
 import { byId, el } from '@shared/web/dom.ts';
 import { onNuiMessage, postNui } from '@shared/web/nui.ts';
 import type { AdminNuiMessage, ExecuteRequest, VehicleCategory, VehicleEntry } from '../common/nui.ts';
+import { hideSupport, showSupport } from './support.ts';
 
 const ALL = 'All';
 
@@ -37,6 +38,8 @@ function setChrome(next: Mode, level: number): void {
     search.hidden = !cars;
     search.value = '';
     deselect();
+    hideSupport();
+    panel.hidden = false;
     document.body.classList.add('visible');
     panel.setAttribute('aria-hidden', 'false');
 }
@@ -201,7 +204,14 @@ onNuiMessage<AdminNuiMessage>({
         render();
         search.focus();
     },
+    support: ({ data }) => {
+        panel.hidden = true;
+        panel.setAttribute('aria-hidden', 'true');
+        showSupport(data);
+        document.body.classList.add('visible');
+    },
     close: () => {
+        hideSupport();
         document.body.classList.remove('visible');
         panel.setAttribute('aria-hidden', 'true');
     },

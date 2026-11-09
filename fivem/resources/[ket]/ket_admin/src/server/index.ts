@@ -22,7 +22,7 @@ function arityOk(command: AdminCommand, count: number): boolean {
 /** Commands that also work from the server / txAdmin console (they don't need the caller's ped). */
 const CONSOLE_COMMANDS = new Set([
     'setadmin', 'kick', 'ban', 'unban', 'warn', 'announce', 'givemoney', 'giveitem', 'setjob', 'clearinv', 'respawn', 'heal', 'freeze', 'unfreeze',
-    'a', 'sethelper', 'history', 'hnote', 'hactivity', 'checkid', 'reports', 'clearreport', 'ar',
+    'a', 'sethelper', 'history', 'hnote', 'hactivity', 'checkid',
 ]);
 
 /** The console acts as an account above every admin level. */

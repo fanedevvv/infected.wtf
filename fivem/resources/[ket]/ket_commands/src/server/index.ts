@@ -69,6 +69,8 @@ const SUGGESTIONS: [name: string, help: string, params?: { name: string; help: s
     ['/clearchat', 'Clear your chat window.'],
     ['/bike', 'Rent a bike at the rental attendant.'],
     ['/unrentbike', 'Return your rental bike.'],
+    ['/questions', 'Ask the helpers a question (helpers: open the questions menu).'],
+    ['/tickets', 'Open a ticket for the admins (admins: open the tickets menu).'],
     ['/speedo', 'Toggle speedometer options.', [{ name: 'rpm|gear|sounds|metric', help: 'Option to toggle' }]],
 ];
 

@@ -9,6 +9,8 @@
 }
 
 * { box-sizing: border-box; }
+/* Author display rules (flex/grid) would otherwise override the hidden attribute. */
+[hidden] { display: none !important; }
 body { margin: 0; display: none; }
 body.visible { display: grid; place-items: center; width: 100vw; height: 100vh; }
 button, input { font: inherit; }
@@ -86,6 +88,51 @@ footer kbd { margin-left: auto; padding: 4px 7px; color: #c6c5c0; background: #2
 .vehicle-model { color: #aaaab2; font-family: Consolas, monospace; font-size: 11px; }
 .custom-badge { margin-left: 8px; padding: 2px 6px; color: #18150e; background: var(--gold); border-radius: 4px; font-size: 9px; font-weight: 800; letter-spacing: .08em; vertical-align: 2px; }
 .empty { padding: 26px; color: var(--muted); font-size: 13px; line-height: 1.6; text-align: center; background: rgba(255,255,255,.025); border: 1px dashed rgba(255,255,255,.1); border-radius: 12px; }
+
+/* Support menus (/questions, /tickets) */
+.support {
+    width: min(760px, 94vw);
+    height: min(720px, 90vh);
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 20px;
+    background: var(--panel);
+    box-shadow: 0 30px 100px rgba(0,0,0,.62);
+    display: flex;
+    flex-direction: column;
+}
+.support-body { flex: 1; min-height: 0; padding: 22px 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.support-status { margin: 0; padding: 10px 13px; color: #ffd2cc; background: rgba(255,122,107,.1); border: 1px solid rgba(255,122,107,.28); border-radius: 9px; font-size: 13px; }
+.support-status.ok { color: #c9f2da; background: rgba(111,212,154,.1); border-color: rgba(111,212,154,.3); }
+.ask-form { display: flex; flex-direction: column; gap: 10px; }
+.ask-hint { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+textarea { width: 100%; padding: 12px 13px; color: #fff; outline: none; resize: none; background: #101116; border: 1px solid #33343b; border-radius: 9px; font: inherit; font-size: 14px; line-height: 1.5; }
+textarea:focus, .reason input:focus { border-color: var(--gold); }
+.ask-row { display: flex; align-items: center; justify-content: space-between; }
+.ask-row .submit-button, .item-actions .submit-button { margin-top: 0; }
+.pending { padding: 16px; background: rgba(233,189,87,.07); border: 1px solid rgba(233,189,87,.3); border-radius: 12px; }
+.pending strong { display: block; margin-bottom: 6px; color: #f1cc76; font-size: 14px; }
+.pending p { margin: 0; color: #c9c8c2; font-size: 13px; line-height: 1.5; }
+.queue { display: flex; flex-direction: column; gap: 10px; }
+.item { padding: 15px; background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.07); border-radius: 12px; }
+.item.mine { border-color: rgba(233,189,87,.55); background: rgba(233,189,87,.06); }
+.item-head { display: flex; align-items: center; gap: 10px; color: #aaaab2; font-size: 12px; }
+.item-head .id { color: #f1cc76; font-weight: 700; }
+.item-head .player { color: #f3f1ea; font-weight: 600; }
+.badge { margin-left: auto; padding: 3px 8px; border-radius: 20px; font-size: 10px; font-weight: 800; letter-spacing: .08em; color: #18150e; background: var(--gold); }
+.badge.taken { color: #d3d1ca; background: rgba(255,255,255,.1); }
+.badge.mine { background: #6fd49a; }
+.item-text { margin: 10px 0 12px; color: #e7e5de; font-size: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.item-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ghost-button { padding: 9px 13px; color: #d3d1ca; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 7px; font-weight: 600; }
+.ghost-button:hover { color: #fff; background: rgba(255,255,255,.12); }
+.ghost-button.danger:hover { color: #ffd2cc; border-color: rgba(255,122,107,.5); background: rgba(255,122,107,.12); }
+.reason { display: flex; flex: 1 1 100%; gap: 8px; }
+.reason input { flex: 1; padding: 9px 11px; color: #fff; outline: none; background: #101116; border: 1px solid #33343b; border-radius: 7px; }
+.item textarea { margin-bottom: 8px; }
+button:disabled { cursor: wait; opacity: .6; }
+.support .empty { margin: 0; }
+.level:empty { display: none; }
 
 @media (max-width: 700px) {
     .heading-actions { flex-direction: column; align-items: flex-end; gap: 6px; }

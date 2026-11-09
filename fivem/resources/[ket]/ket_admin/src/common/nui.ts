@@ -1,4 +1,4 @@
-import type { AdminCommandInfo } from '@shared/common/types.ts';
+import type { AdminCommandInfo, SupportAction, SupportView } from '@shared/common/types.ts';
 
 export interface VehicleEntry {
     model: string;
@@ -18,7 +18,11 @@ export interface VehicleCategory {
 export type AdminNuiMessage =
     | { type: 'open'; commands: AdminCommandInfo[]; level: number }
     | { type: 'carlist'; categories: VehicleCategory[]; vehicles: VehicleEntry[]; level: number }
+    | { type: 'support'; data: SupportView }
     | { type: 'close' };
+
+export type SupportRequest = SupportAction;
+export type SupportResponse = { ok: true; data: SupportView } | { ok: false; error: string };
 
 export interface ExecuteRequest {
     command: string;

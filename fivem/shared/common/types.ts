@@ -56,6 +56,33 @@ export interface CustomVehicle {
     resource: string;
 }
 
+/** Support menus (/questions for helpers, /tickets for admins). */
+export type SupportKind = 'question' | 'ticket';
+
+export interface SupportItem {
+    id: number;
+    player: string;
+    playerId: string;
+    text: string;
+    ageMinutes: number;
+    /** Questions only: helper who took it (null = open). */
+    helper: string | null;
+    /** Questions only: taken by the viewer. */
+    mine: boolean;
+}
+
+export type SupportView =
+    | { view: 'ask'; kind: SupportKind; pending: { id: number; text: string; helper: string | null } | null }
+    | { view: 'queue'; kind: SupportKind; items: SupportItem[] };
+
+export type SupportAction =
+    | { op: 'open'; kind: SupportKind }
+    | { op: 'create'; kind: SupportKind; text: string }
+    | { op: 'accept' | 'close'; kind: 'question'; id: number }
+    | { op: 'reject'; kind: 'question'; id: number; reason: string }
+    | { op: 'answer'; kind: 'ticket'; id: number; text: string }
+    | { op: 'dismiss'; kind: 'ticket'; id: number };
+
 export interface AdminArgument {
     name: string;
     label: string;
