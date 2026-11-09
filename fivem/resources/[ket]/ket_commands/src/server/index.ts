@@ -2,7 +2,6 @@ import { addSuggestion, chatAs } from '@shared/server/chat.ts';
 import { Core } from '@shared/server/core.ts';
 import { db } from '@shared/server/db.ts';
 import { onLocal } from '@shared/server/events.ts';
-import { isConnected } from '@shared/server/players.ts';
 import { callClient } from '@shared/server/rpc.ts';
 
 const reply = chatAs('SERVER');
@@ -23,20 +22,15 @@ function playerCommand(name: string, handler: (source: number, args: string[]) =
     );
 }
 
-/** Resolves `/id` targets: current server id (digits) or username. */
-function resolvePlayer(argument: string): number | undefined {
-    if (/^\d+$/.test(argument)) {
-        const source = Number(argument);
-        return isConnected(source) && Core.getUsername(source) ? source : undefined;
-    }
-    return Core.findByUsername(argument);
-}
+/** Resolves `/id` targets: database account ID (digits) or username, signed-in players only. */
+const resolvePlayer = (argument: string): number | undefined =>
+    /^\d+$/.test(argument) ? Core.findByAccountId(argument) : Core.findByUsername(argument);
 
 playerCommand('id', async (source, args) => {
-    if (args.length > 1) return reply(source, 'Usage: /id [player name or server ID]');
+    if (args.length > 1) return reply(source, 'Usage: /id [database ID or username]');
     const target = args[0] ? resolvePlayer(args[0]) : source;
     const account = target !== undefined ? Core.getAccount(target) : undefined;
-    if (target === undefined || !account) return reply(source, 'Player not found or not logged in. Use /id [player name or server ID].');
+    if (target === undefined || !account) return reply(source, 'Player not found or not logged in. Use /id [database ID or username].');
 
     const fps = await callClient(target, 'ket_hud:getFps', [], 2_000).then(
         (value) => (value > 0 ? String(value) : '--'),
@@ -68,7 +62,7 @@ playerCommand('myjob', async (source) => {
 
 /** Chat suggestions for commands every signed-in player can use. */
 const SUGGESTIONS: [name: string, help: string, params?: { name: string; help: string }[]][] = [
-    ['/id', 'Show account stats, or look up a logged-in player.', [{ name: 'name/id', help: 'Username or current server ID (optional)' }]],
+    ['/id', 'Show account stats, or look up a logged-in player.', [{ name: 'name/id', help: 'Database ID or username (optional)' }]],
     ['/inventory', 'Show your saved database inventory.'],
     ['/myjob', 'Show your saved job and grade.'],
     ['/settings', 'Open your HUD and interface settings.'],
