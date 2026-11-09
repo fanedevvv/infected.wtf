@@ -7,6 +7,7 @@
 import { sleep } from '@shared/common/async.ts';
 import { log } from '@shared/common/log.ts';
 import type { Vec3 } from '@shared/client/game.ts';
+import { reportScene } from './diagnostics.ts';
 
 const CAMERA_POSITION: Vec3 = [-320, -1150, 300];
 const CAMERA_TARGET: Vec3 = [-75, -819, 180];
@@ -19,6 +20,7 @@ export async function showLoginScene(parkPlayer: () => void): Promise<void> {
     ShutdownLoadingScreen();
     ShutdownLoadingScreenNui();
     parkPlayer();
+    reportScene('start', camera);
 
     // Bright, consistent backdrop regardless of session time or weather.
     ClearOverrideWeather();
@@ -42,6 +44,7 @@ export async function showLoginScene(parkPlayer: () => void): Promise<void> {
         await sleep(0);
     }
     if (!IsNewLoadSceneLoaded()) log.warn('Los Santos camera scene did not finish loading before the timeout.');
+    reportScene('streamed', camera);
 
     camera = CreateCam('DEFAULT_SCRIPTED_CAMERA', true);
     SetCamCoord(camera, cx, cy, cz);
@@ -51,6 +54,18 @@ export async function showLoginScene(parkPlayer: () => void): Promise<void> {
     RenderScriptCams(true, false, 0, true, true);
     NewLoadSceneStop();
     DoScreenFadeIn(2_500);
+    reportScene('rendering', camera);
+
+    // Self-heal in the background (the form opens immediately): clear anything that can
+    // still cover the camera once the fade-in has finished.
+    void (async () => {
+        await sleep(3_000);
+        if (GetIsLoadingScreenActive()) ShutdownLoadingScreen();
+        if (IsPlayerSwitchInProgress()) StopPlayerSwitch();
+        if (BusyspinnerIsOn()) BusyspinnerOff();
+        if (!IsScreenFadedIn() && !IsScreenFadingIn()) DoScreenFadeIn(500);
+        reportScene('settled', camera);
+    })();
 }
 
 /** Swings the camera over the spawn point while the player is placed. */

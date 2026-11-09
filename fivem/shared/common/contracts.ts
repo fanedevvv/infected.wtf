@@ -30,6 +30,8 @@ export interface ClientNetEvents {
 /** Client → server net events (fire-and-forget; always validated server-side). */
 export interface ServerNetEvents {
     'ket_chat:send': (message: string) => void;
+    /** Login-scene diagnostics (screen/camera state) logged to the server console. */
+    'ket_core:sceneReport': (stage: string, state: Record<string, string | number | boolean | null>) => void;
     'ket_admin:execute': (command: string, args: string[]) => void;
     'ket_admin:deleteVehicle': (netId: number) => void;
 }

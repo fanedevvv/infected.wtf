@@ -1,5 +1,5 @@
 import { sleep, waitFor } from '@shared/common/async.ts';
-import { SPAWN_POINT } from '@shared/common/constants.ts';
+import { SPAWN_POINT, StateKey } from '@shared/common/constants.ts';
 import { log } from '@shared/common/log.ts';
 import { fadeOut, toVec3 } from '@shared/client/game.ts';
 import { onResourceStop } from '@shared/client/events.ts';
@@ -20,7 +20,7 @@ async function openLogin(): Promise<void> {
     menuOpen = true;
     await showLoginScene(() => parkPlayer());
     setNuiFocus(true);
-    nui({ type: 'open' });
+    nui({ type: 'open', online: Number(GlobalState[StateKey.online] ?? 0) });
 }
 
 function closeLogin(): void {
