@@ -2,6 +2,7 @@
  * Promise wrapper around oxmysql's exports. Passing `isPromise = true` makes oxmysql
  * report errors through the callback instead of swallowing them.
  */
+import { resourceExports } from '@shared/common/fx.ts';
 type Params = unknown[] | Record<string, unknown>;
 type Method = 'query' | 'single' | 'scalar' | 'update' | 'insert' | 'transaction';
 
@@ -12,7 +13,7 @@ export interface InsertResult {
 
 function call<T>(method: Method, sql: unknown, params: Params = []): Promise<T> {
     return new Promise((resolve, reject) => {
-        exports.oxmysql![method]!(
+        resourceExports('oxmysql')[method]!(
             sql,
             params,
             (result: T, error?: string) => (error ? reject(new Error(error)) : resolve(result)),
@@ -35,5 +36,5 @@ export const db = {
     insert: (sql: string, params?: Params) => call<number>('insert', sql, params),
     /** Runs statements atomically; resolves to true on commit. */
     transaction: (queries: { query: string; values?: Params }[]) => call<boolean>('transaction', queries),
-    isReady: (): boolean => exports.oxmysql!.isReady!() === true,
+    isReady: (): boolean => resourceExports('oxmysql').isReady!() === true,
 };

@@ -1,5 +1,6 @@
 import type { Account } from '@shared/common/types.ts';
 import { emitLocal, onServer } from '@shared/client/events.ts';
+import { registerExport } from '@shared/common/fx.ts';
 
 let account: Account | undefined;
 let spawned = false;
@@ -18,5 +19,5 @@ onServer('ket_core:account', (next) => {
     emitLocal('ket:account', next);
 });
 
-exports('getAccount', () => account);
-exports('isSpawned', () => spawned);
+registerExport('getAccount', () => account);
+registerExport('isSpawned', () => spawned);

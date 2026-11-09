@@ -28,6 +28,7 @@ export async function loadSceneAt(position: Vec3, radius: number, timeoutMs: num
     NewLoadSceneStart(x, y, z, direction[0], direction[1], direction[2], radius, 0);
     const loaded = await waitFor(() => {
         RequestCollisionAtCoord(x, y, z);
+        NetworkUpdateLoadScene();
         return IsNewLoadSceneLoaded();
     }, timeoutMs);
     NewLoadSceneStop();

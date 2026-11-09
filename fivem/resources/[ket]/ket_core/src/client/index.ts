@@ -10,6 +10,7 @@ import type { CoreNuiMessage, SubmitResponse } from '../common/nui.ts';
 import { aimCameraAt, hideLoginScene, showLoginScene } from './scene.ts';
 import { loadSkin, parkPlayer, spawnPlayer } from './spawn.ts';
 import { getAccount, markSpawned } from './state.ts';
+import { registerExport } from '@shared/common/fx.ts';
 
 let menuOpen = false;
 const nui = (message: CoreNuiMessage) => sendNui(message);
@@ -17,8 +18,7 @@ const nui = (message: CoreNuiMessage) => sendNui(message);
 async function openLogin(): Promise<void> {
     if (menuOpen) return;
     menuOpen = true;
-    parkPlayer();
-    await showLoginScene();
+    await showLoginScene(() => parkPlayer());
     setNuiFocus(true);
     nui({ type: 'open' });
 }
@@ -64,7 +64,7 @@ onNui<unknown, SubmitResponse>('submit', async (request) => {
 });
 
 /** Respawns the signed-in player at the spawn point (used by admin /respawn). */
-exports('respawn', () => {
+registerExport('respawn', () => {
     const account = getAccount();
     if (!account) return;
     void (async () => {

@@ -1,8 +1,9 @@
 /** Typed access to ket_core's client exports, plus a helper to follow the local account. */
 import type { Account } from '../common/types.ts';
 import { onLocal } from './events.ts';
+import { resourceExports } from '@shared/common/fx.ts';
 
-const core = () => exports.ket_core!;
+const core = () => resourceExports('ket_core');
 
 export const Core = {
     getAccount: (): Account | undefined => core().getAccount!() ?? undefined,

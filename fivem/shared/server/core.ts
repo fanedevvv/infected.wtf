@@ -1,5 +1,6 @@
 /** Typed access to ket_core's server exports (accounts & sessions). */
 import type { Account } from '../common/types.ts';
+import { resourceExports } from '@shared/common/fx.ts';
 
 export interface OnlineAccount {
     source: number;
@@ -10,7 +11,7 @@ export interface OnlineAccount {
 
 export type AccountPatch = Partial<Pick<Account, 'cash' | 'bank' | 'admin' | 'level'>>;
 
-const core = () => exports.ket_core!;
+const core = () => resourceExports('ket_core');
 
 export const Core = {
     getAccount: (source: number): Account | undefined => core().getAccount!(source) ?? undefined,

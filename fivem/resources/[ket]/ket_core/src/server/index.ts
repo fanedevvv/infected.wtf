@@ -6,6 +6,7 @@ import { authenticate } from './auth.ts';
 import { initDatabase } from './schema.ts';
 import { sessions } from './sessions.ts';
 import { updateSettings } from './settings.ts';
+import { registerExport } from '@shared/common/fx.ts';
 
 void initDatabase();
 
@@ -29,14 +30,14 @@ onPlayerDropped((src) => {
 });
 
 // Exports (see shared/server/core.ts for the typed wrapper).
-exports('getAccount', (src: number) => sessions.copy(Number(src)));
-exports('getUsername', (src: number) => sessions.get(Number(src))?.username);
-exports('getAdminLevel', (src: number) => sessions.get(Number(src))?.admin ?? 0);
-exports('isAdmin', (src: number, minimum = 1) => {
+registerExport('getAccount', (src: number) => sessions.copy(Number(src)));
+registerExport('getUsername', (src: number) => sessions.get(Number(src))?.username);
+registerExport('getAdminLevel', (src: number) => sessions.get(Number(src))?.admin ?? 0);
+registerExport('isAdmin', (src: number, minimum = 1) => {
     const level = sessions.get(Number(src))?.admin;
     return level !== undefined && Number.isSafeInteger(minimum) && level >= minimum;
 });
-exports('findByAccountId', (id: string) => sessions.findByAccountId(String(id)));
-exports('findByUsername', (username: string) => (typeof username === 'string' ? sessions.findByUsername(username) : undefined));
-exports('online', () => sessions.online());
-exports('patchAccount', (src: number, patch: Parameters<typeof sessions.patch>[1]) => sessions.patch(Number(src), patch ?? {}));
+registerExport('findByAccountId', (id: string) => sessions.findByAccountId(String(id)));
+registerExport('findByUsername', (username: string) => (typeof username === 'string' ? sessions.findByUsername(username) : undefined));
+registerExport('online', () => sessions.online());
+registerExport('patchAccount', (src: number, patch: Parameters<typeof sessions.patch>[1]) => sessions.patch(Number(src), patch ?? {}));

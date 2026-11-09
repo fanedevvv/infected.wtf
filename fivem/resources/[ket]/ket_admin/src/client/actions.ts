@@ -2,6 +2,7 @@ import type { AdminAction } from '@shared/common/contracts.ts';
 import { sleep } from '@shared/common/async.ts';
 import { controlledEntity, loadModel, notify as chat, pedCoords, requestControl, Tick, vecDistance } from '@shared/client/game.ts';
 import { emitServer } from '@shared/client/events.ts';
+import { resourceExports } from '@shared/common/fx.ts';
 
 const notify = (message: string) => chat('ADMIN', message);
 
@@ -127,7 +128,7 @@ export async function runAction(action: AdminAction): Promise<void> {
             return;
         }
         case 'respawn':
-            return exports.ket_core!.respawn!();
+            return resourceExports('ket_core').respawn!();
         case 'waypoint':
             return teleportToWaypoint();
         case 'freeze':

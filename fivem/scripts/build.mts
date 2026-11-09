@@ -8,7 +8,7 @@
  *
  * Usage: npx tsx scripts/build.mts [--watch] [--prod] [resource ...]
  */
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { cp, mkdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -65,6 +65,27 @@ const logResult = (label: string): esbuild.Plugin => ({
         });
     },
 });
+
+/**
+ * Guard: a bare `exports` identifier makes esbuild treat a file as CommonJS and rename it,
+ * which breaks FiveM's `exports(...)` at runtime. Use @shared/common/fx.ts instead.
+ */
+function assertNoBareExports(dir: string): void {
+    for (const entry of readdirSync(dir, { withFileTypes: true, recursive: true })) {
+        if (!entry.isFile() || !entry.name.endsWith('.ts') || entry.name === 'fx.ts') continue;
+        const file = path.join(entry.parentPath, entry.name);
+        readFileSync(file, 'utf8').split('\n').forEach((line, index) => {
+            if (/^\s*(\/\/|\*|\/\*)/.test(line)) return;
+            if (/(^|[^.\w$])exports\s*[.(!\[]/.test(line)) {
+                console.error(`[build] ${path.relative(root, file)}:${index + 1}: use registerExport/resourceExports from @shared/common/fx.ts, not bare \`exports\``);
+                process.exitCode = 1;
+            }
+        });
+    }
+}
+assertNoBareExports(path.join(root, 'shared'));
+for (const name of resources) assertNoBareExports(path.join(resourcesDir, name, 'src'));
+if (process.exitCode) process.exit(1);
 
 const contexts: esbuild.BuildContext[] = [];
 
