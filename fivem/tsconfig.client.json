@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": [
+      "ES2022"
+    ],
+    "types": [
+      "@citizenfx/client"
+    ],
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declarationDir": ".cache/types/client",
+    "tsBuildInfoFile": ".cache/client.tsbuildinfo"
+  },
+  "include": [
+    "shared/common/**/*.ts",
+    "shared/client/**/*.ts",
+    "resources/*/*/src/common/**/*.ts",
+    "resources/*/*/src/client/**/*.ts"
+  ]
+}

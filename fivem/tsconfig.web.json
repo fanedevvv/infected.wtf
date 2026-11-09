@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [],
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declarationDir": ".cache/types/web",
+    "tsBuildInfoFile": ".cache/web.tsbuildinfo"
+  },
+  "include": [
+    "shared/common/**/*.ts",
+    "shared/web/**/*.ts",
+    "resources/*/*/src/common/**/*.ts",
+    "resources/*/*/src/web/**/*.ts"
+  ]
+}

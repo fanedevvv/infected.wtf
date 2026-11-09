@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": [
+      "ES2022"
+    ],
+    "types": [
+      "node"
+    ],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declarationDir": ".cache/types/scripts",
+    "tsBuildInfoFile": ".cache/scripts.tsbuildinfo"
+  },
+  "include": [
+    "scripts/**/*.mts"
+  ]
+}

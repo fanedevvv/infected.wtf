@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Settings</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <main id="menu" aria-label="Settings dashboard">
+        <aside class="sidebar">
+            <div class="sidebar-heading">
+                <strong>Settings</strong>
+            </div>
+            <span class="nav-label">CATEGORIES</span>
+            <nav aria-label="Settings categories">
+                <button class="category active" type="button" aria-current="page">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="3" y="4" width="18" height="13" rx="2"/>
+                        <path d="M8 21h8M12 17v4"/>
+                    </svg>
+                    <span>HUD</span>
+                </button>
+                <button class="category" type="button" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="8" r="4"/>
+                        <path d="M5 21v-2a7 7 0 0 1 14 0v2"/>
+                    </svg>
+                    <span>Player</span>
+                    <span class="soon">SOON</span>
+                </button>
+                <button class="category" type="button" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.5.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.5-.9l-1.7.7-1.4-2.4 1.4-1.1a7 7 0 0 1 0-1.8l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.5-.9l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.5.9l1.7-.7 1.4 2.4-1.4 1.1a7 7 0 0 1 0 1.8Z" transform="translate(-1 -1) scale(.96)"/>
+                    </svg>
+                    <span>Interface</span>
+                    <span class="soon">SOON</span>
+                </button>
+            </nav>
+        </aside>
+        <section class="content">
+            <header class="content-header">
+                <div>
+                    <span class="eyebrow">CATEGORIES / HUD</span>
+                    <h1>HUD</h1>
+                    <p>Customize your on-screen display.</p>
+                </div>
+                <button id="close" class="close" type="button" aria-label="Close settings">&times;</button>
+            </header>
+            <section class="settings-card hud-settings" aria-label="HUD settings">
+                <div class="setting-row color-row">
+                    <div class="setting-copy">
+                        <label for="color">Accent color</label>
+                        <span class="setting-description">Updates the color and fade of HUD elements.</span>
+                    </div>
+                    <div class="color-picker">
+                        <label class="color-swatch" for="color" aria-label="Pick HUD accent color">
+                            <input id="color" type="color" value="#e9bd57">
+                        </label>
+                        <output id="color-value" for="color">#E9BD57</output>
+                    </div>
+                </div>
+                <div class="presets" aria-label="Color presets">
+                    <button type="button" data-color="#e9bd57" aria-label="Gold"></button>
+                    <button type="button" data-color="#57b8e9" aria-label="Blue"></button>
+                    <button type="button" data-color="#62d18b" aria-label="Green"></button>
+                    <button type="button" data-color="#d875e8" aria-label="Purple"></button>
+                    <button type="button" data-color="#ed6666" aria-label="Red"></button>
+                </div>
+                <div class="hud-preview" aria-label="HUD color preview">
+                    <span class="preview-player">PlayerName</span>
+                    <span class="preview-cash">$12,500</span>
+                </div>
+                <div class="color-actions">
+                    <span id="color-status" role="status" aria-live="polite"></span>
+                    <button id="apply" type="button">Save color</button>
+                </div>
+                <div class="setting-row toggle-row">
+                    <div class="setting-copy">
+                        <label for="fps-toggle">FPS Counter</label>
+                        <span class="setting-description">Show your current frame rate on the HUD.</span>
+                    </div>
+                    <label class="switch" aria-label="FPS Counter">
+                        <input id="fps-toggle" type="checkbox" role="switch">
+                        <span class="switch-track"></span>
+                    </label>
+                </div>
+                <span id="fps-status" class="inline-status" role="status" aria-live="polite"></span>
+                <div class="setting-row toggle-row">
+                    <div class="setting-copy">
+                        <label for="nametag-toggle">Own nametag</label>
+                        <span class="setting-description">Show your username above your character on your screen.</span>
+                    </div>
+                    <label class="switch" aria-label="Own nametag">
+                        <input id="nametag-toggle" type="checkbox" role="switch">
+                        <span class="switch-track"></span>
+                    </label>
+                </div>
+                <span id="nametag-status" class="inline-status" role="status" aria-live="polite"></span>
+            </section>
+            <footer>Changes are saved to your account</footer>
+        </section>
+    </main>
+</body>
+</html>

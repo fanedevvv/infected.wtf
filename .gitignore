@@ -47,3 +47,8 @@ next-env.d.ts
 # server-local runtime data (not part of the app source)
 /config/
 /uploads/
+
+# Game-mod archives (large binaries; never commit)
+*.rar
+*.7z
+*.zip

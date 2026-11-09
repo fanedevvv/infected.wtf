@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Administration</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <main id="panel" aria-hidden="true">
+        <header class="topbar">
+            <div class="brand">
+                <span class="eyebrow">SERVER CONTROL</span>
+                <h1>Administration</h1>
+            </div>
+            <div class="top-actions">
+                <span id="level" class="level">ADMIN 0</span>
+                <button id="close" class="icon-button" type="button" aria-label="Close menu">×</button>
+            </div>
+        </header>
+        <div class="content">
+            <nav id="categories" aria-label="Command categories"></nav>
+            <section class="workspace">
+                <div class="section-heading">
+                    <div>
+                        <span class="eyebrow">CONTROL PANEL</span>
+                        <h2 id="category-title">Commands</h2>
+                    </div>
+                    <span id="count" class="count"></span>
+                </div>
+                <div id="commands" class="commands"></div>
+                <form id="command-form" class="command-form" hidden>
+                    <div class="form-heading">
+                        <div>
+                            <span class="eyebrow">SELECTED COMMAND</span>
+                            <h3 id="form-title"></h3>
+                        </div>
+                        <button type="button" id="cancel" class="text-button">Cancel</button>
+                    </div>
+                    <p id="form-description"></p>
+                    <div id="fields" class="fields"></div>
+                    <button class="submit-button" type="submit">Run command</button>
+                </form>
+            </section>
+        </div>
+        <footer><span>Commands are verified by the server before execution.</span><kbd>ESC</kbd><span>to close</span></footer>
+    </main>
+</body>
+</html>

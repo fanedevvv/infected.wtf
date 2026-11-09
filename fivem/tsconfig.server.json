@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": [
+      "ES2022"
+    ],
+    "types": [
+      "@citizenfx/server",
+      "node"
+    ],
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declarationDir": ".cache/types/server",
+    "tsBuildInfoFile": ".cache/server.tsbuildinfo"
+  },
+  "include": [
+    "shared/common/**/*.ts",
+    "shared/server/**/*.ts",
+    "resources/*/*/src/common/**/*.ts",
+    "resources/*/*/src/server/**/*.ts"
+  ]
+}

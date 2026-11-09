@@ -1,0 +1,21 @@
+{
+  "name": "ket-fivem",
+  "private": true,
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "build": "tsx scripts/build.mts",
+    "dev": "tsx scripts/build.mts --watch",
+    "typecheck": "tsc -b",
+    "check": "npm run typecheck && npm run build"
+  },
+  "devDependencies": {
+    "@citizenfx/client": "2.0.38435-1",
+    "@citizenfx/server": "2.0.38435-1",
+    "@types/node": "22.20.5",
+    "esbuild": "0.25.10",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3"
+  }
+}

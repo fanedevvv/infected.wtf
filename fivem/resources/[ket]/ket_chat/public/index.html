@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chat</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <main id="chat" aria-label="Game chat">
+        <section id="messages" aria-live="polite" aria-label="Chat messages"></section>
+        <section id="composer" aria-label="Send a chat message">
+            <span class="prompt" aria-hidden="true">&gt;</span>
+            <input id="message-input" type="text" maxlength="500" autocomplete="off" spellcheck="false" aria-label="Message" placeholder="Type a message...">
+            <span class="hint">ENTER</span>
+        </section>
+        <section id="suggestions" aria-label="Command suggestions"></section>
+    </main>
+</body>
+</html>

@@ -1,0 +1,12 @@
+# Secrets — never commit
+secrets.cfg
+*.local.cfg
+
+# Dependencies & build output (rebuild with `npm run build`)
+node_modules/
+.cache/
+resources/[[]ket[]]/*/dist/
+
+# Server runtime data
+cache/
+txData/
