@@ -2,7 +2,7 @@ import type { Account } from '@shared/common/types.ts';
 import { log } from '@shared/common/log.ts';
 import { Core, type OnlineAccount } from '@shared/server/core.ts';
 import { emitClient, onPlayerDropped } from '@shared/server/events.ts';
-import { arg, HELPERS_ONLY, helperLevel, isStaff, type AdminCommand } from '../command.ts';
+import { arg, helperLevel, isStaff, type AdminCommand } from '../command.ts';
 import { rest } from '../context.ts';
 
 type Rgb = [number, number, number];
@@ -49,11 +49,11 @@ export const CHAT_COMMANDS: AdminCommand[] = [
         },
     },
     {
-        name: 'h', label: 'Helper chat', description: 'Write in the helper chat.', level: HELPERS_ONLY, helper: 1, category: 'Staff chat',
+        name: 'h', label: 'Helper chat', description: 'Write in the helper chat (helpers and admins).', level: 1, helper: 1, category: 'Staff chat',
         arguments: [MESSAGE], arity: 'min',
         run: (ctx) => {
             const text = rest(ctx, 0);
-            broadcast((account) => account.helper >= 1 && !helperChatMuted.has(account.source), `[H] Helper ${ctx.actor.helper} ${ctx.actor.username}`, text, COLORS.helper);
+            broadcast((account) => isStaff(account) && !helperChatMuted.has(account.source), `[H] ${rankOf(ctx.actor)} ${ctx.actor.username}`, text, COLORS.helper);
         },
     },
     {
@@ -62,7 +62,7 @@ export const CHAT_COMMANDS: AdminCommand[] = [
         run: (ctx) => broadcast(isStaff, `[STAFF] ${rankOf(ctx.actor)} ${ctx.actor.username}`, rest(ctx, 0), COLORS.staff),
     },
     {
-        name: 'helperchat', label: 'Toggle helper chat', description: 'Show or hide the helper chat (/h).', level: HELPERS_ONLY, helper: 1, category: 'Staff chat',
+        name: 'helperchat', label: 'Toggle helper chat', description: 'Show or hide the helper chat (/h).', level: 1, helper: 1, category: 'Staff chat',
         arguments: [],
         run: ({ source, reply }) => {
             const muted = !helperChatMuted.delete(source);
