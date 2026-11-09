@@ -1,7 +1,9 @@
 /* Sign-in screen. The page is transparent: the Los Santos camera shows through on the right. */
 :root {
-    --accent: #e9bd57;
-    --accent-rgb: 233, 189, 87;
+    /* Sapphire blue, matched to the logo */
+    --accent: #2f86ff;
+    --accent-rgb: 47, 134, 255;
+    --accent-deep: #0b5ed7;
     --text: #f4f1ea;
     --muted: #9c9a94;
     --faint: #6d6c69;
@@ -53,9 +55,14 @@ button { cursor: pointer; }
 body.visible .side { transform: none; }
 
 /* Brand */
-.brand { display: flex; align-items: center; gap: 14px; }
-.brand-mark { width: 34px; height: 34px; color: var(--accent); filter: drop-shadow(0 0 14px rgba(var(--accent-rgb), .45)); }
-.brand strong { display: block; font-size: 17px; font-weight: 700; letter-spacing: .34em; }
+.brand { display: flex; align-items: center; gap: 18px; }
+.brand-logo {
+    width: auto;
+    height: clamp(96px, 13vh, 148px);
+    filter: drop-shadow(0 6px 24px rgba(var(--accent-rgb), .45));
+    user-select: none;
+}
+.brand strong { display: block; font-size: 19px; font-weight: 700; letter-spacing: .34em; }
 .brand span { display: block; margin-top: 3px; color: var(--accent); font-size: 10px; font-weight: 700; letter-spacing: .42em; }
 
 /* Card */
@@ -104,7 +111,7 @@ form { display: grid; gap: 16px; }
 .reveal svg { width: 18px; height: 18px; }
 
 .hint { color: var(--faint); font-size: 12px; }
-.hint.warn { color: var(--accent); }
+.hint.warn { color: #f0c463; }
 
 /* Password strength (register) */
 .strength { display: flex; align-items: center; gap: 12px; margin-top: -6px; }
@@ -112,7 +119,7 @@ form { display: grid; gap: 16px; }
 .bars i { height: 4px; background: rgba(255, 255, 255, .1); border-radius: 2px; transition: background .2s; }
 .strength[data-score='1'] .bars i:nth-child(-n + 1) { background: var(--danger); }
 .strength[data-score='2'] .bars i:nth-child(-n + 2) { background: #f0a35e; }
-.strength[data-score='3'] .bars i:nth-child(-n + 3) { background: var(--accent); }
+.strength[data-score='3'] .bars i:nth-child(-n + 3) { background: #e9bd57; }
 .strength[data-score='4'] .bars i { background: var(--success); }
 
 /* Status message */
@@ -137,8 +144,8 @@ form { display: grid; gap: 16px; }
     gap: 10px;
     height: 52px;
     margin-top: 6px;
-    color: #19150c;
-    background: linear-gradient(180deg, #f2cc72, var(--accent));
+    color: #fff;
+    background: linear-gradient(180deg, var(--accent), var(--accent-deep));
     border: 0;
     border-radius: 10px;
     font-size: 14px;
@@ -152,7 +159,7 @@ form { display: grid; gap: 16px; }
 .submit:disabled { cursor: progress; filter: saturate(.7) brightness(.9); }
 .arrow { width: 18px; height: 18px; stroke-width: 2; transition: transform .2s; }
 .submit:hover .arrow { transform: translateX(3px); }
-.spinner { display: none; width: 16px; height: 16px; border: 2px solid rgba(25, 21, 12, .3); border-top-color: #19150c; border-radius: 50%; animation: spin .7s linear infinite; }
+.spinner { display: none; width: 16px; height: 16px; border: 2px solid rgba(255, 255, 255, .35); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
 .submit.busy .spinner { display: block; }
 .submit.busy .arrow { display: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
