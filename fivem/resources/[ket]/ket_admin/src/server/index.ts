@@ -1,4 +1,6 @@
+import { MAX_ADMIN_LEVEL } from '@shared/common/constants.ts';
 import { log } from '@shared/common/log.ts';
+import type { Account } from '@shared/common/types.ts';
 import { isStringArray } from '@shared/common/validate.ts';
 import { addSuggestion } from '@shared/server/chat.ts';
 import { Core } from '@shared/server/core.ts';
@@ -17,19 +19,40 @@ function arityOk(command: AdminCommand, count: number): boolean {
 }
 
 /** Single entry point for chat commands and the admin menu: permission → arity → handler. */
+/** Commands that also work from the server / txAdmin console (they don't need the caller's ped). */
+const CONSOLE_COMMANDS = new Set([
+    'setadmin', 'kick', 'ban', 'unban', 'warn', 'announce', 'givemoney', 'giveitem', 'setjob', 'clearinv', 'respawn', 'heal', 'freeze', 'unfreeze',
+]);
+
+/** The console acts as an account above every admin level. */
+const CONSOLE_ACTOR: Account = {
+    id: '0',
+    username: 'Console',
+    level: 0,
+    admin: MAX_ADMIN_LEVEL + 1,
+    cash: '0',
+    bank: '0',
+    skin: '',
+    settings: { hudColor: '', showFps: false, showOwnNameTag: false },
+};
+
+/** Single entry point for chat commands, the admin menu and the console: permission → arity → handler. */
 async function run(source: number, name: string, args: string[]): Promise<void> {
-    if (source === 0) return log.warn(`/${name} can only be used by a signed-in player.`);
     const command = COMMANDS_BY_NAME.get(name);
-    const actor = Core.getAccount(source);
-    if (!command || !actor || actor.admin < command.level) return notify(source, 'You do not have permission to use this command.');
-    if (!arityOk(command, args.length)) return notify(source, usage(command));
+    const fromConsole = source === 0;
+    const reply = fromConsole ? (message: string) => log.info(message) : (message: string) => notify(source, message);
+
+    if (fromConsole && (!command || !CONSOLE_COMMANDS.has(name))) return log.warn(`/${name} can only be used in-game by a signed-in admin.`);
+    const actor = fromConsole ? CONSOLE_ACTOR : Core.getAccount(source);
+    if (!command || !actor || actor.admin < command.level) return reply('You do not have permission to use this command.');
+    if (!arityOk(command, args.length)) return reply(usage(command));
 
     try {
-        await command.run({ source, actor, args, reply: (message) => notify(source, message) });
+        await command.run({ source, actor, args, reply });
     } catch (error) {
-        if (error instanceof CommandError) return notify(source, error.message);
+        if (error instanceof CommandError) return reply(error.message);
         log.error(`/${name} failed for ${actor.username}:`, error);
-        notify(source, 'That command failed. Check the server console.');
+        reply('That command failed. Check the server console.');
     }
 }
 
