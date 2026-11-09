@@ -37,6 +37,27 @@ function bring({ source, args, reply }: CommandContext): void {
     if (target.source !== source) notify(target.source, 'A staff member teleported you to them.');
 }
 
+type Rgb = [number, number, number];
+
+/** Named colours for /carcolor (anything else: #rrggbb). */
+const COLORS: Record<string, Rgb> = {
+    black: [10, 10, 10], white: [240, 240, 240], grey: [110, 110, 110], gray: [110, 110, 110], silver: [180, 185, 190],
+    red: [200, 20, 20], darkred: [110, 10, 15], orange: [240, 110, 20], yellow: [245, 205, 20], gold: [212, 175, 55],
+    green: [30, 150, 50], darkgreen: [15, 70, 30], lime: [130, 220, 40], blue: [25, 80, 210], darkblue: [15, 30, 90],
+    lightblue: [90, 170, 240], cyan: [20, 200, 220], purple: [110, 40, 170], pink: [235, 90, 160], brown: [100, 60, 30],
+    beige: [215, 195, 155], sapphire: [47, 134, 255],
+};
+const COLOR_NAMES = Object.keys(COLORS).filter((name) => name !== 'gray').join(', ');
+
+function parseColor(input: string | undefined): Rgb | undefined {
+    const value = (input ?? '').toLowerCase();
+    if (COLORS[value]) return COLORS[value];
+    const hex = /^#?([\da-f]{6})$/.exec(value)?.[1];
+    if (!hex) return undefined;
+    const n = Number.parseInt(hex, 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
 /** Denies acting on accounts with an equal or higher admin level. */
 function assertOutranks(actorLevel: number, targetLevel: number, verb: string): void {
     if (targetLevel >= actorLevel) fail(`You cannot ${verb} an administrator with an equal or higher level.`);
@@ -173,6 +194,16 @@ export const ADMIN_COMMANDS: AdminCommand[] = [
         run: ({ source }) => emitClient('ket_admin:carlist', source, customVehicles()),
     },
     selfAction('dv', 'Delete vehicle', 'Delete the vehicle you are in or looking at.', 1, 'Vehicle', 'deleteVehicle'),
+    {
+        name: 'carcolor', label: 'Car color', description: 'Paint the car you are in (name or #hex; optional second color).', level: 1, category: 'Vehicle',
+        arguments: [arg('color', 'Color (e.g. red or #2f86ff)'), arg('secondary', 'Second color', true)],
+        run: ({ source, args, reply }) => {
+            const primary = parseColor(args[0]) ?? fail(`Unknown color "${args[0]}". Use #rrggbb or one of: ${COLOR_NAMES}.`);
+            const secondary = args[1] === undefined ? undefined : (parseColor(args[1]) ?? fail(`Unknown color "${args[1]}". Use #rrggbb or one of: ${COLOR_NAMES}.`));
+            action(source, { type: 'carColor', primary, ...(secondary && { secondary }) });
+            reply(`Painting your car ${args[0]}${secondary ? ` / ${args[1]}` : ''}.`);
+        },
+    },
     selfAction('fix', 'Repair vehicle', 'Repair the vehicle you are in.', 1, 'Vehicle', 'fix'),
     selfAction('fuel', 'Refuel vehicle', 'Set the vehicle fuel level to 100%.', 1, 'Vehicle', 'fuel'),
     selfAction('cleararea', 'Clear nearby vehicles', 'Delete unoccupied vehicles within 100 meters.', 1, 'Vehicle', 'clearArea'),

@@ -75,4 +75,5 @@ export type AdminAction =
     | { type: 'spectateOff' }
     | { type: 'announce'; title: string; message: string; author: string }
     | { type: AdminSelfAction }
-    | { type: 'spawnVehicle'; model: string };
+    | { type: 'spawnVehicle'; model: string }
+    | { type: 'carColor'; primary: [number, number, number]; secondary?: [number, number, number] };

@@ -103,6 +103,16 @@ async function spawnVehicle(name: string): Promise<void> {
     notify(`Spawned ${name}.`);
 }
 
+/** Paints the vehicle the player sits in (custom RGB, synced to everyone once we own the entity). */
+async function paintVehicle(primary: [number, number, number], secondary?: [number, number, number]): Promise<void> {
+    const vehicle = GetVehiclePedIsIn(PlayerPedId(), false);
+    if (vehicle === 0) return notify('Get in a vehicle first.');
+    if (!(await requestControl(vehicle))) return notify('Could not take control of this vehicle. Try from the driver seat.');
+    SetVehicleCustomPrimaryColour(vehicle, ...primary);
+    if (secondary) SetVehicleCustomSecondaryColour(vehicle, ...secondary);
+    notify('Vehicle painted.');
+}
+
 function nearbyVehicle(): number {
     const ped = PlayerPedId();
     const current = GetVehiclePedIsIn(ped, false);
@@ -221,6 +231,8 @@ export async function runAction(action: AdminAction): Promise<void> {
             return clearArea();
         case 'spawnVehicle':
             return spawnVehicle(action.model);
+        case 'carColor':
+            return paintVehicle(action.primary, action.secondary);
     }
 }
 
