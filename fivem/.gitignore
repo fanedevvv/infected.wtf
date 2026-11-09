@@ -13,3 +13,6 @@ txData/
 
 # Add-on vehicle binaries (third-party, large) — deployed from disk, not git
 resources/[[]cars[]]/*/stream/
+
+# Packaged server zips (contain secrets)
+release/
