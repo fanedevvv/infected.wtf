@@ -1,5 +1,5 @@
-html,
-body {
+/* Saphirex HUD — slanted "chips" with an accent edge. The accent comes from /settings. */
+html, body {
     width: 100%;
     height: 100%;
     margin: 0;
@@ -7,173 +7,131 @@ body {
     background: transparent !important;
 }
 
-* {
-    box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 :root {
     --hud-accent: #e9bd57;
     --hud-accent-rgb: 233, 189, 87;
+    --chip: rgba(8, 10, 14, .72);
+    --chip-edge: rgba(255, 255, 255, .07);
+    --text: #f4f3ef;
+    --muted: rgba(244, 243, 239, .55);
+    --loss: #ff6b5e;
+    --skew: -12deg;
+    font-family: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+    color: var(--text);
 }
 
 #hud {
     position: fixed;
-    top: 14px;
-    right: 16px;
+    top: 22px;
+    right: 26px;
     display: flex;
-    width: min(380px, calc(100vw - 24px));
     flex-direction: column;
     align-items: flex-end;
-    gap: 6px;
-    color: #f4f2ed;
+    gap: 7px;
+    opacity: 0;
+    transform: translateX(16px);
+    transition: opacity .35s ease, transform .45s cubic-bezier(.2, .8, .2, 1);
+}
+
+body.visible #hud { opacity: 1; transform: none; }
+body.paused #hud, body.paused .fps { opacity: 0 !important; }
+
+/* A slanted panel: the box is skewed, its children are un-skewed. */
+.chip {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 8px 18px 8px 16px;
+    background: linear-gradient(100deg, rgba(var(--hud-accent-rgb), .16) 0%, var(--chip) 38%);
+    border: 1px solid var(--chip-edge);
+    border-right-color: rgba(var(--hud-accent-rgb), .55);
+    border-radius: 4px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .35), inset 0 1px rgba(255, 255, 255, .04);
+    transform: skewX(var(--skew));
+    backdrop-filter: blur(6px);
+}
+
+.chip > * { transform: skewX(calc(var(--skew) * -1)); }
+
+/* Accent edge with glow on the left of every chip */
+.chip::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    bottom: -1px;
+    left: -1px;
+    width: 3px;
+    background: var(--hud-accent);
+    border-radius: 4px 0 0 4px;
+    box-shadow: 0 0 14px rgba(var(--hud-accent-rgb), .8);
+}
+
+/* Identity */
+.identity { gap: 12px; padding: 7px 20px 7px 10px; }
+.logo { width: 38px; height: 38px; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(var(--hud-accent-rgb), .5)); }
+.who { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.1; }
+#username { font-size: 15px; font-weight: 700; letter-spacing: .02em; }
+.meta { display: flex; align-items: center; gap: 8px; margin-top: 3px; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .04em; }
+#account-id { color: var(--hud-accent); }
+.sep { width: 1px; height: 10px; background: rgba(255, 255, 255, .18); }
+.online { display: flex; align-items: center; gap: 5px; }
+.online b { color: var(--text); font-weight: 700; }
+.dot { width: 6px; height: 6px; background: #5fe08f; border-radius: 50%; box-shadow: 0 0 8px #5fe08f; }
+
+/* Money */
+.money { gap: 14px; min-width: 210px; justify-content: space-between; }
+.label { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .22em; }
+.amount { font-family: 'Bahnschrift', 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; font-weight: 700; letter-spacing: .01em; white-space: nowrap; }
+.currency { margin-right: 3px; color: var(--hud-accent); }
+.cash .amount { font-size: 24px; }
+.bank { min-width: 180px; padding-top: 5px; padding-bottom: 5px; }
+.bank .amount { font-size: 17px; color: rgba(244, 243, 239, .86); }
+
+/* Floating +$250 / -$50 when money changes */
+.delta {
+    position: absolute;
+    right: calc(100% + 10px);
+    top: 50%;
+    font: 700 15px/1 'Bahnschrift', 'Segoe UI', sans-serif;
+    white-space: nowrap;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, .6);
     opacity: 0;
     pointer-events: none;
-    transform: translateY(-4px);
-    transition: opacity .3s ease, transform .3s ease;
+}
+.delta.gain { color: var(--hud-accent); }
+.delta.loss { color: var(--loss); }
+.delta.show { animation: delta 2.4s cubic-bezier(.2, .8, .2, 1) forwards; }
+@keyframes delta {
+    0% { opacity: 0; transform: translate(10px, -50%) skewX(12deg); }
+    12% { opacity: 1; transform: translate(0, -50%) skewX(12deg); }
+    75% { opacity: 1; transform: translate(0, -50%) skewX(12deg); }
+    100% { opacity: 0; transform: translate(0, -120%) skewX(12deg); }
 }
 
-body.visible #hud {
-    opacity: 1;
-    transform: translateY(0);
-}
+/* Amount pulses briefly when it changes */
+.amount.bump { animation: bump .45s ease; }
+@keyframes bump { 40% { text-shadow: 0 0 14px rgba(var(--hud-accent-rgb), .9); } }
 
-body.paused #hud,
-body.paused #fps-counter {
-    visibility: hidden;
-}
-
-.identity {
-    display: flex;
-    width: 100%;
-    min-height: 58px;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 14px;
-    padding: 8px 12px 8px 28px;
-    border-radius: 6px;
-    background-color: transparent;
-    background-image: linear-gradient(to left,
-        rgba(var(--hud-accent-rgb), .28) 0%,
-        rgba(var(--hud-accent-rgb), 0) 100%),
-        linear-gradient(to left,
-        rgba(12, 13, 15, .88) 0%,
-        rgba(12, 13, 15, .82) 70%,
-        rgba(12, 13, 15, 0) 100%);
-}
-
-#fps-counter {
+/* FPS counter (toggle in /settings) */
+.fps {
     position: fixed;
-    bottom: 3px;
-    left: 3px;
-    z-index: 1;
+    bottom: 10px;
+    left: 14px;
     display: none;
-    align-items: center;
-    gap: 7px;
-    padding: 6px 9px;
-    border-radius: 5px;
-    background-color: transparent;
-
-    color: #f4f2ed;
-    font: 600 11px/1 'Segoe UI', Arial, sans-serif;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, .9);
+    gap: 5px;
+    padding: 4px 12px 4px 10px;
+    align-items: baseline;
 }
+.fps.visible { display: flex; }
+.fps strong { font: 700 14px/1 'Bahnschrift', 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; }
+.fps span { color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .18em; }
 
-body.visible #fps-counter.visible {
-    display: flex;
-}
-
-#fps-value {
-    color: #fff;
-    font-size: 13px;
-    font-weight: 700;
-}
-
-.online-count {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    color: var(--hud-accent);
-}
-
-.icon {
-    display: inline-block;
-    width: 15px;
-    height: 15px;
-    flex: 0 0 15px;
-    color: var(--hud-accent);
-    vertical-align: middle;
-}
-
-.online-icon {
-    width: 18px;
-    height: 18px;
-    flex-basis: 18px;
-}
-
-.online-count strong {
-    font: 650 16px/1 'Segoe UI', Arial, sans-serif;
-}
-
-.player {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 3px;
-}
-
-#username {
-    overflow: hidden;
-    color: #f4f2ed;
-    font: 650 16px/1.1 'Segoe UI', Arial, sans-serif;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.balances {
-    display: flex;
-    justify-content: flex-end;
-    gap: 6px;
-}
-
-.balance {
-    display: flex;
-    min-width: 118px;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 9px 12px;
-    border-radius: 5px;
-    background-color: transparent;
-    background-image: linear-gradient(to left,
-        rgba(var(--hud-accent-rgb), .26) 0%,
-        rgba(var(--hud-accent-rgb), 0) 100%),
-        linear-gradient(to left,
-        rgba(12, 13, 15, .88) 0%,
-        rgba(12, 13, 15, .82) 70%,
-        rgba(12, 13, 15, 0) 100%);
-}
-
-.stat-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: rgba(244, 242, 237, .68);
-    font: 600 8px/1 'Segoe UI', Arial, sans-serif;
-    letter-spacing: .08em;
-}
-
-.balance strong {
-    color: var(--hud-accent);
-    font: 650 13px/1 'Segoe UI', Arial, sans-serif;
-    white-space: nowrap;
-}
-
-@media (max-width: 600px) {
-    #hud { top: 10px; right: 10px; width: min(350px, calc(100vw - 20px)); }
-    .identity { min-height: 54px; }
+@media (max-width: 900px) {
+    #hud { top: 12px; right: 14px; transform-origin: top right; scale: .85; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    #hud { transition: none; }
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }

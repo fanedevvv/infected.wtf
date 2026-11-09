@@ -1,4 +1,5 @@
 export interface HudPlayer {
+    id: string;
     username: string;
     cash: string;
     bank: string;

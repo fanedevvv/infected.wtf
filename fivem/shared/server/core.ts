@@ -7,9 +7,10 @@ export interface OnlineAccount {
     id: string;
     username: string;
     admin: number;
+    helper: number;
 }
 
-export type AccountPatch = Partial<Pick<Account, 'cash' | 'bank' | 'admin' | 'level'>>;
+export type AccountPatch = Partial<Pick<Account, 'cash' | 'bank' | 'admin' | 'helper' | 'level'>>;
 
 const core = () => resourceExports('ket_core');
 

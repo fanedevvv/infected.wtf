@@ -51,6 +51,7 @@ const USER_COLUMNS: Record<string, string> = {
     hud_speed_metric: 'TINYINT(1) NOT NULL DEFAULT 1',
     skin: "VARCHAR(64) NOT NULL DEFAULT 'mp_m_freemode_01'",
     admin: 'INT UNSIGNED NOT NULL DEFAULT 0',
+    helper: 'TINYINT UNSIGNED NOT NULL DEFAULT 0',
     level: 'INT UNSIGNED NOT NULL DEFAULT 1',
     job: "VARCHAR(48) NOT NULL DEFAULT 'unemployed'",
     job_grade: 'INT UNSIGNED NOT NULL DEFAULT 0',

@@ -1,26 +1,17 @@
 import { MAX_ADMIN_LEVEL } from '@shared/common/constants.ts';
-import type { AdminAction, AdminSelfAction } from '@shared/common/contracts.ts';
-import type { AdminArgument, AdminCommandInfo } from '@shared/common/types.ts';
+import type { AdminSelfAction } from '@shared/common/contracts.ts';
 import { parseIntStrict } from '@shared/common/validate.ts';
 import { Core } from '@shared/server/core.ts';
 import { db } from '@shared/server/db.ts';
 import { emitClient } from '@shared/server/events.ts';
 import { getPedCoords } from '@shared/server/players.ts';
-import { sendChat } from '@shared/server/chat.ts';
 import { log } from '@shared/common/log.ts';
+import { sendChat } from '@shared/server/chat.ts';
+import { action, arg, ID, type AdminCommand } from './command.ts';
+import { rememberPosition } from './positions.ts';
 import { customVehicles } from './vehicles.ts';
 import { fail, notify, notifyAccount, requireAccount, requireOnline, rest, type CommandContext } from './context.ts';
 
-export interface AdminCommand extends AdminCommandInfo {
-    /** Exact argument count (default: arguments.length). `'min'` allows trailing free text. */
-    arity?: 'exact' | 'min';
-    run: (context: CommandContext) => void | Promise<void>;
-}
-
-const action = (target: number, payload: AdminAction) => emitClient('ket_admin:action', target, payload);
-
-const ID: AdminArgument = { name: 'id', label: 'Database ID' };
-const arg = (name: string, label: string, optional = false): AdminArgument => ({ name, label, ...(optional && { optional }) });
 
 /** Commands that run entirely on the admin's own client. */
 const selfAction = (
@@ -36,14 +27,14 @@ function setFrozen({ source, args, reply }: CommandContext, frozen: boolean): vo
     const target = requireOnline(args[0]);
     action(target.source, { type: 'freeze', frozen });
     reply(`${frozen ? 'Froze' : 'Unfroze'} ${target.username}.`);
-    if (target.source !== source) notify(target.source, frozen ? 'An admin froze you.' : 'An admin unfroze you.');
+    if (target.source !== source) notify(target.source, frozen ? 'A staff member froze you.' : 'A staff member unfroze you.');
 }
 
 function bring({ source, args, reply }: CommandContext): void {
     const target = requireOnline(args[0]);
     action(target.source, { type: 'teleport', ...getPedCoords(source) });
     reply(`Brought ${target.username} to you.`);
-    if (target.source !== source) notify(target.source, 'An admin teleported you to them.');
+    if (target.source !== source) notify(target.source, 'A staff member teleported you to them.');
 }
 
 /** Denies acting on accounts with an equal or higher admin level. */
@@ -51,23 +42,25 @@ function assertOutranks(actorLevel: number, targetLevel: number, verb: string): 
     if (targetLevel >= actorLevel) fail(`You cannot ${verb} an administrator with an equal or higher level.`);
 }
 
-export const COMMANDS: AdminCommand[] = [
+export const ADMIN_COMMANDS: AdminCommand[] = [
     // ── Teleport ────────────────────────────────────────────────────────────
     {
-        name: 'goto', label: 'Teleport to player', description: 'Teleport to a player.', level: 2, category: 'Teleport', arguments: [ID],
+        name: 'goto', label: 'Teleport to player', description: 'Teleport to a player (/return to go back).', level: 2, helper: 2, category: 'Teleport', arguments: [ID],
         run: ({ source, args, reply }) => {
             const target = requireOnline(args[0]);
+            if (target.source === source) fail('You cannot teleport to yourself.');
+            rememberPosition(source);
             action(source, { type: 'teleport', ...getPedCoords(target.source) });
             reply(`Teleported to ${target.username}.`);
         },
     },
-    { name: 'gethere', label: 'Bring player', description: 'Bring a player to you.', level: 2, category: 'Teleport', arguments: [ID], run: bring },
-    { name: 'bring', label: 'Bring player (alias)', description: 'Alias for /gethere.', level: 2, category: 'Teleport', arguments: [ID], run: bring },
+    { name: 'gethere', label: 'Bring player', description: 'Bring a player to you.', level: 2, helper: 2, category: 'Teleport', arguments: [ID], run: bring },
+    { name: 'bring', label: 'Bring player (alias)', description: 'Alias for /gethere.', level: 2, helper: 2, category: 'Teleport', arguments: [ID], run: bring },
     selfAction('tpm', 'Teleport to waypoint', 'Teleport to your map waypoint.', 1, 'Teleport', 'waypoint'),
 
     // ── Player ──────────────────────────────────────────────────────────────
-    { name: 'freeze', label: 'Freeze player', description: 'Freeze a player in place.', level: 1, category: 'Player', arguments: [ID], run: (ctx) => setFrozen(ctx, true) },
-    { name: 'unfreeze', label: 'Unfreeze player', description: 'Unfreeze a player.', level: 1, category: 'Player', arguments: [ID], run: (ctx) => setFrozen(ctx, false) },
+    { name: 'freeze', label: 'Freeze player', description: 'Freeze a player in place.', level: 1, helper: 3, category: 'Player', arguments: [ID], run: (ctx) => setFrozen(ctx, true) },
+    { name: 'unfreeze', label: 'Unfreeze player', description: 'Unfreeze a player.', level: 1, helper: 3, category: 'Player', arguments: [ID], run: (ctx) => setFrozen(ctx, false) },
     {
         name: 'heal', label: 'Heal player', description: 'Restore a player to full health.', level: 1, category: 'Player', arguments: [ID],
         run: ({ args, reply }) => {
@@ -78,7 +71,7 @@ export const COMMANDS: AdminCommand[] = [
         },
     },
     {
-        name: 'spectate', label: 'Spectate player', description: 'Toggle spectating a player.', level: 1, category: 'Player', arguments: [ID],
+        name: 'spectate', label: 'Spectate player', description: 'Toggle spectating a player (/specoff to stop).', level: 1, helper: 3, category: 'Player', arguments: [ID],
         run: ({ source, args, reply }) => {
             const target = requireOnline(args[0]);
             if (target.source === source) fail('You cannot spectate yourself.');
@@ -145,7 +138,7 @@ export const COMMANDS: AdminCommand[] = [
         },
     },
     {
-        name: 'warn', label: 'Warn player', description: 'Record a warning for a player.', level: 1, category: 'Punishment',
+        name: 'warn', label: 'Warn player', description: 'Record a warning for a player.', level: 1, helper: 4, category: 'Punishment',
         arguments: [ID, arg('reason', 'Reason')], arity: 'min',
         run: async (ctx) => {
             const target = requireOnline(ctx.args[0]);
@@ -257,29 +250,15 @@ export const COMMANDS: AdminCommand[] = [
         },
     },
     {
-        name: 'announce', label: 'Global announcement', description: 'Send a message to everyone online.', level: 4, category: 'Server',
+        name: 'announce', label: 'Global announcement', description: 'Show a message on everyone\'s screen and in chat.', level: 4, category: 'Server',
         arguments: [arg('message', 'Announcement')], arity: 'min',
         run: (ctx) => {
             const message = rest(ctx, 0);
             if (message.length > 240) fail('Usage: /announce [message, up to 240 characters]');
+            // Big on-screen banner for everyone (like SA-MP GameText), plus the chat line.
+            action(-1, { type: 'announce', title: 'ANNOUNCEMENT', message, author: ctx.actor.username });
             sendChat(-1, 'ANNOUNCEMENT', `[${ctx.actor.username}] ${message}`);
             log.info(`Announcement by ${ctx.actor.username}: ${message}`);
         },
     },
 ];
-
-export const COMMANDS_BY_NAME = new Map(COMMANDS.map((command) => [command.name, command]));
-
-/** The menu/suggestion view of a command (no handler). */
-export const describe = ({ name, label, description, level, category, arguments: args }: AdminCommand): AdminCommandInfo => ({
-    name,
-    label,
-    description,
-    level,
-    category,
-    arguments: args,
-});
-
-/** "Usage: /ban {id} {days} {reason}" */
-export const usage = (command: AdminCommand) =>
-    `Usage: /${command.name}${command.arguments.map((argument) => ` [${argument.label}${argument.optional ? ' (optional)' : ''}]`).join('')}`;

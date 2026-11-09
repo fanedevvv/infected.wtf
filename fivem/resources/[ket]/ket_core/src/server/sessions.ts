@@ -57,6 +57,7 @@ export const sessions = {
                 if (patch.cash !== undefined) account.cash = String(patch.cash);
                 if (patch.bank !== undefined) account.bank = String(patch.bank);
                 if (patch.admin !== undefined) account.admin = patch.admin;
+                if (patch.helper !== undefined) account.helper = patch.helper;
                 if (patch.level !== undefined) account.level = patch.level;
             }) !== undefined
         );
@@ -71,7 +72,7 @@ export const sessions = {
     },
 
     online(): OnlineAccount[] {
-        return [...bySource].map(([source, { account }]) => ({ source, id: account.id, username: account.username, admin: account.admin }));
+        return [...bySource].map(([source, { account }]) => ({ source, id: account.id, username: account.username, admin: account.admin, helper: account.helper }));
     },
 
     copy: (source: number) => {

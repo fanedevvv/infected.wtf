@@ -1,5 +1,5 @@
 import type { AdminAction } from '@shared/common/contracts.ts';
-import { sleep } from '@shared/common/async.ts';
+import { sleep, waitFor } from '@shared/common/async.ts';
 import { controlledEntity, loadModel, notify as chat, pedCoords, requestControl, Tick, vecDistance } from '@shared/client/game.ts';
 import { emitServer } from '@shared/client/events.ts';
 import { resourceExports } from '@shared/common/fx.ts';
@@ -117,6 +117,33 @@ async function clearArea(): Promise<void> {
     notify(`Removed ${removed} unoccupied vehicle(s) within ${CLEAR_RADIUS} meters.`);
 }
 
+// ── Announcements: GTA's big centre-screen message (like SA-MP GameText) ───
+const ANNOUNCE_MS = 8_000;
+let banner: { handle: number; until: number } | undefined;
+
+const bannerTick = new Tick(() => {
+    if (!banner) return bannerTick.stop();
+    if (GetGameTimer() > banner.until) {
+        SetScaleformMovieAsNoLongerNeeded(banner.handle);
+        banner = undefined;
+        return bannerTick.stop();
+    }
+    DrawScaleformMovieFullscreen(banner.handle, 255, 255, 255, 255, 0);
+});
+
+async function showAnnouncement(title: string, message: string, author: string): Promise<void> {
+    const handle = RequestScaleformMovie('MP_BIG_MESSAGE_FREEMODE');
+    if (!(await waitFor(() => HasScaleformMovieLoaded(handle), 3_000))) return;
+    BeginScaleformMovieMethod(handle, 'SHOW_SHARD_WASTED_MP_MESSAGE');
+    PushScaleformMovieMethodParameterString(title);
+    PushScaleformMovieMethodParameterString(`${message}~n~~c~— ${author}`);
+    EndScaleformMovieMethod();
+    if (banner && banner.handle !== handle) SetScaleformMovieAsNoLongerNeeded(banner.handle);
+    banner = { handle, until: GetGameTimer() + ANNOUNCE_MS };
+    bannerTick.start();
+    PlaySoundFrontend(-1, 'CHALLENGE_UNLOCKED', 'HUD_AWARDS', true);
+}
+
 /** Executes an action the server has already authorized. */
 export async function runAction(action: AdminAction): Promise<void> {
     switch (action.type) {
@@ -143,6 +170,10 @@ export async function runAction(action: AdminAction): Promise<void> {
         }
         case 'spectate':
             return toggleSpectate(action.target);
+        case 'spectateOff':
+            return flags.spectating ? toggleSpectate(0) : notify('You are not spectating anyone.');
+        case 'announce':
+            return showAnnouncement(action.title, action.message, action.author);
         case 'noclip':
             return toggleNoclip();
         case 'invisible':

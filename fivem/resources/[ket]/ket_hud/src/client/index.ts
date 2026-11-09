@@ -14,7 +14,7 @@ const state = {
     accent: DEFAULT_ACCENT,
     showFps: false,
     online: Number(GlobalState[StateKey.online] ?? 0),
-    player: { username: 'Guest', cash: '0', bank: '0' } as HudPlayer,
+    player: { id: '', username: 'Guest', cash: '0', bank: '0' } as HudPlayer,
 };
 
 const send = (message: HudNuiMessage) => state.ready && sendNui(message);
@@ -29,8 +29,8 @@ onNui('ready', () => {
     send({ type: 'visible', visible: state.visible });
 });
 
-watchAccount(({ username, cash, bank, settings }) => {
-    state.player = { username, cash, bank };
+watchAccount(({ id, username, cash, bank, settings }) => {
+    state.player = { id, username, cash, bank };
     send({ type: 'player', player: state.player });
     if (settings.hudColor !== state.accent) send({ type: 'accent', color: (state.accent = settings.hudColor) });
     if (settings.showFps !== state.showFps) send({ type: 'fps', enabled: (state.showFps = settings.showFps) });

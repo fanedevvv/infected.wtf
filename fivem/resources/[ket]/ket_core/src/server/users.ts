@@ -15,6 +15,7 @@ interface UserRow {
     hud_speed_metric: number | boolean | null;
     skin: string | null;
     admin: number | null;
+    helper: number | null;
     level: number | null;
 }
 
@@ -22,7 +23,7 @@ interface LoginRow extends UserRow {
     password_hash: string;
 }
 
-const PROFILE_COLUMNS = 'id, username, cash, bank, hud_color, hud_show_fps, hud_show_own_nametag, hud_speed_metric, skin, admin, level';
+const PROFILE_COLUMNS = 'id, username, cash, bank, hud_color, hud_show_fps, hud_show_own_nametag, hud_speed_metric, skin, admin, helper, level';
 
 const flag = (value: unknown) => value === true || Number(value) === 1;
 
@@ -32,6 +33,7 @@ export function toAccount(row: UserRow): Account {
         username: row.username,
         level: Number(row.level ?? 1),
         admin: Number(row.admin ?? 0) || 0,
+        helper: Number(row.helper ?? 0) || 0,
         cash: String(row.cash ?? 0),
         bank: String(row.bank ?? 0),
         skin: row.skin || DEFAULT_SKIN,

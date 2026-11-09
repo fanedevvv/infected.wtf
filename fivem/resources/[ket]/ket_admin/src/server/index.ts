@@ -6,7 +6,8 @@ import { addSuggestion } from '@shared/server/chat.ts';
 import { Core } from '@shared/server/core.ts';
 import { emitClient, onClient, onLocal } from '@shared/server/events.ts';
 import { distance3 } from '@shared/server/players.ts';
-import { COMMANDS, COMMANDS_BY_NAME, describe, usage, type AdminCommand } from './commands.ts';
+import { canUse, describe, usage, type AdminCommand } from './command.ts';
+import { COMMANDS, COMMANDS_BY_NAME } from './registry.ts';
 import { CommandError, notify } from './context.ts';
 
 const MAX_ARGS = 8;
@@ -18,10 +19,10 @@ function arityOk(command: AdminCommand, count: number): boolean {
     return command.arity === 'min' ? count >= required : count >= required && count <= command.arguments.length;
 }
 
-/** Single entry point for chat commands and the admin menu: permission → arity → handler. */
 /** Commands that also work from the server / txAdmin console (they don't need the caller's ped). */
 const CONSOLE_COMMANDS = new Set([
     'setadmin', 'kick', 'ban', 'unban', 'warn', 'announce', 'givemoney', 'giveitem', 'setjob', 'clearinv', 'respawn', 'heal', 'freeze', 'unfreeze',
+    'a', 'sethelper', 'history', 'hnote', 'hactivity', 'checkid', 'reports', 'clearreport', 'ar',
 ]);
 
 /** The console acts as an account above every admin level. */
@@ -30,6 +31,7 @@ const CONSOLE_ACTOR: Account = {
     username: 'Console',
     level: 0,
     admin: MAX_ADMIN_LEVEL + 1,
+    helper: 5,
     cash: '0',
     bank: '0',
     skin: '',
@@ -44,7 +46,7 @@ async function run(source: number, name: string, args: string[]): Promise<void> 
 
     if (fromConsole && (!command || !CONSOLE_COMMANDS.has(name))) return log.warn(`/${name} can only be used in-game by a signed-in admin.`);
     const actor = fromConsole ? CONSOLE_ACTOR : Core.getAccount(source);
-    if (!command || !actor || actor.admin < command.level) return reply('You do not have permission to use this command.');
+    if (!command || !actor || !canUse(actor, command)) return reply('You do not have permission to use this command.');
     if (!arityOk(command, args.length)) return reply(usage(command));
 
     try {
@@ -66,7 +68,7 @@ RegisterCommand(
         if (source === 0) return log.warn('/admin can only be used by a player.');
         const level = Core.getAdminLevel(source);
         if (level < 1) return notify(source, 'You do not have permission to use this command.');
-        emitClient('ket_admin:open', source, COMMANDS.filter((command) => level >= command.level).map(describe), level);
+        emitClient('ket_admin:open', source, COMMANDS.filter((command) => command.level >= 1 && level >= command.level).map(describe), level);
     },
     false,
 );
@@ -88,25 +90,32 @@ onClient('ket_admin:deleteVehicle', (source, netId) => {
     notify(source, 'Vehicle deleted.');
 });
 
-/** Chat suggestions only for the commands a player may actually use. */
-const syncedLevel = new Map<number, number>();
+/** Chat suggestions only for the commands a player may actually use (players, helpers, admins). */
+const syncedRank = new Map<number, string>();
 
-function syncSuggestions(source: number, level: number): void {
-    syncedLevel.set(source, level);
+const rankKey = (account: Pick<Account, 'admin' | 'helper'>) => `${account.admin}:${account.helper}`;
+
+function requirement(command: AdminCommand): string {
+    if (command.level === 0) return '';
+    return command.helper !== undefined ? ` (helper ${command.helper}+ / admin ${command.level}+)` : ` (admin ${command.level}+)`;
+}
+
+function syncSuggestions(source: number, account: Pick<Account, 'admin' | 'helper'>): void {
+    syncedRank.set(source, rankKey(account));
     for (const command of COMMANDS) {
         const name = `/${command.name}`;
-        if (level < command.level) {
+        if (!canUse(account, command)) {
             emitClient('chat:removeSuggestion', source, name);
             continue;
         }
         const params = command.arguments.map((argument) => ({ name: `{${argument.name}}`, help: argument.label }));
-        addSuggestion(source, name, `${command.description} (admin ${command.level}+).`, params);
+        addSuggestion(source, name, `${command.description}${requirement(command)}`, params);
     }
-    if (level >= 1) addSuggestion(source, '/admin', 'Open the admin control panel (admin level 1+).');
+    if (account.admin >= 1) addSuggestion(source, '/admin', 'Open the admin control panel (admin level 1+).');
     else emitClient('chat:removeSuggestion', source, '/admin');
 }
 
-onLocal('ket:playerLoaded', (source, account) => account.admin > 0 && syncSuggestions(source, account.admin));
-onLocal('ket:accountChanged', (source, account) => (syncedLevel.get(source) ?? 0) !== account.admin && syncSuggestions(source, account.admin));
-onLocal('ket:playerUnloaded', (source) => syncedLevel.delete(source));
-for (const { source, admin } of Core.online()) if (admin > 0) syncSuggestions(source, admin);
+onLocal('ket:playerLoaded', (source, account) => syncSuggestions(source, account));
+onLocal('ket:accountChanged', (source, account) => syncedRank.get(source) !== rankKey(account) && syncSuggestions(source, account));
+onLocal('ket:playerUnloaded', (source) => syncedRank.delete(source));
+for (const { source, admin, helper } of Core.online()) syncSuggestions(source, { admin, helper });

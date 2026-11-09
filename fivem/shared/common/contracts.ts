@@ -60,5 +60,7 @@ export type AdminAction =
     | { type: 'freeze'; frozen: boolean }
     | { type: 'heal' }
     | { type: 'spectate'; target: number }
+    | { type: 'spectateOff' }
+    | { type: 'announce'; title: string; message: string; author: string }
     | { type: AdminSelfAction }
     | { type: 'spawnVehicle'; model: string };

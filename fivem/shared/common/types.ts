@@ -12,6 +12,8 @@ export interface Account {
     username: string;
     level: number;
     admin: number;
+    /** Helper level 0–5 (0 = not a helper). */
+    helper: number;
     cash: string;
     bank: string;
     skin: string;

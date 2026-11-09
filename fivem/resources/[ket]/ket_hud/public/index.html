@@ -9,43 +9,30 @@
 </head>
 <body>
     <main id="hud" aria-label="Player information">
-        <section class="identity">
-            <div class="online-count">
-                <svg class="icon online-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                    <circle cx="10" cy="7" r="4"/>
-                    <path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
-                <strong id="online">0</strong>
-            </div>
-            <div class="player">
+        <!-- Identity: logo, name, account ID, players online -->
+        <section class="chip identity">
+            <img class="logo" src="assets/logo.webp" alt="" draggable="false">
+            <div class="who">
                 <strong id="username">Guest</strong>
+                <span class="meta"><span id="account-id">#—</span><i class="sep"></i><span class="online"><i class="dot"></i><b id="online">0</b> online</span></span>
             </div>
         </section>
-        <section class="balances" aria-label="Player balances">
-            <div class="balance cash-balance">
-                <span class="stat-label">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <rect width="20" height="14" x="2" y="5" rx="2"/>
-                        <circle cx="12" cy="12" r="3"/>
-                        <path d="M6 9h.01M18 15h.01"/>
-                    </svg>
-                </span>
-                <strong id="cash">$0</strong>
-            </div>
-            <div class="balance bank-balance">
-                <span class="stat-label">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="m3 10 9-7 9 7"/>
-                        <path d="M4 10h16M5 10v9M9 10v9M15 10v9M19 10v9M3 21h18"/>
-                    </svg>
-                </span>
-                <strong id="bank">$0</strong>
-            </div>
+
+        <!-- Money -->
+        <section class="chip money cash">
+            <span class="label">CASH</span>
+            <strong class="amount"><span class="currency">$</span><span id="cash">0</span></strong>
+            <span id="cash-delta" class="delta" aria-live="polite"></span>
+        </section>
+        <section class="chip money bank">
+            <span class="label">BANK</span>
+            <strong class="amount"><span class="currency">$</span><span id="bank">0</span></strong>
+            <span id="bank-delta" class="delta" aria-live="polite"></span>
         </section>
     </main>
-    <div id="fps-counter" aria-label="Frames per second">
-        <strong id="fps-value">--</strong>
+
+    <div id="fps-counter" class="chip fps" aria-label="Frames per second">
+        <strong id="fps-value">--</strong><span>FPS</span>
     </div>
 </body>
 </html>
