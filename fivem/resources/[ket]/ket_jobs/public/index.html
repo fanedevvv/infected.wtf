@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Jobs</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <!-- /jobs menu -->
+    <section id="menu" class="menu" hidden>
+        <header class="menu-head">
+            <div>
+                <span class="eyebrow">CITY HALL</span>
+                <h1>Jobs</h1>
+                <p id="current" class="current"></p>
+            </div>
+            <button id="close" class="icon-button" type="button" aria-label="Close">×</button>
+        </header>
+        <div id="jobs" class="jobs"></div>
+        <footer class="menu-foot">Pin a job, go to the NPC and type <kbd>/getjob</kbd>. <span><kbd>ESC</kbd> to close</span></footer>
+    </section>
+
+    <!-- Fishing minigame -->
+    <section id="minigame" class="minigame" hidden>
+        <div class="mg-title"><strong>A fish is biting!</strong><span id="mg-hint">Press <kbd>SPACE</kbd> when the marker is in the zone</span></div>
+        <div class="mg-bar">
+            <div id="mg-zone" class="mg-zone"></div>
+            <div id="mg-marker" class="mg-marker"></div>
+        </div>
+        <div class="mg-timer"><div id="mg-time" class="mg-time"></div></div>
+    </section>
+</body>
+</html>

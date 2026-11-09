@@ -56,6 +56,15 @@ export const ADMIN_COMMANDS: AdminCommand[] = [
     },
     { name: 'gethere', label: 'Bring player', description: 'Bring a player to you.', level: 2, helper: 2, category: 'Teleport', arguments: [ID], run: bring },
     { name: 'bring', label: 'Bring player (alias)', description: 'Alias for /gethere.', level: 2, helper: 2, category: 'Teleport', arguments: [ID], run: bring },
+    {
+        name: 'mypos', label: 'My position', description: 'Show your exact position (for placing NPCs, zones, blips).', level: 1, category: 'Teleport', arguments: [],
+        run: ({ source, reply }) => {
+            const { x, y, z, heading } = getPedCoords(source);
+            const text = `x: ${x.toFixed(2)}, y: ${y.toFixed(2)}, z: ${z.toFixed(2)}, heading: ${heading.toFixed(1)}`;
+            reply(text);
+            log.info(`/mypos ${text}`);
+        },
+    },
     selfAction('tpm', 'Teleport to waypoint', 'Teleport to your map waypoint.', 1, 'Teleport', 'waypoint'),
 
     // ── Player ──────────────────────────────────────────────────────────────

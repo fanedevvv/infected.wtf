@@ -9,7 +9,16 @@ export interface ServerRpc {
     'ket_core:updateSettings': (patch: Partial<Settings>) => Result<Settings>;
     'ket_chat:commandExists': (name: string) => boolean;
     'ket_admin:support': (action: SupportAction) => Result<SupportView>;
+    'ket_jobs:state': () => Result<{ job: string }>;
+    'ket_jobs:startFishing': () => FishingStart;
+    'ket_jobs:finishFishing': (session: number, success: boolean) => Result<{ label: string; price: number } | null>;
 }
+
+/** /fish: `zone` means the player is outside the fishing zone (client shows a checkpoint). */
+export type FishingStart =
+    | { status: 'ok'; session: number; zoneWidth: number; speed: number }
+    | { status: 'zone' }
+    | { status: 'error'; message: string };
 
 /** Server → client RPCs, registered with `onRpc` (client) and invoked with `callClient` (server). */
 export interface ClientRpc {

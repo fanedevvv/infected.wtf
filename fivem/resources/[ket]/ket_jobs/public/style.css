@@ -1,0 +1,110 @@
+/* Jobs menu + fishing minigame. Accent comes from the player's /settings colour. */
+:root {
+    --accent: #e9bd57;
+    --accent-rgb: 233, 189, 87;
+    --panel: rgba(13, 15, 20, .96);
+    --text: #f3f1ea;
+    --muted: #9b9ba3;
+    --good: #6fd49a;
+    --bad: #ff6b5e;
+    font-family: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+    color: var(--text);
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: transparent; }
+button { font: inherit; color: inherit; cursor: pointer; }
+kbd { padding: 2px 6px; color: #d8d5cd; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .12); border-radius: 4px; font: 700 10px/1.4 Consolas, monospace; }
+
+/* ── Menu ─────────────────────────────────────────────────────────────── */
+.menu {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    flex-direction: column;
+    width: min(980px, 94vw);
+    max-height: 88vh;
+    transform: translate(-50%, -50%);
+    background: var(--panel);
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 18px;
+    box-shadow: 0 30px 100px rgba(0, 0, 0, .6);
+    animation: pop .25s cubic-bezier(.2, .8, .2, 1);
+}
+@keyframes pop { from { opacity: 0; transform: translate(-50%, -48%) scale(.98); } }
+
+.menu-head { display: flex; align-items: flex-start; justify-content: space-between; padding: 26px 30px 18px; border-bottom: 1px solid rgba(255, 255, 255, .07); }
+.eyebrow { color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: .2em; }
+h1 { margin: 6px 0 0; font-size: 26px; }
+.current { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+.current b { color: var(--accent); }
+.icon-button { width: 36px; height: 36px; background: rgba(255, 255, 255, .06); border: 0; border-radius: 50%; font-size: 22px; }
+.icon-button:hover { background: rgba(255, 255, 255, .13); }
+
+.jobs { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; padding: 22px 30px; overflow-y: auto; }
+
+.job {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 18px;
+    background: rgba(255, 255, 255, .035);
+    border: 1px solid rgba(255, 255, 255, .07);
+    border-radius: 14px;
+    transition: border-color .15s, transform .15s;
+}
+.job.available:hover { border-color: rgba(var(--accent-rgb), .55); transform: translateY(-2px); }
+.job.mine { border-color: var(--accent); background: rgba(var(--accent-rgb), .07); }
+.job.soon { opacity: .55; }
+
+.job-top { display: flex; align-items: center; gap: 12px; }
+.job-icon { display: grid; place-items: center; width: 44px; height: 44px; flex: none; color: var(--accent); background: rgba(var(--accent-rgb), .12); border: 1px solid rgba(var(--accent-rgb), .3); border-radius: 12px; }
+.job-icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.job-name { font-size: 16px; font-weight: 700; }
+.job-pay { margin-top: 2px; color: var(--muted); font-size: 12px; }
+.job-desc { margin: 0; color: #c9c8c2; font-size: 13px; line-height: 1.5; flex: 1; }
+.badge { position: absolute; top: 14px; right: 14px; padding: 3px 8px; color: #141414; background: var(--accent); border-radius: 20px; font-size: 9px; font-weight: 800; letter-spacing: .1em; }
+.badge.soon { color: #d3d1ca; background: rgba(255, 255, 255, .1); }
+
+.job-actions { display: flex; gap: 8px; }
+.primary { flex: 1; padding: 10px 14px; color: #141414; background: var(--accent); border: 0; border-radius: 9px; font-weight: 700; }
+.primary:hover { filter: brightness(1.08); }
+.primary:disabled { cursor: default; color: var(--muted); background: rgba(255, 255, 255, .07); filter: none; }
+.ghost { padding: 10px 14px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); border-radius: 9px; font-weight: 600; }
+.ghost:hover { border-color: rgba(255, 107, 94, .5); color: #ffd2cc; }
+
+.menu-foot { display: flex; align-items: center; gap: 6px; padding: 14px 30px; color: var(--muted); border-top: 1px solid rgba(255, 255, 255, .07); font-size: 12px; }
+.menu-foot span { margin-left: auto; }
+
+/* ── Fishing minigame ─────────────────────────────────────────────────── */
+.minigame {
+    position: fixed;
+    left: 50%;
+    bottom: 16vh;
+    width: min(520px, 90vw);
+    padding: 18px 20px 16px;
+    transform: translateX(-50%);
+    background: var(--panel);
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .55);
+    animation: rise .2s ease-out;
+}
+@keyframes rise { from { opacity: 0; transform: translate(-50%, 12px); } }
+.mg-title { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-bottom: 14px; text-align: center; }
+.mg-title strong { font-size: 18px; }
+.mg-title span { color: var(--muted); font-size: 12px; }
+
+.mg-bar { position: relative; height: 34px; overflow: hidden; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); border-radius: 9px; }
+.mg-zone { position: absolute; top: 0; bottom: 0; background: rgba(var(--accent-rgb), .45); border-left: 2px solid var(--accent); border-right: 2px solid var(--accent); box-shadow: 0 0 22px rgba(var(--accent-rgb), .5) inset; }
+.mg-marker { position: absolute; top: -4px; bottom: -4px; width: 4px; margin-left: -2px; background: #fff; border-radius: 2px; box-shadow: 0 0 10px rgba(255, 255, 255, .9); }
+
+.minigame.hit .mg-zone { background: rgba(111, 212, 154, .55); border-color: var(--good); }
+.minigame.miss .mg-bar { border-color: var(--bad); animation: shake .3s; }
+@keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+.mg-timer { height: 3px; margin-top: 12px; overflow: hidden; background: rgba(255, 255, 255, .08); border-radius: 2px; }
+.mg-time { height: 100%; background: var(--accent); transform-origin: left; }
