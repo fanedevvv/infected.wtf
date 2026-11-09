@@ -15,6 +15,20 @@ const SCENE_TIMEOUT_MS = 15_000;
 
 let camera: number | undefined;
 
+/**
+ * FiveM's loading overlay ignores ShutdownLoadingScreenNui() if it arrives too early,
+ * and there is no native to ask whether it is still up. Repeat the shutdown for a while
+ * so the overlay is dismissed as soon as FiveM accepts it.
+ */
+export function dismissLoadingScreens(durationMs = 30_000): void {
+    const deadline = GetGameTimer() + durationMs;
+    const timer = setInterval(() => {
+        ShutdownLoadingScreen();
+        ShutdownLoadingScreenNui();
+        if (GetGameTimer() >= deadline) clearInterval(timer);
+    }, 250);
+}
+
 export async function showLoginScene(parkPlayer: () => void): Promise<void> {
     DoScreenFadeOut(0); // stay black until the city has streamed in
     ShutdownLoadingScreen();

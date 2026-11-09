@@ -7,7 +7,7 @@ import { onNui, sendNui, setNuiFocus } from '@shared/client/nui.ts';
 import { callServer } from '@shared/client/rpc.ts';
 import type { AuthRequest } from '@shared/common/types.ts';
 import type { CoreNuiMessage, SubmitResponse } from '../common/nui.ts';
-import { aimCameraAt, hideLoginScene, showLoginScene } from './scene.ts';
+import { aimCameraAt, dismissLoadingScreens, hideLoginScene, showLoginScene } from './scene.ts';
 import { loadSkin, parkPlayer, spawnPlayer } from './spawn.ts';
 import { getAccount, markSpawned } from './state.ts';
 import { registerExport } from '@shared/common/fx.ts';
@@ -37,6 +37,7 @@ async function enterWorld(skin: string): Promise<boolean> {
     aimCameraAt(toVec3(SPAWN_POINT));
     await spawnPlayer(model);
     hideLoginScene();
+    dismissLoadingScreens(5_000);
     markSpawned();
     DoScreenFadeIn(2_500);
     return true;
@@ -81,6 +82,7 @@ onResourceStop(() => {
 
 void (async () => {
     await waitFor(() => NetworkIsPlayerActive(PlayerId()), 120_000, 100);
+    dismissLoadingScreens();
     await sleep(1_000);
     await openLogin();
 })();
