@@ -9,6 +9,9 @@ const TEMPLATE = GetConvar('ket_nametag_template', '[{{id}}] {{name}}');
 const DRAW_DISTANCE = 250;
 const UPDATE_INTERVAL_MS = 150;
 const HEAD_BONE = 31086;
+/** Own nametag: text scale, and how far above the head bone it floats (meters, world-up). */
+const OWN_TAG_SCALE = 0.35;
+const OWN_TAG_HEIGHT = 0.45;
 
 const enum Component {
     Name = 0,
@@ -83,8 +86,8 @@ setInterval(updateTags, UPDATE_INTERVAL_MS);
 // Own nametag: 3D text drawn every frame, but only while the setting is on.
 let ownLabel = '';
 const ownTag = new Tick(() => {
-    const [x = 0, y = 0, z = 0] = GetPedBoneCoords(PlayerPedId(), HEAD_BONE, 0, 0, 0.03);
-    drawText3d(x, y, z, ownLabel, 0.18, 230);
+    const [x = 0, y = 0, z = 0] = GetPedBoneCoords(PlayerPedId(), HEAD_BONE, 0, 0, 0);
+    drawText3d(x, y, z + OWN_TAG_HEIGHT, ownLabel, OWN_TAG_SCALE, 235);
 });
 
 watchAccount(({ id, username, settings }) => {
