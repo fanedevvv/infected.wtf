@@ -1,5 +1,5 @@
 :root {
-    color-scheme: dark;
+    color-scheme: normal; /* "dark" makes Chromium paint the whole NUI iframe opaque grey */
     font-family: 'Segoe UI', sans-serif;
     color: #f3f1ea;
     background: transparent;

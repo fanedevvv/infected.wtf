@@ -85,6 +85,20 @@ function assertNoBareExports(dir: string): void {
 }
 assertNoBareExports(path.join(root, 'shared'));
 for (const name of resources) assertNoBareExports(path.join(resourcesDir, name, 'src'));
+// Guard: `color-scheme: dark` makes Chromium paint a resource's NUI iframe with an opaque
+// dark background, covering the game for every player even while the page is hidden.
+for (const name of resources) {
+    const publicDir = path.join(resourcesDir, name, 'public');
+    if (!existsSync(publicDir)) continue;
+    for (const entry of readdirSync(publicDir, { withFileTypes: true, recursive: true })) {
+        if (!entry.isFile() || !/\.(css|html)$/.test(entry.name)) continue;
+        const file = path.join(entry.parentPath, entry.name);
+        if (/color-scheme\s*:\s*[^;]*dark/.test(readFileSync(file, 'utf8'))) {
+            console.error(`[build] ${path.relative(root, file)}: remove \`color-scheme: dark\` (makes the NUI frame opaque in-game)`);
+            process.exitCode = 1;
+        }
+    }
+}
 if (process.exitCode) process.exit(1);
 
 const contexts: esbuild.BuildContext[] = [];
