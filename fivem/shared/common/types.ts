@@ -2,6 +2,8 @@ export interface Settings {
     hudColor: string;
     showFps: boolean;
     showOwnNameTag: boolean;
+    /** Speedometer unit: true = km/h, false = mph. */
+    metricSpeed: boolean;
 }
 
 /** Account data sent to its owner. Money is a decimal string (BIGINT safe). */

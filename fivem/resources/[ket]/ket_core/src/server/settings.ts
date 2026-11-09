@@ -7,6 +7,7 @@ const validators: { [K in keyof Settings]: (value: unknown) => Settings[K] | und
     hudColor: (value) => (isHexColor(value) ? value.toLowerCase() : undefined),
     showFps: (value) => (isBoolean(value) ? value : undefined),
     showOwnNameTag: (value) => (isBoolean(value) ? value : undefined),
+    metricSpeed: (value) => (isBoolean(value) ? value : undefined),
 };
 
 /** Validates every key of an untrusted patch; unknown keys or bad values reject the whole patch. */

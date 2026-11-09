@@ -33,7 +33,7 @@ const CONSOLE_ACTOR: Account = {
     cash: '0',
     bank: '0',
     skin: '',
-    settings: { hudColor: '', showFps: false, showOwnNameTag: false },
+    settings: { hudColor: '', showFps: false, showOwnNameTag: false, metricSpeed: true },
 };
 
 /** Single entry point for chat commands, the admin menu and the console: permission → arity → handler. */

@@ -15,7 +15,36 @@ const toggles = [
     { key: 'showOwnNameTag', input: byId<HTMLInputElement>('nametag-toggle'), status: byId('nametag-status') },
 ] as const;
 
+const unitButtons = [...document.querySelectorAll<HTMLButtonElement>('#unit button')];
+const unitStatus = byId('unit-status');
+
 const save = (patch: Partial<Settings>) => postNui<UpdateResponse>('update', { patch });
+
+function showUnit(metric: boolean): void {
+    for (const button of unitButtons) button.setAttribute('aria-checked', String((button.dataset.metric === 'true') === metric));
+}
+
+for (const button of unitButtons) {
+    button.addEventListener('click', async () => {
+        const metric = button.dataset.metric === 'true';
+        if (button.getAttribute('aria-checked') === 'true') return;
+        const previous = !metric;
+        showUnit(metric);
+        unitButtons.forEach((item) => (item.disabled = true));
+        unitStatus.textContent = 'Saving...';
+        try {
+            const result = await save({ metricSpeed: metric });
+            if (!result.ok) throw new Error(result.error);
+            showUnit(result.settings.metricSpeed);
+            unitStatus.textContent = 'Setting saved.';
+        } catch (error) {
+            showUnit(previous);
+            unitStatus.textContent = error instanceof Error ? error.message : 'Could not save setting.';
+        } finally {
+            unitButtons.forEach((item) => (item.disabled = false));
+        }
+    });
+}
 
 function previewColor(color: string): void {
     if (!isHexColor(color)) return;
@@ -81,6 +110,9 @@ onNuiMessage<SettingsNuiMessage>({
             input.disabled = false;
             status.textContent = '';
         }
+        showUnit(settings.metricSpeed);
+        unitButtons.forEach((item) => (item.disabled = false));
+        unitStatus.textContent = '';
         menu.classList.add('open');
     },
 });

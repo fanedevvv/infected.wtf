@@ -12,6 +12,7 @@ interface UserRow {
     hud_color: string | null;
     hud_show_fps: number | boolean | null;
     hud_show_own_nametag: number | boolean | null;
+    hud_speed_metric: number | boolean | null;
     skin: string | null;
     admin: number | null;
     level: number | null;
@@ -21,7 +22,7 @@ interface LoginRow extends UserRow {
     password_hash: string;
 }
 
-const PROFILE_COLUMNS = 'id, username, cash, bank, hud_color, hud_show_fps, hud_show_own_nametag, skin, admin, level';
+const PROFILE_COLUMNS = 'id, username, cash, bank, hud_color, hud_show_fps, hud_show_own_nametag, hud_speed_metric, skin, admin, level';
 
 const flag = (value: unknown) => value === true || Number(value) === 1;
 
@@ -38,6 +39,7 @@ export function toAccount(row: UserRow): Account {
             hudColor: isHexColor(row.hud_color) ? row.hud_color.toLowerCase() : DEFAULT_ACCENT,
             showFps: flag(row.hud_show_fps),
             showOwnNameTag: flag(row.hud_show_own_nametag),
+            metricSpeed: row.hud_speed_metric == null ? true : flag(row.hud_speed_metric),
         },
     };
 }
@@ -73,6 +75,7 @@ const SETTING_COLUMNS: { [K in keyof Settings]: { column: string; encode: (value
     hudColor: { column: 'hud_color', encode: (value) => value },
     showFps: { column: 'hud_show_fps', encode: (value) => (value ? 1 : 0) },
     showOwnNameTag: { column: 'hud_show_own_nametag', encode: (value) => (value ? 1 : 0) },
+    metricSpeed: { column: 'hud_speed_metric', encode: (value) => (value ? 1 : 0) },
 };
 
 /** Persists a (validated) settings patch in one UPDATE. */

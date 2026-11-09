@@ -99,6 +99,17 @@
                     </label>
                 </div>
                 <span id="nametag-status" class="inline-status" role="status" aria-live="polite"></span>
+                <div class="setting-row toggle-row">
+                    <div class="setting-copy">
+                        <label id="unit-label">Speed unit</label>
+                        <span class="setting-description">Unit shown on the speedometer.</span>
+                    </div>
+                    <div id="unit" class="segmented" role="radiogroup" aria-labelledby="unit-label">
+                        <button type="button" role="radio" data-metric="true" aria-checked="true">KM/H</button>
+                        <button type="button" role="radio" data-metric="false" aria-checked="false">MPH</button>
+                    </div>
+                </div>
+                <span id="unit-status" class="inline-status" role="status" aria-live="polite"></span>
             </section>
             <footer>Changes are saved to your account</footer>
         </section>

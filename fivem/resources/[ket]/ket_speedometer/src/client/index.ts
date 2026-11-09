@@ -1,5 +1,7 @@
+import { watchAccount } from '@shared/client/core.ts';
 import { notify } from '@shared/client/game.ts';
 import { onNui, sendNui } from '@shared/client/nui.ts';
+import { callServer } from '@shared/client/rpc.ts';
 import type { SpeedoNuiMessage, SpeedoReading, SpeedoSettings } from '../common/nui.ts';
 
 /** 20 updates per second: smooth with the CSS transitions, a fraction of a per-frame loop's cost. */
@@ -16,7 +18,10 @@ let lastGear: string | null = null;
 
 const send = (message: SpeedoNuiMessage) => ready && sendNui(message);
 
-/** Per-player settings, stored on the player's own machine (resource KVP). */
+/**
+ * Display toggles (RPM, gear, sounds) are stored on the player's machine (resource KVP).
+ * The unit (km/h vs mph) is an account setting, changed in /settings, and followed live below.
+ */
 function loadSettings(): SpeedoSettings {
     try {
         return { ...DEFAULT_SETTINGS, ...(JSON.parse(GetResourceKvpString(SETTINGS_KEY) ?? '{}') as Partial<SpeedoSettings>) };
@@ -25,6 +30,13 @@ function loadSettings(): SpeedoSettings {
     }
 }
 const settings = loadSettings();
+
+watchAccount(({ settings: account }) => {
+    if (account.metricSpeed === settings.metric) return;
+    settings.metric = account.metricSpeed;
+    lastReading = '';
+    send({ type: 'settings', settings });
+});
 
 const clampPercent = (value: number) => Math.round(Math.min(100, Math.max(0, value)));
 
@@ -97,6 +109,13 @@ RegisterCommand(
     (_source: number, args: string[]) => {
         const key = OPTIONS[(args[0] ?? '').toLowerCase()];
         if (!key) return notify('SPEEDO', `Usage: /speedo [rpm|gear|sounds|metric] — now: ${describe()}`);
+        if (key === 'metric') {
+            // Account setting: ket_core saves it and pushes the account back (watchAccount above).
+            void callServer('ket_core:updateSettings', [{ metricSpeed: !settings.metric }])
+                .then((result) => notify('SPEEDO', result.ok ? `Speed unit: ${result.data.metricSpeed ? 'km/h' : 'mph'}` : result.error))
+                .catch(() => notify('SPEEDO', 'Could not save the speed unit. Please try again.'));
+            return;
+        }
         settings[key] = !settings[key];
         SetResourceKvp(SETTINGS_KEY, JSON.stringify(settings));
         lastReading = '';

@@ -472,3 +472,37 @@ h1 {
         transition: none;
     }
 }
+
+/* Speed unit: KM/H | MPH segmented control */
+.segmented {
+    display: inline-flex;
+    flex: none;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 7px;
+    background: #2a2c2e;
+}
+
+.segmented button {
+    padding: 6px 11px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: #a9abad;
+    font: inherit;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    cursor: pointer;
+    transition: background .16s ease, color .16s ease;
+}
+
+.segmented button:hover { color: #f1f1ef; }
+
+.segmented button[aria-checked='true'] {
+    background: var(--preview-accent);
+    color: #141414;
+}
+
+.segmented button:focus-visible { outline: 2px solid #f1f1ef; outline-offset: 2px; }
+.segmented button:disabled { cursor: wait; opacity: .6; }

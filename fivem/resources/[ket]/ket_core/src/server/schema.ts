@@ -48,6 +48,7 @@ const USER_COLUMNS: Record<string, string> = {
     hud_color: "CHAR(7) NOT NULL DEFAULT '#e9bd57'",
     hud_show_fps: 'TINYINT(1) NOT NULL DEFAULT 0',
     hud_show_own_nametag: 'TINYINT(1) NOT NULL DEFAULT 0',
+    hud_speed_metric: 'TINYINT(1) NOT NULL DEFAULT 1',
     skin: "VARCHAR(64) NOT NULL DEFAULT 'mp_m_freemode_01'",
     admin: 'INT UNSIGNED NOT NULL DEFAULT 0',
     level: 'INT UNSIGNED NOT NULL DEFAULT 1',
