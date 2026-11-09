@@ -34,6 +34,7 @@ fivem/
 │   └── web/                #   NUI fetch/message helpers, DOM helpers
 └── resources/
     ├── [ket]/              # our TypeScript resources
+    ├── [cars]/             # add-on vehicles (streamed; listed under CUSTOM in /carlist)
     ├── [standalone]/       # oxmysql (vendored, prebuilt)
     ├── [cfx]/              # stock cfx-server-data resources (not started)
     └── [local]/            # drop-in resources that aren't part of the build
@@ -61,7 +62,7 @@ ket_x/
 | `ket_nametags` | client              | Overhead gamer tags; own nametag (opt-in)                               |
 | `ket_settings` | client, NUI         | `/settings`: accent color, FPS counter, own nametag                    |
 | `ket_commands` | server              | `/id`, `/inventory`, `/myjob`, player suggestions                       |
-| `ket_admin`    | client, server, NUI | 27 admin commands + `/admin` panel                                      |
+| `ket_admin`    | client, server, NUI | 28 admin commands, `/admin` panel, `/carlist` vehicle browser            |
 | `ket_bike`     | client              | Bike rental attendant (`/bike`, `/unrentbike`)                          |
 | `ket_blips`    | client              | Static map blips                                                        |
 
@@ -87,6 +88,18 @@ ket_x/
 2. Add `src/client/index.ts` and/or `src/server/index.ts` (plus `src/web` and `public/` for a NUI page).
 3. Declare any new events or RPCs in `shared/common/contracts.ts`.
 4. Add `ensure ket_new` to `server.cfg` and run `npm run check`.
+
+## Adding a car
+
+1. Put the FiveM version of the car in `resources/[cars]/<name>/`, with the model files in `stream/` and the `.meta` files in `data/`.
+2. Give it an `fxmanifest.lua` like `resources/[cars]/bmw_g20_330i/fxmanifest.lua`. The two lines that matter:
+   ```lua
+   ket_vehicle '3erg20'                      -- modelName from vehicles.meta
+   ket_vehicle_name 'BMW 330i M Sport (G20)' -- shown in /carlist
+   ```
+3. Restart the server, or run `ensure <name>`. The car appears in `/carlist` under **CUSTOM**, and `/car <model>` spawns it.
+
+`stream/` folders are gitignored (large third-party binaries), so they live only on disk and on the game server.
 
 ## Admin levels
 

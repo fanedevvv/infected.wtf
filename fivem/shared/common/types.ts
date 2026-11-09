@@ -45,6 +45,13 @@ export interface ChatSuggestion {
     params: { name: string; help?: string }[];
 }
 
+/** An add-on vehicle declared by a resource's fxmanifest (`ket_vehicle` / `ket_vehicle_name`). */
+export interface CustomVehicle {
+    model: string;
+    name: string;
+    resource: string;
+}
+
 export interface AdminArgument {
     name: string;
     label: string;

@@ -1,4 +1,4 @@
-import type { Account, AdminCommandInfo, AuthRequest, ChatMessage, Result, Settings } from './types.ts';
+import type { Account, AdminCommandInfo, AuthRequest, ChatMessage, CustomVehicle, Result, Settings } from './types.ts';
 
 /**
  * Client → server RPCs: name → handler signature (without the implicit player source).
@@ -20,6 +20,7 @@ export interface ClientNetEvents {
     'ket_core:account': (account: Account) => void;
     'ket_admin:open': (commands: AdminCommandInfo[], level: number) => void;
     'ket_admin:action': (action: AdminAction) => void;
+    'ket_admin:carlist': (custom: CustomVehicle[]) => void;
     'chat:addMessage': (message: ChatMessage) => void;
     'chat:addSuggestion': (name: string, help: string, params?: { name: string; help?: string }[]) => void;
     'chat:removeSuggestion': (name: string) => void;

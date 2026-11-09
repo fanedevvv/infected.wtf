@@ -8,6 +8,7 @@ import { emitClient } from '@shared/server/events.ts';
 import { getPedCoords } from '@shared/server/players.ts';
 import { sendChat } from '@shared/server/chat.ts';
 import { log } from '@shared/common/log.ts';
+import { customVehicles } from './vehicles.ts';
 import { fail, notify, notifyAccount, requireAccount, requireOnline, rest, type CommandContext } from './context.ts';
 
 export interface AdminCommand extends AdminCommandInfo {
@@ -164,6 +165,10 @@ export const COMMANDS: AdminCommand[] = [
             if (!/^\w{1,64}$/.test(model)) fail('Usage: /car [vehicle model]');
             action(source, { type: 'spawnVehicle', model });
         },
+    },
+    {
+        name: 'carlist', label: 'Car list', description: 'Browse every vehicle on the server (custom cars first) and spawn one.', level: 1, category: 'Vehicle', arguments: [],
+        run: ({ source }) => emitClient('ket_admin:carlist', source, customVehicles()),
     },
     selfAction('dv', 'Delete vehicle', 'Delete the vehicle you are in or looking at.', 1, 'Vehicle', 'deleteVehicle'),
     selfAction('fix', 'Repair vehicle', 'Repair the vehicle you are in.', 1, 'Vehicle', 'fix'),

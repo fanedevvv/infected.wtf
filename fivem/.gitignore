@@ -10,3 +10,6 @@ resources/[[]ket[]]/*/dist/
 # Server runtime data
 cache/
 txData/
+
+# Add-on vehicle binaries (third-party, large) — deployed from disk, not git
+resources/[[]cars[]]/*/stream/

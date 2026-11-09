@@ -11,8 +11,8 @@
     <main id="panel" aria-hidden="true">
         <header class="topbar">
             <div class="brand">
-                <span class="eyebrow">SERVER CONTROL</span>
-                <h1>Administration</h1>
+                <span id="brand-eyebrow" class="eyebrow">SERVER CONTROL</span>
+                <h1 id="brand-title">Administration</h1>
             </div>
             <div class="top-actions">
                 <span id="level" class="level">ADMIN 0</span>
@@ -27,8 +27,12 @@
                         <span class="eyebrow">CONTROL PANEL</span>
                         <h2 id="category-title">Commands</h2>
                     </div>
-                    <span id="count" class="count"></span>
+                    <div class="heading-actions">
+                        <input id="search" class="search" type="search" placeholder="Search vehicles…" autocomplete="off" spellcheck="false" hidden>
+                        <span id="count" class="count"></span>
+                    </div>
                 </div>
+                <p id="empty" class="empty" hidden></p>
                 <div id="commands" class="commands"></div>
                 <form id="command-form" class="command-form" hidden>
                     <div class="form-heading">
@@ -44,7 +48,7 @@
                 </form>
             </section>
         </div>
-        <footer><span>Commands are verified by the server before execution.</span><kbd>ESC</kbd><span>to close</span></footer>
+        <footer><span id="footer-text">Commands are verified by the server before execution.</span><kbd>ESC</kbd><span>to close</span></footer>
     </main>
 </body>
 </html>
