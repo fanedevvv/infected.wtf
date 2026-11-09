@@ -5,8 +5,11 @@ import type { CommandContext } from './context.ts';
 
 export const MAX_HELPER_LEVEL = 5;
 
+/** `level` for helper-only commands: no admin level grants access (admins are not helpers). */
+export const HELPERS_ONLY = 99;
+
 export interface AdminCommand extends AdminCommandInfo {
-    /** Minimum admin level. 0 = any signed-in player. */
+    /** Minimum admin level. 0 = any signed-in player, HELPERS_ONLY = admins excluded. */
     level: number;
     /** If set, helpers of at least this level may also use the command. */
     helper?: number;
@@ -15,9 +18,8 @@ export interface AdminCommand extends AdminCommandInfo {
     run: (context: CommandContext) => void | Promise<void>;
 }
 
-/** Admins count as top-level helpers, so they can use every helper tool. */
-export const helperLevel = (account: Pick<Account, 'admin' | 'helper'>): number =>
-    account.admin >= 1 ? MAX_HELPER_LEVEL : account.helper;
+/** Helper rank. Admin rank does NOT imply helper rank: the roles are separate. */
+export const helperLevel = (account: Pick<Account, 'helper'>): number => account.helper;
 
 export const isStaff = (account: Pick<Account, 'admin' | 'helper'>): boolean => account.admin >= 1 || account.helper >= 1;
 

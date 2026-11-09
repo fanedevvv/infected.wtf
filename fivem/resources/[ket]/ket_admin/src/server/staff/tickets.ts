@@ -7,7 +7,7 @@ import { log } from '@shared/common/log.ts';
 import { parseIntStrict } from '@shared/common/validate.ts';
 import { db } from '@shared/server/db.ts';
 import { onPlayerDropped } from '@shared/server/events.ts';
-import { arg, type AdminCommand } from '../command.ts';
+import { arg, HELPERS_ONLY, type AdminCommand } from '../command.ts';
 import { fail, rest, type CommandContext } from '../context.ts';
 import { broadcast, COLORS, hasHelper, sendColored } from './chat.ts';
 import { staffSchema } from './schema.ts';
@@ -83,7 +83,7 @@ export const TICKET_COMMANDS: AdminCommand[] = [
         },
     },
     {
-        name: 'tickets', label: 'Active tickets', description: 'List open and accepted tickets.', level: 1, helper: 1, category: 'Tickets',
+        name: 'tickets', label: 'Active tickets', description: 'List open and accepted tickets.', level: HELPERS_ONLY, helper: 1, category: 'Tickets',
         arguments: [],
         run: ({ reply }) => {
             if (tickets.size === 0) return reply('There are no active tickets.');
@@ -94,12 +94,12 @@ export const TICKET_COMMANDS: AdminCommand[] = [
         },
     },
     {
-        name: 'accept', label: 'Accept ticket', description: 'Take a ticket.', level: 1, helper: 1, category: 'Tickets',
+        name: 'accept', label: 'Accept ticket', description: 'Take a ticket.', level: HELPERS_ONLY, helper: 1, category: 'Tickets',
         arguments: [arg('ticket', 'Ticket ID')],
         run: async (ctx) => accept(ctx, requireTicket(ctx.args[0])),
     },
     {
-        name: 'nextticket', label: 'Next ticket', description: 'Take the oldest open ticket.', level: 1, helper: 1, category: 'Tickets',
+        name: 'nextticket', label: 'Next ticket', description: 'Take the oldest open ticket.', level: HELPERS_ONLY, helper: 1, category: 'Tickets',
         arguments: [],
         run: async (ctx) => {
             const next = [...tickets.values()].filter((ticket) => ticket.helperSource === undefined && ticket.playerSource !== ctx.source).sort((a, b) => a.id - b.id)[0];
@@ -108,7 +108,7 @@ export const TICKET_COMMANDS: AdminCommand[] = [
         },
     },
     {
-        name: 'reject', label: 'Reject ticket', description: 'Refuse a ticket with a reason.', level: 1, helper: 1, category: 'Tickets',
+        name: 'reject', label: 'Reject ticket', description: 'Refuse a ticket with a reason.', level: HELPERS_ONLY, helper: 1, category: 'Tickets',
         arguments: [arg('ticket', 'Ticket ID'), arg('reason', 'Reason')], arity: 'min',
         run: async (ctx) => {
             const ticket = requireTicket(ctx.args[0]);
@@ -139,7 +139,7 @@ export const TICKET_COMMANDS: AdminCommand[] = [
         },
     },
     {
-        name: 'closeticket', label: 'Close ticket', description: 'Close the ticket you are handling.', level: 1, helper: 1, category: 'Tickets',
+        name: 'closeticket', label: 'Close ticket', description: 'Close the ticket you are handling.', level: HELPERS_ONLY, helper: 1, category: 'Tickets',
         arguments: [],
         run: async (ctx) => {
             const ticket = findByHelper(ctx.source) ?? fail('You are not handling a ticket.');
@@ -149,7 +149,7 @@ export const TICKET_COMMANDS: AdminCommand[] = [
         },
     },
     {
-        name: 'mytickets', label: 'My tickets', description: 'Your current ticket and totals.', level: 1, helper: 1, category: 'Tickets',
+        name: 'mytickets', label: 'My tickets', description: 'Your current ticket and totals.', level: HELPERS_ONLY, helper: 1, category: 'Tickets',
         arguments: [],
         run: async ({ source, actor, reply }) => {
             await staffSchema;

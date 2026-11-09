@@ -6,7 +6,7 @@ import { addSuggestion } from '@shared/server/chat.ts';
 import { Core } from '@shared/server/core.ts';
 import { emitClient, onClient, onLocal } from '@shared/server/events.ts';
 import { distance3 } from '@shared/server/players.ts';
-import { canUse, describe, usage, type AdminCommand } from './command.ts';
+import { canUse, describe, HELPERS_ONLY, usage, type AdminCommand } from './command.ts';
 import { COMMANDS, COMMANDS_BY_NAME } from './registry.ts';
 import { CommandError, notify } from './context.ts';
 
@@ -31,7 +31,7 @@ const CONSOLE_ACTOR: Account = {
     username: 'Console',
     level: 0,
     admin: MAX_ADMIN_LEVEL + 1,
-    helper: 5,
+    helper: 0,
     cash: '0',
     bank: '0',
     skin: '',
@@ -97,6 +97,7 @@ const rankKey = (account: Pick<Account, 'admin' | 'helper'>) => `${account.admin
 
 function requirement(command: AdminCommand): string {
     if (command.level === 0) return '';
+    if (command.level >= HELPERS_ONLY) return ` (helper ${command.helper}+)`;
     return command.helper !== undefined ? ` (helper ${command.helper}+ / admin ${command.level}+)` : ` (admin ${command.level}+)`;
 }
 

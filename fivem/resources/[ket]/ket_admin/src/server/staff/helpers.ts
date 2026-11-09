@@ -2,7 +2,7 @@ import { log } from '@shared/common/log.ts';
 import { parseIntStrict } from '@shared/common/validate.ts';
 import { Core } from '@shared/server/core.ts';
 import { db } from '@shared/server/db.ts';
-import { action, arg, helperLevel, ID, isStaff, MAX_HELPER_LEVEL, type AdminCommand } from '../command.ts';
+import { action, arg, HELPERS_ONLY, ID, isStaff, MAX_HELPER_LEVEL, type AdminCommand } from '../command.ts';
 import { fail, findOnline, notifyAccount, requireAccount, requireOnline, rest } from '../context.ts';
 import { takeLastPosition } from '../positions.ts';
 import { broadcast, COLORS, isAdminOnline, rankOf } from './chat.ts';
@@ -124,25 +124,23 @@ export const HELPER_COMMANDS: AdminCommand[] = [
         },
     },
     {
-        name: 'hlevel', label: 'Helper level', description: 'Show your helper level.', level: 1, helper: 1, category: 'Helpers',
+        name: 'hlevel', label: 'Helper level', description: 'Show your helper level.', level: HELPERS_ONLY, helper: 1, category: 'Helpers',
         arguments: [],
-        run: ({ actor, reply }) =>
-            reply(actor.admin >= 1 ? `You are Admin ${actor.admin} (all helper tools, level ${helperLevel(actor)}).` : `You are Helper ${actor.helper}/${MAX_HELPER_LEVEL}.`),
+        run: ({ actor, reply }) => reply(`You are Helper ${actor.helper}/${MAX_HELPER_LEVEL}.`),
     },
     {
-        name: 'hstats', label: 'Helper stats', description: 'Your tickets and reports handled.', level: 1, helper: 1, category: 'Helpers',
+        name: 'hstats', label: 'Helper stats', description: 'Your questions (tickets) handled.', level: HELPERS_ONLY, helper: 1, category: 'Helpers',
         arguments: [],
         run: async ({ actor, reply }) => {
             await staffSchema;
-            const row = await db.single<{ tickets: number; week: number; rejected: number; reports: number }>(
+            const row = await db.single<{ tickets: number; week: number; rejected: number }>(
                 `SELECT
                     (SELECT COUNT(*) FROM staff_tickets WHERE helper_id = ? AND status IN ('accepted', 'closed')) AS tickets,
                     (SELECT COUNT(*) FROM staff_tickets WHERE helper_id = ? AND status IN ('accepted', 'closed') AND created_at >= NOW() - INTERVAL 7 DAY) AS week,
-                    (SELECT COUNT(*) FROM staff_tickets WHERE helper_id = ? AND status = 'rejected') AS rejected,
-                    (SELECT COUNT(*) FROM staff_reports WHERE handled_by = ?) AS reports`,
-                [actor.id, actor.id, actor.id, actor.id],
+                    (SELECT COUNT(*) FROM staff_tickets WHERE helper_id = ? AND status = 'rejected') AS rejected`,
+                [actor.id, actor.id, actor.id],
             );
-            reply(`${actor.username} [${rankOf(actor)}] — tickets: ${Number(row?.tickets ?? 0)} total, ${Number(row?.week ?? 0)} this week, ${Number(row?.rejected ?? 0)} rejected | reports handled: ${Number(row?.reports ?? 0)}`);
+            reply(`${actor.username} [Helper ${actor.helper}] — questions: ${Number(row?.tickets ?? 0)} total, ${Number(row?.week ?? 0)} this week, ${Number(row?.rejected ?? 0)} rejected`);
         },
     },
     {
@@ -150,19 +148,18 @@ export const HELPER_COMMANDS: AdminCommand[] = [
         arguments: [],
         run: async ({ reply }) => {
             await staffSchema;
-            const rows = await db.query<{ id: number; username: string; helper: number; tickets: number; reports: number }>(
+            const rows = await db.query<{ id: number; username: string; helper: number; tickets: number }>(
                 `SELECT u.id, u.username, u.helper,
-                    (SELECT COUNT(*) FROM staff_tickets t WHERE t.helper_id = u.id AND t.created_at >= NOW() - INTERVAL 7 DAY AND t.status IN ('accepted', 'closed')) AS tickets,
-                    (SELECT COUNT(*) FROM staff_reports r WHERE r.handled_by = u.id AND r.closed_at >= NOW() - INTERVAL 7 DAY) AS reports
+                    (SELECT COUNT(*) FROM staff_tickets t WHERE t.helper_id = u.id AND t.created_at >= NOW() - INTERVAL 7 DAY AND t.status IN ('accepted', 'closed')) AS tickets
                  FROM users u WHERE u.helper > 0 ORDER BY tickets DESC, u.helper DESC LIMIT 25`,
             );
             if (rows.length === 0) return reply('There are no helpers yet. Use /sethelper [ID] [1-5].');
             reply('Helper activity (last 7 days):');
-            for (const row of rows) reply(`${row.username} (ID ${row.id}, Helper ${row.helper}): ${Number(row.tickets)} tickets, ${Number(row.reports)} reports`);
+            for (const row of rows) reply(`${row.username} (ID ${row.id}, Helper ${row.helper}): ${Number(row.tickets)} questions answered`);
         },
     },
     {
-        name: 'hpromote', label: 'Propose promotion', description: 'Propose a helper for promotion (sent to admins).', level: 1, helper: 5, category: 'Helpers',
+        name: 'hpromote', label: 'Propose promotion', description: 'Propose a helper for promotion (sent to admins).', level: HELPERS_ONLY, helper: 5, category: 'Helpers',
         arguments: [ID, arg('reason', 'Reason', true)], arity: 'min',
         run: async (ctx) => {
             const account = await requireAccount(ctx.args[0]);

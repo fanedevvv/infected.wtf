@@ -1,6 +1,6 @@
 /**
  * Player reports, SA-MP style:
- *   player: /report [text]  →  staff (helper 3+ / admins): /reports, /ar [id] [answer], /clearreport [id]
+ *   player: /report [text]  →  admins only: /reports, /ar [id] [answer], /clearreport [id]
  */
 import { parseIntStrict } from '@shared/common/validate.ts';
 import { Core } from '@shared/server/core.ts';
@@ -8,15 +8,14 @@ import { db } from '@shared/server/db.ts';
 import { onPlayerDropped } from '@shared/server/events.ts';
 import { arg, type AdminCommand } from '../command.ts';
 import { fail, rest } from '../context.ts';
-import { broadcast, COLORS, hasHelper, sendColored } from './chat.ts';
+import { broadcast, COLORS, isAdminOnline, sendColored } from './chat.ts';
 import { staffSchema } from './schema.ts';
 
 const REPORT_COOLDOWN_MS = 60_000;
-const REPORT_HELPER_LEVEL = 3;
 const lastReport = new Map<number, number>();
 onPlayerDropped((source) => lastReport.delete(source));
 
-const toStaff = (text: string) => broadcast(hasHelper(REPORT_HELPER_LEVEL), '[REPORT]', text, COLORS.report);
+const toStaff = (text: string) => broadcast(isAdminOnline, '[REPORT]', text, COLORS.report);
 
 interface OpenReport {
     id: number;
@@ -45,7 +44,7 @@ const closeReport = (id: number, handlerId: string, answer: string | null) =>
 
 export const REPORT_COMMANDS: AdminCommand[] = [
     {
-        name: 'report', label: 'Report', description: 'Report a problem or a player to the staff.', level: 0, category: 'Reports',
+        name: 'report', label: 'Report', description: 'Report a problem or a player to the admins.', level: 0, category: 'Reports',
         arguments: [arg('text', 'Problem')], arity: 'min',
         run: async (ctx) => {
             const text = rest(ctx, 0);
@@ -55,12 +54,12 @@ export const REPORT_COMMANDS: AdminCommand[] = [
 
             await staffSchema;
             const id = await db.insert('INSERT INTO staff_reports (user_id, message) VALUES (?, ?)', [ctx.actor.id, text]);
-            ctx.reply(`Your report #${id} was sent to the staff.`);
+            ctx.reply(`Your report #${id} was sent to the admins.`);
             toStaff(`#${id} ${ctx.actor.username} (ID ${ctx.actor.id}): ${text} — /ar ${id} [answer]`);
         },
     },
     {
-        name: 'reports', label: 'Open reports', description: 'List open player reports.', level: 1, helper: REPORT_HELPER_LEVEL, category: 'Reports',
+        name: 'reports', label: 'Open reports', description: 'List open player reports.', level: 1, category: 'Reports',
         arguments: [],
         run: async ({ reply }) => {
             await staffSchema;
@@ -74,7 +73,7 @@ export const REPORT_COMMANDS: AdminCommand[] = [
         },
     },
     {
-        name: 'ar', label: 'Answer report', description: 'Answer a report and close it.', level: 1, helper: REPORT_HELPER_LEVEL, category: 'Reports',
+        name: 'ar', label: 'Answer report', description: 'Answer a report and close it.', level: 1, category: 'Reports',
         arguments: [arg('report', 'Report ID'), arg('answer', 'Answer')], arity: 'min',
         run: async (ctx) => {
             const report = await requireOpenReport(ctx.args[0]);
@@ -89,7 +88,7 @@ export const REPORT_COMMANDS: AdminCommand[] = [
         },
     },
     {
-        name: 'clearreport', label: 'Close report', description: 'Close a report without answering.', level: 1, helper: REPORT_HELPER_LEVEL, category: 'Reports',
+        name: 'clearreport', label: 'Close report', description: 'Close a report without answering.', level: 1, category: 'Reports',
         arguments: [arg('report', 'Report ID')],
         run: async (ctx) => {
             const report = await requireOpenReport(ctx.args[0]);
