@@ -429,7 +429,7 @@ export default function AdminClient(props: Props) {
           </div>
           <h1>Admin Panel</h1>
         </div>
-        <div style={{ marginLeft: "auto", display: "flex", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 12, padding: 4, gap: 4, flexShrink: 0 }}>
+        <div className="admin-tabs" style={{ marginLeft: "auto", display: "flex", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 12, padding: 4, gap: 4 }}>
           <button className={`admin-tab-btn ${tab === "staff" ? "active" : ""}`} onClick={() => switchTab("staff")}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
             Staff

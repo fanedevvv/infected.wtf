@@ -3975,3 +3975,12 @@ body:has(.unsaved-bar.visible) .toast-container { bottom: calc(1.5rem + 58px); }
 .se-discord-footer { display:flex; align-items:center; gap:.5rem; }
 .se-discord-footer img { width:20px; height:20px; border-radius:50%; object-fit:cover; }
 .se-discord-footer span { font-size:.75rem; color:#949ba4; font-weight:600; }
+
+/* Admin tab bar: scroll sideways on narrow screens instead of overflowing off-screen */
+.admin-tabs { max-width: 100%; min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.admin-tabs::-webkit-scrollbar { display: none; }
+.admin-tabs .admin-tab-btn { flex-shrink: 0; white-space: nowrap; }
+@media (max-width: 640px) {
+  .admin-tabs { margin-left: 0 !important; width: 100%; }
+  .admin-tab-btn { padding: .45rem .9rem; }
+}
