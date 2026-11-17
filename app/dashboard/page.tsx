@@ -14,7 +14,6 @@ import SpinPage from "./spin/page";
 import PremiumPage from "./premium/page";
 import ProjectsPage from "./projects/page";
 import EditorPage from "./editor/page";
-import ImagesPage from "./images/page";
 
 export default async function DashboardPage({
   searchParams,
@@ -54,8 +53,6 @@ export default async function DashboardPage({
       return <PremiumPage />;
     case "projects":
       return <ProjectsPage />;
-    case "images":
-      return <ImagesPage />;
     case "editor":
       return <EditorPage searchParams={Promise.resolve({ tile: params.tile, error: params.error, connected: params.connected })} />;
     default:

@@ -82,7 +82,7 @@ export const DOC_PAGES: DocPage[] = [
         ]} />
         <Callout tone="tip" title="Have a referral code?">Enter a friend&apos;s code (or their username) when registering — they earn tokens once you verify your email.</Callout>
         <H2 id="dashboard">Your dashboard</H2>
-        <p>After logging in you land on the dashboard. The sidebar has everything: the <b>profile editor</b> (Customize), badges, links, projects, the image host, analytics, the shop, the daily spin and your settings. The language (English, Română, Русский) and the dashboard theme are switched from the top bar.</p>
+        <p>After logging in you land on the dashboard. The sidebar has everything: the <b>profile editor</b> (Customize), badges, links, projects, analytics, the shop, the daily spin and your settings. The language (English, Română, Русский) and the dashboard theme are switched from the top bar.</p>
         <H2 id="help">Getting help</H2>
         <p>Ask in the <A href={DISCORD_INVITE}>Discord server</A> — the team is active daily and the community helps too. Service status is always on <A href="https://status.infected.wtf">status.infected.wtf</A>.</p>
       </>
@@ -143,7 +143,7 @@ export const DOC_PAGES: DocPage[] = [
     body: (
       <>
         <H2 id="free">Free</H2>
-        <p>Everything you need for a great page: the full profile editor, five layout templates, social links, Discord and Spotify widgets, game integrations, comments, your views chart, the image host and the daily spin.</p>
+        <p>Everything you need for a great page: the full profile editor, five layout templates, social links, Discord and Spotify widgets, game integrations, comments, your views chart and the daily spin.</p>
         <H2 id="plus">Infected Plus</H2>
         <p>Infected Plus is a one-time <b>€7 lifetime</b> purchase, or can be activated with tokens at <b>100 tokens per day</b>. It adds:</p>
         <ul>
@@ -151,7 +151,7 @@ export const DOC_PAGES: DocPage[] = [
           <li>The Infected Plus name glow and the Infected Plus badge.</li>
           <li>The Analytics page — views by country, browser, device and OS, and your top links.</li>
           <li>Higher token earnings: 5 tokens per profile view (instead of 3) and 20 per referral (instead of 10).</li>
-          <li>Premium custom domains, 3 pages, 10 aliases and 2 GB of image storage.</li>
+          <li>Premium custom domains, 3 pages and 10 aliases.</li>
           <li>Gifting Infected Plus to friends with tokens.</li>
           <li>No &quot;INFECTED.WTF&quot; footer on your page.</li>
         </ul>
@@ -160,7 +160,6 @@ export const DOC_PAGES: DocPage[] = [
           ["Layout templates", "5", "8"],
           ["Pages per account", "1", "3"],
           ["Aliases", "3", "10"],
-          ["Image host storage", "250 MB", "2 GB"],
           ["Tokens per profile view", "3", "5"],
           ["Tokens per referral", "10", "20"],
           ["Analytics page", "—", "✓"],

@@ -17,9 +17,6 @@ const TIMEOUT_MS = 10_000;
 const HISTORY_DAYS = 90;
 const SHOW_DAYS = 30;
 const SITE = "https://infected.wtf";
-const PROBE_FILE = path.join(ROOT, "public", "uploads", "i", "status-probe.png");
-// 1×1 transparent PNG used to prove the image host's file serving works end to end.
-const PROBE_PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", "base64");
 
 function readEnv() {
   try {
@@ -84,7 +81,6 @@ const GROUPS = [
     name: "Services",
     services: [
       { id: "biolinks", name: "Biolinks", check: httpCheck(`${SITE}/${env.STATUS_PROBE_PROFILE || "fane"}`) },
-      { id: "imagehost", name: "Image host", check: httpCheck(`${SITE}/uploads/i/status-probe.png`) },
       { id: "api", name: "API", check: httpCheck(`${SITE}/api/marketplace`, (s) => s === 200, { bodyTest: (b) => b.includes('"themes"') }) },
       { id: "database", name: "Database", check: tcpCheck(db.host, db.port) },
       // The bot runs in its own Pterodactyl container (panel.acsr.ro); its internal API answers 401 without a
@@ -291,12 +287,6 @@ function writePage(html) {
 }
 
 function ensureAssets() {
-  try {
-    fs.mkdirSync(path.dirname(PROBE_FILE), { recursive: true });
-    if (!fs.existsSync(PROBE_FILE)) fs.writeFileSync(PROBE_FILE, PROBE_PNG);
-  } catch (e) {
-    console.error("[status] could not write probe image:", e.message);
-  }
   try {
     fs.mkdirSync(OUT_DIR, { recursive: true });
     fs.copyFileSync(path.join(ROOT, "public", "assets", "img", "logo-icon.png"), path.join(OUT_DIR, "logo.png"));
