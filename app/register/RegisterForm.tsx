@@ -230,7 +230,7 @@ export default function RegisterForm({ initialRef, initialUsername }: { initialR
               <Link href="/privacy" target="_blank" onClick={(e) => e.stopPropagation()}>Privacy Policy</Link>
             </div>
           </div>
-          <div className="cf-turnstile auth-turnstile" data-sitekey="0x4AAAAAAFZb0eaZ25joGga3" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired" data-theme="dark" />
+          <div className="cf-turnstile auth-turnstile" data-sitekey="0x4AAAAAAGEv_UAMOA9q1fQc" data-callback="onTurnstileSuccess" data-expired-callback="onTurnstileExpired" data-theme="dark" />
 
           <button type="submit" disabled={loading || !terms} className="lab-btn lab-btn--solid lab-btn--lg lab-btn--block">
             {loading ? "Creating account…" : <>Create account <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" width="14" height="14"><path d="M5 12h14M13 6l6 6-6 6" /></svg></>}
