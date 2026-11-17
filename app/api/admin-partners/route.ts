@@ -27,9 +27,9 @@ function cleanUrl(raw: unknown): string | null {
   }
 }
 
-/** Square 256px WebP — keeps the public page uniform and drops any metadata. */
+/** Square 512px WebP (sharp enough for the large main-partner card) — keeps the page uniform and drops metadata. */
 async function saveImage(file: File, id: number): Promise<string> {
-  const webp = await sharp(Buffer.from(await file.arrayBuffer()), { animated: false }).rotate().resize(256, 256, { fit: "cover" }).webp({ quality: 88 }).toBuffer();
+  const webp = await sharp(Buffer.from(await file.arrayBuffer()), { animated: false }).rotate().resize(512, 512, { fit: "cover" }).webp({ quality: 88 }).toBuffer();
   await mkdir(DIR, { recursive: true });
   const name = `partner_${id}_${Date.now()}.webp`;
   await writeFile(path.join(DIR, name), webp);
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ success: true, partner });
 }
 
-// Small JSON actions: toggle visibility, move up/down.
+// Small JSON actions: toggle visibility, toggle main partner, move up/down.
 export async function PATCH(req: NextRequest) {
   if (!(await requireAdmin())) return forbidden();
   const body = await req.json().catch(() => ({}));
@@ -96,6 +96,8 @@ export async function PATCH(req: NextRequest) {
 
   if (body.action === "toggle") {
     await prisma.partner.update({ where: { id }, data: { active: !partner.active } });
+  } else if (body.action === "feature") {
+    await prisma.partner.update({ where: { id }, data: { featured: !partner.featured } });
   } else if (body.action === "up" || body.action === "down") {
     const all = await prisma.partner.findMany({ orderBy: [{ displayOrder: "asc" }, { id: "asc" }], select: { id: true } });
     const i = all.findIndex((p) => p.id === id);

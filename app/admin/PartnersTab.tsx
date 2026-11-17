@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { showToast } from "@/lib/toast";
 
-type Partner = { id: number; name: string; description: string | null; image: string | null; url: string; displayOrder: number; active: boolean };
+type Partner = { id: number; name: string; description: string | null; image: string | null; url: string; displayOrder: number; active: boolean; featured: boolean };
 
 const EMPTY = { id: null as number | null, name: "", description: "", url: "" };
 
@@ -71,11 +71,13 @@ export default function PartnersTab() {
     }
   }
 
-  async function act(p: Partner, action: "toggle" | "up" | "down") {
+  async function act(p: Partner, action: "toggle" | "feature" | "up" | "down") {
     const res = await fetch("/api/admin-partners", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: p.id, action }) });
     const d = await res.json().catch(() => ({}));
-    if (d.success) setReloadKey((k) => k + 1);
-    else showToast(d.error || "Error", "error");
+    if (d.success) {
+      if (action === "feature") showToast(p.featured ? `"${p.name}" is no longer a main partner` : `"${p.name}" is now a main partner`, "success");
+      setReloadKey((k) => k + 1);
+    } else showToast(d.error || "Error", "error");
   }
 
   async function remove(p: Partner) {
@@ -95,7 +97,7 @@ export default function PartnersTab() {
       <div className="dash-card" ref={formRef}>
         <h3 style={{ fontSize: "1.05rem", fontWeight: 700, marginBottom: ".25rem" }}>{form.id ? "Edit partner" : "Add a partner"}</h3>
         <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
-          Partners show on <a href="/partners" target="_blank" rel="noopener" style={{ color: "var(--accent)" }}>infected.wtf/partners</a> in the order below.
+          Partners show on <a href="/partners" target="_blank" rel="noopener" style={{ color: "var(--accent)" }}>infected.wtf/partners</a> in the order below. Press <b>★ Main</b> on a partner to show it as a large highlighted card at the top.
         </p>
         <form onSubmit={save} className="pt-form">
           <label className="pt-pic" title="Choose a picture">
@@ -135,17 +137,18 @@ export default function PartnersTab() {
       ) : (
         <div className="ar-list">
           {partners.map((p, i) => (
-            <div className="ar-item pt-item" key={p.id} style={{ opacity: p.active ? 1 : 0.55 }}>
+            <div className={`ar-item pt-item${p.featured ? " pt-item-main" : ""}`} key={p.id} style={{ opacity: p.active ? 1 : 0.55 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={p.image ? `/${p.image}` : "/assets/img/default-avatar.png"} alt="" className="pt-thumb" />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <b>{p.name}</b>{!p.active && <span className="pt-hidden">Hidden</span>}
+                <b>{p.name}</b>{p.featured && <span className="pt-main-tag">★ Main partner</span>}{!p.active && <span className="pt-hidden">Hidden</span>}
                 <div className="ar-meta" style={{ marginTop: ".15rem" }}><a href={p.url} target="_blank" rel="noopener" style={{ color: "inherit" }}>{p.url}</a></div>
                 {p.description && <p className="ar-details" style={{ marginTop: ".35rem" }}>{p.description}</p>}
               </div>
               <div className="pt-actions">
                 <button className="int-btn int-btn-manage" disabled={i === 0} onClick={() => act(p, "up")} aria-label="Move up">↑</button>
                 <button className="int-btn int-btn-manage" disabled={i === partners.length - 1} onClick={() => act(p, "down")} aria-label="Move down">↓</button>
+                <button className={`int-btn ${p.featured ? "int-btn-primary" : "int-btn-manage"}`} onClick={() => act(p, "feature")} title={p.featured ? "Remove from main partners" : "Make this a main partner"}>{p.featured ? "★ Main" : "☆ Main"}</button>
                 <button className="int-btn int-btn-manage" onClick={() => edit(p)}>Edit</button>
                 <button className="int-btn int-btn-manage" onClick={() => act(p, "toggle")}>{p.active ? "Hide" : "Show"}</button>
                 <button className="int-btn int-btn-danger" onClick={() => remove(p)}>Delete</button>

@@ -6,11 +6,21 @@ import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { getCookieConsent } from "@/lib/cookie-consent";
 
+function hostOf(url: string) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
+
 export default async function PartnersPage() {
   const session = await getSession();
   const user = session ? await prisma.user.findUnique({ where: { id: session.userId }, select: { username: true } }) : null;
   const consent = await getCookieConsent();
   const partners = await prisma.partner.findMany({ where: { active: true }, orderBy: [{ displayOrder: "asc" }, { id: "asc" }] });
+  const mainPartners = partners.filter((p) => p.featured);
+  const otherPartners = partners.filter((p) => !p.featured);
 
   return (
     <>
@@ -30,18 +40,35 @@ export default async function PartnersPage() {
           <p className="support-sub">Three real ways to earn tokens and grow your reach by partnering with the platform — no fine print, no fake payouts.</p>
         </div>
 
-        {partners.length > 0 && (
+        {mainPartners.length > 0 && (
+          <section className="pp-main">
+            {mainPartners.map((p) => (
+              <a key={p.id} className="pp-main-card" href={p.url} target="_blank" rel="noopener">
+                <span className="pp-main-tag">★ Main partner</span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.image ? `/${p.image}` : "/assets/img/default-avatar.png"} alt="" />
+                <div className="pp-main-body">
+                  <b>{p.name}</b>
+                  {p.description && <p>{p.description}</p>}
+                  <span className="pp-main-cta">Visit {hostOf(p.url)} ↗</span>
+                </div>
+              </a>
+            ))}
+          </section>
+        )}
+
+        {otherPartners.length > 0 && (
           <section className="pp-partners">
-            <h2 className="pp-partners-title">Our partners</h2>
+            <h2 className="pp-partners-title">{mainPartners.length > 0 ? "More partners" : "Our partners"}</h2>
             <div className="pp-partners-grid">
-              {partners.map((p) => (
+              {otherPartners.map((p) => (
                 <a key={p.id} className="pp-partner" href={p.url} target="_blank" rel="noopener">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={p.image ? `/${p.image}` : "/assets/img/default-avatar.png"} alt="" loading="lazy" />
                   <div className="pp-partner-body">
                     <b>{p.name}</b>
                     {p.description && <p>{p.description}</p>}
-                    <span className="pp-partner-link">Visit {new URL(p.url).hostname.replace(/^www\./, "")} ↗</span>
+                    <span className="pp-partner-link">Visit {hostOf(p.url)} ↗</span>
                   </div>
                 </a>
               ))}
