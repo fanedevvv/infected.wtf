@@ -49,6 +49,7 @@ export default function PremiumClient({
       });
       const j = await res.json();
       if (j.success) {
+        window.dispatchEvent(new Event("dash:refresh-me"));
         showToast(j.message, "success");
         setTokenBal(j.tokens);
       } else {
@@ -84,6 +85,7 @@ export default function PremiumClient({
       });
       const j = await res.json();
       if (j.success) {
+        window.dispatchEvent(new Event("dash:refresh-me"));
         showToast(j.message, "success");
         setTokenBal(j.tokens);
         setTarget(null);

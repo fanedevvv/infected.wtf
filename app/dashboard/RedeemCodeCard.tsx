@@ -22,6 +22,7 @@ export default function RedeemCodeCard() {
       });
       const j = await res.json();
       if (j.success) {
+        window.dispatchEvent(new Event("dash:refresh-me"));
         showToast(`+${j.tokens} tokens redeemed!`, "success");
         setCode("");
       } else {

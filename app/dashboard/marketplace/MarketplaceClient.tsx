@@ -91,7 +91,7 @@ function ThemeCard({ theme, onChange, tokens, profileSlug }: { theme: Theme; onC
         body: JSON.stringify({ action: "buy", themeId: theme.id }),
       });
       const j = await res.json();
-      if (j.success) { showToast(`"${theme.name}" purchased!`, "success"); onChange(); }
+      if (j.success) { showToast(`"${theme.name}" purchased!`, "success"); onChange(); window.dispatchEvent(new Event("dash:refresh-me")); }
       else showToast(j.error || "Error", "error");
     } catch {
       showToast(t("Network error"), "error");
@@ -160,6 +160,7 @@ function PublishModal({ onClose, onPublished }: { onClose: () => void; onPublish
       });
       const j = await res.json();
       if (j.success) {
+        window.dispatchEvent(new Event("dash:refresh-me"));
         showToast(j.downgradedBackground ? "Published! (custom background/video not shared — replaced with particles)" : "Theme published!", "success");
         onPublished();
         onClose();
@@ -249,6 +250,7 @@ export default function MarketplaceClient({ tokens: initialTokens, profileSlug }
     });
     const j = await res.json();
     if (j.success) {
+      window.dispatchEvent(new Event("dash:refresh-me"));
       showToast(makeActive ? t("Theme republished — back on the marketplace.") : t("Theme unpublished."), "success");
       loadMine(); loadBrowse();
     } else showToast(j.error || "Error", "error");

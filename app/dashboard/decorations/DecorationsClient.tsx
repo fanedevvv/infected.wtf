@@ -63,6 +63,7 @@ export default function DecorationsClient({
       });
       const j = await res.json();
       if (j.success) {
+        window.dispatchEvent(new Event("dash:refresh-me"));
         setTokenBal(j.tokens);
         setItems((prev) => prev.map((it) => (it.id === id ? { ...it, owned: true } : it)));
         showToast(t("Decoration purchased!"), "success");
@@ -86,6 +87,7 @@ export default function DecorationsClient({
       });
       const j = await res.json();
       if (j.success) {
+        window.dispatchEvent(new Event("dash:refresh-me"));
         setActive(id);
         showToast(id ? "Decoration equipped!" : "Decoration removed", "success");
       } else {

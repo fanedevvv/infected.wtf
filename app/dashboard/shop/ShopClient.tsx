@@ -112,6 +112,7 @@ export default function ShopClient(props: Props) {
       const res = await fetch("/api/shop", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const j = await res.json();
       if (j.success) {
+        window.dispatchEvent(new Event("dash:refresh-me"));
         showToast(j.message, "success");
         if (typeof j.tokens === "number") setTokens(j.tokens);
         if (kind === "badge") setOwnedBadges((s) => new Set([...s, id as string]));
@@ -167,6 +168,7 @@ export default function ShopClient(props: Props) {
       const res = await fetch("/api/shop", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const j = await res.json();
       if (j.success) {
+        window.dispatchEvent(new Event("dash:refresh-me"));
         showToast(j.message, "success");
         if (typeof j.tokens === "number") setTokens(j.tokens);
         closeGift();
@@ -194,6 +196,7 @@ export default function ShopClient(props: Props) {
       });
       const j = await res.json();
       if (j.success) {
+        window.dispatchEvent(new Event("dash:refresh-me"));
         showToast(j.message, "success");
         setTokens(j.tokens);
         setIsPremium(true);
