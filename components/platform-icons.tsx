@@ -57,3 +57,18 @@ export const PLATFORM_COLOR: Record<string, string> = {
   twitter: "#000000", youtube: "#FF0000", twitch: "#9146FF", github: "#333333",
   tiktok: "#010101", website: "#555555",
 };
+
+/**
+ * A link's custom logo (Infected Plus) or its platform icon. The logo is drawn inside an <svg>
+ * so each profile layout's existing icon sizing rules apply to it unchanged.
+ */
+export function linkIcon(link: { platform: string; iconUrl?: string | null }): React.ReactNode {
+  if (link.iconUrl) {
+    return (
+      <svg viewBox="0 0 24 24" className="link-custom-icon" aria-hidden="true">
+        <image href={`/${link.iconUrl}`} width="24" height="24" preserveAspectRatio="xMidYMid meet" />
+      </svg>
+    );
+  }
+  return PLATFORM_ICON[link.platform] || PLATFORM_ICON.website;
+}

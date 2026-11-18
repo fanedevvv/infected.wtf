@@ -687,6 +687,14 @@ const ro: Record<string, string> = {
   "7 exclusive profile layouts": "7 layout-uri de profil exclusive",
   "Premium Layouts": "Layout-uri premium",
   "Deck, Orbit, Terminal, Scrapbook, Hex Grid, Vinyl and Constellation.": "Deck, Orbit, Terminal, Scrapbook, Hex Grid, Vinyl și Constellation.",
+  "Custom logo": "Logo personalizat",
+  "Replace the platform icon with your own image. PNG, JPG, GIF or WebP, max 2MB.": "Înlocuiește iconița platformei cu imaginea ta. PNG, JPG, GIF sau WebP, maxim 2MB.",
+  "Upgrade to Infected Plus to use your own logo on this link.": "Treci pe Infected Plus ca să pui logo-ul tău pe acest link.",
+  "Upload": "Încarcă",
+  "Get Plus": "Ia Plus",
+  "Logo upload failed.": "Încărcarea logo-ului a eșuat.",
+  "Max 2MB.": "Maxim 2MB.",
+  "Unsupported type. We accept PNG, JPG, GIF, WebP.": "Tip nesuportat. Acceptăm PNG, JPG, GIF, WebP.",
 };
 
 export default ro;

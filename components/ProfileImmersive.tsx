@@ -11,7 +11,7 @@ import WeatherWidget from "./WeatherWidget";
 import ProfileProjects from "./ProfileProjects";
 import ProfileComments from "./ProfileComments";
 import { DecorationFrame } from "./DecorationSVGs";
-import { PLATFORM_ICON } from "./platform-icons";
+import { linkIcon } from "./platform-icons";
 import { BADGE_ICON } from "@/lib/badge-icons";
 import { openSteamInApp } from "@/lib/app-links";
 import { profileFontFamily, googleFontsHref } from "@/lib/profile-fonts";
@@ -203,7 +203,7 @@ export default function ProfileImmersive({
                       onClick={(e) => openSteamInApp(e, link.url)}
                       title={link.platform[0].toUpperCase() + link.platform.slice(1)}
                     >
-                      {PLATFORM_ICON[link.platform] || PLATFORM_ICON.website}
+                      {linkIcon(link)}
                     </a>
                   ))}
                 </div>

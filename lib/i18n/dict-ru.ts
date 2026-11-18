@@ -687,6 +687,14 @@ const ru: Record<string, string> = {
   "7 exclusive profile layouts": "7 эксклюзивных макетов профиля",
   "Premium Layouts": "Премиум-макеты",
   "Deck, Orbit, Terminal, Scrapbook, Hex Grid, Vinyl and Constellation.": "Deck, Orbit, Terminal, Scrapbook, Hex Grid, Vinyl и Constellation.",
+  "Custom logo": "Свой логотип",
+  "Replace the platform icon with your own image. PNG, JPG, GIF or WebP, max 2MB.": "Замените иконку платформы своим изображением. PNG, JPG, GIF или WebP, до 2 МБ.",
+  "Upgrade to Infected Plus to use your own logo on this link.": "Оформите Infected Plus, чтобы поставить свой логотип на эту ссылку.",
+  "Upload": "Загрузить",
+  "Get Plus": "Получить Plus",
+  "Logo upload failed.": "Не удалось загрузить логотип.",
+  "Max 2MB.": "Максимум 2 МБ.",
+  "Unsupported type. We accept PNG, JPG, GIF, WebP.": "Неподдерживаемый формат. Принимаем PNG, JPG, GIF, WebP.",
 };
 
 export default ru;

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
+import { removeLinkIconFile } from "@/lib/link-icons";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let user;
@@ -35,5 +36,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if (!link || link.userId !== user.id) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   await prisma.socialLink.delete({ where: { id: link.id } });
+  await removeLinkIconFile(link.iconUrl);
   return NextResponse.json({ success: true });
 }

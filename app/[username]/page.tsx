@@ -234,7 +234,13 @@ export default async function ProfilePage({
       views={profile.views ?? 0}
       createdAt={(user.createdAt ?? new Date()).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
       isOwner={isOwner}
-      socialLinks={user.socialLinks}
+      socialLinks={user.socialLinks.map((l) => ({
+        id: l.id,
+        platform: l.platform,
+        url: l.url,
+        // Custom logos are an Infected Plus perk: hidden again if Plus runs out.
+        iconUrl: isPremium && l.iconUrl?.startsWith("uploads/link-icons/") ? l.iconUrl : null,
+      }))}
       badges={badges}
       discordInt={
         discordInt

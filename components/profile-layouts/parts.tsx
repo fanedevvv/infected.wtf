@@ -11,7 +11,7 @@ import ClockWidget from "../ClockWidget";
 import ProfileProjects from "../ProfileProjects";
 import ProfileComments from "../ProfileComments";
 import { DecorationFrame } from "../DecorationSVGs";
-import { PLATFORM_ICON } from "../platform-icons";
+import { linkIcon } from "../platform-icons";
 import { BADGE_ICON } from "@/lib/badge-icons";
 import { openSteamInApp } from "@/lib/app-links";
 import { shapeStyle } from "@/lib/avatar-shapes";
@@ -170,12 +170,12 @@ export function SocialLink({ link, className, style, children, monochrome }: { l
       aria-label={platformLabel(link.platform)}
       style={{ ["--platform-color" as string]: monochrome ? "var(--accent)" : PLATFORM_COLOR[link.platform] || "#555", ...style }}
     >
-      {children ?? (PLATFORM_ICON[link.platform] || PLATFORM_ICON.website)}
+      {children ?? linkIcon(link)}
     </a>
   );
 }
 
-export const platformIcon = (platform: string) => PLATFORM_ICON[platform] || PLATFORM_ICON.website;
+export const platformIcon = (link: { platform: string; iconUrl?: string | null }) => linkIcon(link);
 
 export function Widgets({ p, className = "" }: { p: ProfileViewProps; className?: string }) {
   if (!hasWidgets(p)) return null;

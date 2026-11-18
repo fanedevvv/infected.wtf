@@ -63,6 +63,8 @@ const WIDGETS: WidgetDef[] = [
   })),
 ];
 const WIDGET_BY_KEY = Object.fromEntries(WIDGETS.map((w) => [w.key, w])) as Record<string, WidgetDef>;
+/** Catalog entry for a saved link; platforms without their own tile fall back to Website. */
+const linkDefKey = (platform: string) => (WIDGET_BY_KEY[`link:${platform}`] ? `link:${platform}` : "link:website");
 
 /** One-line summary of a connected game/music/social widget for the list. */
 function summarize(type: GameType, d: Record<string, unknown>): { name: string; sub: string; img?: string } {
@@ -88,7 +90,7 @@ function summarize(type: GameType, d: Record<string, unknown>): { name: string; 
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
 
-type SocialLink = { id: number; platform: string; url: string };
+type SocialLink = { id: number; platform: string; url: string; iconUrl?: string | null };
 type GameRow = { data: Record<string, unknown>; visible: boolean };
 export type DiscordIntegration = {
   id: number;
@@ -108,6 +110,8 @@ export type DiscordIntegration = {
 
 type ActiveWidget = {
   key: string;
+  /** Catalog entry this row belongs to (several link rows can share one). */
+  defKey: string;
   name: string;
   sub: string;
   img?: string;
@@ -134,11 +138,14 @@ export default function WidgetsManager({
   error,
   connected,
   embedded = false,
+  isPremium = false,
 }: {
   initialIntegration: DiscordIntegration;
   initialSocialLinks: SocialLink[];
   error?: string;
   connected?: string;
+  /** Infected Plus: may give links a custom logo. */
+  isPremium?: boolean;
   /** Inside the profile editor's Widgets tile, which already has its own heading. */
   embedded?: boolean;
 }) {
@@ -225,6 +232,7 @@ export default function WidgetsManager({
   if (integration?.discordUserId) {
     active.push({
       key: "discord",
+      defKey: "discord",
       name: integration.discordGlobalName || integration.discordUsername || "Discord",
       sub: integration.discordUsername ? `@${integration.discordUsername}` : "Discord",
       img: integration.discordAvatar ? `https://cdn.discordapp.com/avatars/${integration.discordUserId}/${integration.discordAvatar}.png?size=80` : undefined,
@@ -242,6 +250,7 @@ export default function WidgetsManager({
   if (integration?.discordServerInvite) {
     active.push({
       key: "discord-server",
+      defKey: "discord-server",
       name: integration.discordServerName || "Discord Server",
       sub: `${(integration.discordServerOnline ?? 0).toLocaleString()} online · ${(integration.discordServerTotal ?? 0).toLocaleString()} members`,
       img: integration.discordServerIcon ? `https://cdn.discordapp.com/icons/${integration.discordServerId}/${integration.discordServerIcon}.png?size=64` : undefined,
@@ -262,6 +271,7 @@ export default function WidgetsManager({
     const sum = summarize(type, row.data);
     active.push({
       key: type,
+      defKey: type,
       ...sum,
       visible: row.visible,
       onToggle: async () => {
@@ -275,21 +285,22 @@ export default function WidgetsManager({
       },
     });
   }
-  for (const p of SOCIAL_TYPES) {
-    const link = socialLinks.find((l) => l.platform === p);
-    if (!link) continue;
+  for (const link of socialLinks) {
     active.push({
-      key: `link:${p}`,
-      name: SOCIAL_LABEL[p],
+      key: `link-id:${link.id}`,
+      defKey: linkDefKey(link.platform),
+      name: SOCIAL_LABEL[link.platform as SocialType] || link.platform,
       sub: link.url.replace(/^https?:\/\/(www\.)?/, ""),
-      onEdit: () => setPicker(`link:${p}`),
+      img: link.iconUrl ? `/${link.iconUrl}` : undefined,
+      onEdit: () => setPicker(`edit:${link.id}`),
       onRemove: async () => {
         if (await run(api(`/api/links/${link.id}`, "DELETE"), t("Link removed."))) setSocialLinks((ls) => ls.filter((l) => l.id !== link.id));
       },
     });
   }
 
-  const activeKeys = new Set(active.map((a) => a.key));
+  const activeKeys = new Set(active.map((a) => a.defKey));
+  const editing = picker?.startsWith("edit:") ? socialLinks.find((l) => `edit:${l.id}` === picker) : undefined;
 
   return (
     <>
@@ -310,7 +321,7 @@ export default function WidgetsManager({
 
       <div className="wm-list">
         {active.map((w) => {
-          const def = WIDGET_BY_KEY[w.key];
+          const def = WIDGET_BY_KEY[w.defKey];
           const hidden = w.visible === false;
           return (
             <div key={w.key} className={`wm-row${hidden ? " is-hidden" : ""}`} style={{ ["--wm-color" as string]: def.color }}>
@@ -367,9 +378,12 @@ export default function WidgetsManager({
               <Catalog activeKeys={activeKeys} onPick={(key) => setPicker(key)} />
             ) : (
               <SetupPanel
-                def={WIDGET_BY_KEY[picker]}
+                key={picker}
+                def={WIDGET_BY_KEY[editing ? linkDefKey(editing.platform) : picker]}
                 onBack={() => setPicker("")}
-                existingLink={picker.startsWith("link:") ? socialLinks.find((l) => `link:${l.platform}` === picker) : undefined}
+                existingLink={editing}
+                isPremium={isPremium}
+                onIcon={(id, iconUrl) => setSocialLinks((ls) => ls.map((l) => (l.id === id ? { ...l, iconUrl } : l)))}
                 onGame={(type, data) => {
                   setGames((g) => ({ ...g, [type]: { data, visible: true } }));
                   showToast(t("{name} connected!", { name: WIDGET_BY_KEY[type].title }), "success");
@@ -426,15 +440,15 @@ function Catalog({ activeKeys, onPick }: { activeKeys: Set<string>; onPick: (key
       </div>
       <div className="wm-catalog">
         {shown.map((w) => {
-          const added = activeKeys.has(w.key);
-          const editable = added && w.setup.kind === "link";
+          const repeatable = w.setup.kind === "link";
+          const added = activeKeys.has(w.key) && !repeatable;
           return (
             <button
               key={w.key}
               type="button"
               className={`wm-tile${added ? " is-added" : ""}`}
               style={{ ["--wm-color" as string]: w.color }}
-              disabled={added && !editable}
+              disabled={added}
               onClick={() => onPick(w.key)}
             >
               <span className="wm-tile-icon">{w.icon}</span>
@@ -442,7 +456,7 @@ function Catalog({ activeKeys, onPick }: { activeKeys: Set<string>; onPick: (key
                 <b>{t(w.title)}</b>
                 <span>{t(w.desc)}</span>
               </span>
-              <span className="wm-tile-state">{added ? (editable ? t("Edit") : t("Added")) : "+"}</span>
+              <span className="wm-tile-state">{added ? t("Added") : "+"}</span>
             </button>
           );
         })}
@@ -460,6 +474,8 @@ function SetupPanel({
   def,
   onBack,
   existingLink,
+  isPremium,
+  onIcon,
   onGame,
   onServer,
   onLink,
@@ -467,6 +483,8 @@ function SetupPanel({
   def: WidgetDef;
   onBack: () => void;
   existingLink?: SocialLink;
+  isPremium: boolean;
+  onIcon: (linkId: number, iconUrl: string | null) => void;
   onGame: (type: GameType, data: Record<string, unknown>) => void;
   onServer: (server: ServerPatch) => void;
   onLink: (link: SocialLink, isNew: boolean) => void;
@@ -476,6 +494,45 @@ function SetupPanel({
   const [values, setValues] = useState<Record<string, string>>(() => (setup.kind === "link" && existingLink ? { url: existingLink.url } : {}) as Record<string, string>);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [iconFile, setIconFile] = useState<File | null>(null);
+  const [iconPreview, setIconPreview] = useState<string | null>(null);
+  const [iconUrl, setIconUrl] = useState<string | null>(existingLink?.iconUrl ?? null);
+
+  // Free the last preview's object URL when it is replaced or the panel closes.
+  useEffect(() => () => { if (iconPreview) URL.revokeObjectURL(iconPreview); }, [iconPreview]);
+
+  function setPendingIcon(file: File | null) {
+    setIconFile(file);
+    setIconPreview(file ? URL.createObjectURL(file) : null);
+  }
+
+  function pickIcon(file: File | undefined) {
+    setErr("");
+    if (!file) return;
+    if (!["image/png", "image/jpeg", "image/gif", "image/webp"].includes(file.type)) { setErr(t("Unsupported type. We accept PNG, JPG, GIF, WebP.")); return; }
+    if (file.size > 2 * 1024 * 1024) { setErr(t("Max 2MB.")); return; }
+    setPendingIcon(file);
+  }
+
+  /** Upload the chosen logo for a saved link; returns the stored path, or null if it failed. */
+  async function uploadIcon(linkId: number): Promise<string | null> {
+    if (!iconFile) return null;
+    const fd = new FormData();
+    fd.append("icon", iconFile);
+    const j = await fetch(`/api/links/${linkId}/icon`, { method: "POST", body: fd }).then((r) => r.json()).catch(() => null);
+    if (j?.success) { onIcon(linkId, j.iconUrl); return j.iconUrl as string; }
+    showToast(j?.error || t("Logo upload failed."), "error");
+    return null;
+  }
+
+  async function removeIcon() {
+    if (iconFile || !existingLink) { setPendingIcon(null); return; }
+    setBusy(true);
+    const j = await api(`/api/links/${existingLink.id}/icon`, "DELETE").catch(() => null);
+    setBusy(false);
+    if (j?.success) { setIconUrl(null); onIcon(existingLink.id, null); }
+    else showToast(j?.error || t("Error"), "error");
+  }
 
   async function submit() {
     setErr("");
@@ -502,8 +559,11 @@ function SetupPanel({
         const j = existingLink
           ? await api(`/api/links/${existingLink.id}`, "PATCH", { url })
           : await api("/api/links", "POST", { platform: setup.platform, url });
-        if (j.success) onLink(existingLink ? { ...existingLink, url } : { id: j.link.id, platform: j.link.platform, url: j.link.url }, !existingLink);
-        else setErr(j.error || t("Failed to save link."));
+        if (j.success) {
+          const saved: SocialLink = existingLink ? { ...existingLink, url, iconUrl } : { id: j.link.id, platform: j.link.platform, url: j.link.url, iconUrl: null };
+          if (iconFile && isPremium) saved.iconUrl = (await uploadIcon(saved.id)) ?? saved.iconUrl;
+          onLink(saved, !existingLink);
+        } else setErr(j.error || t("Failed to save link."));
       }
     } catch {
       setErr(t("Network error. Please try again."));
@@ -570,6 +630,29 @@ function SetupPanel({
       {setup.kind === "link" && (
         <div className="wm-form">
           {field("url", PLATFORM_PLACEHOLDER[setup.platform], true)}
+          <div className={`wm-logo${isPremium ? "" : " is-locked"}`}>
+            <span className="wm-logo-preview" style={{ ["--wm-color" as string]: def.color }}>
+              {iconPreview || iconUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- user-uploaded logo preview (blob or /uploads)
+                <img src={iconPreview || `/${iconUrl}`} alt="" />
+              ) : def.icon}
+            </span>
+            <div className="wm-logo-text">
+              <b>{t("Custom logo")} <span className="wm-plus-tag">Plus</span></b>
+              <span>{isPremium ? t("Replace the platform icon with your own image. PNG, JPG, GIF or WebP, max 2MB.") : t("Upgrade to Infected Plus to use your own logo on this link.")}</span>
+            </div>
+            {isPremium ? (
+              <div className="wm-logo-actions">
+                <label className="wm-act">
+                  {iconPreview || iconUrl ? t("Change") : t("Upload")}
+                  <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden onChange={(e) => { pickIcon(e.target.files?.[0]); e.target.value = ""; }} />
+                </label>
+                {(iconPreview || iconUrl) && <button type="button" className="wm-act" disabled={busy} onClick={removeIcon}>{t("Remove")}</button>}
+              </div>
+            ) : (
+              <Link href="/dashboard/premium" className="wm-act">{t("Get Plus")}</Link>
+            )}
+          </div>
           {err && <div className="lab-modal-err">{err}</div>}
           <button type="button" className="lab-btn lab-btn--solid lab-btn--lg lab-btn--block" disabled={busy} onClick={submit}>{busy ? t("Saving…") : existingLink ? t("Save") : t("Add link")}</button>
         </div>

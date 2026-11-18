@@ -152,8 +152,9 @@ model SocialLink {
   id           Int    @id @default(autoincrement())
   userId       Int    @map("user_id")
   platform     String @db.VarChar(50)
-  url          String @db.VarChar(500)
-  displayOrder Int?   @default(0) @map("display_order")
+  url          String  @db.VarChar(500)
+  iconUrl      String? @map("icon_url") @db.VarChar(255)
+  displayOrder Int?    @default(0) @map("display_order")
   user         User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "social_links_ibfk_1")
 
   @@index([userId], map: "user_id")

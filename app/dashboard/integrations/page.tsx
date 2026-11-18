@@ -13,7 +13,8 @@ export default async function IntegrationsPage({ searchParams, embedded = false 
 
   return (
     <WidgetsManager
-        initialSocialLinks={socialLinks.map((l) => ({ id: l.id, platform: l.platform, url: l.url }))}
+        initialSocialLinks={socialLinks.map((l) => ({ id: l.id, platform: l.platform, url: l.url, iconUrl: l.iconUrl }))}
+        isPremium={!!(user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date()))}
         initialIntegration={
           integration
             ? {

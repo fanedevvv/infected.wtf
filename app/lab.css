@@ -693,6 +693,18 @@ select.form-control option { background:var(--panel); }
 .wm-setup-head .lab-modal-sub { margin:0; }
 .wm-form { display:flex; flex-direction:column; gap:.6rem; }
 .wm-form .lab-btn { margin-top:.3rem; }
+.wm-logo { display:flex; align-items:center; gap:.8rem; padding:.7rem .8rem; border:1px solid var(--border); background:var(--surface); }
+.wm-logo-preview { width:40px; height:40px; flex-shrink:0; display:grid; place-items:center; overflow:hidden; color:var(--wm-color); background:color-mix(in srgb, var(--wm-color) 12%, transparent); border:1px solid color-mix(in srgb, var(--wm-color) 35%, transparent); }
+.wm-logo-preview svg { width:18px; height:18px; }
+.wm-logo-preview img { width:100%; height:100%; object-fit:contain; }
+.wm-logo-text { flex:1; min-width:0; display:flex; flex-direction:column; gap:.15rem; }
+.wm-logo-text b { font-size:.84rem; font-weight:600; display:flex; align-items:center; gap:.4rem; }
+.wm-logo-text span { font-size:.72rem; color:var(--text-muted); line-height:1.4; }
+.wm-logo-actions { display:flex; gap:.35rem; flex-shrink:0; }
+.wm-logo .wm-act { display:inline-flex; align-items:center; text-decoration:none; }
+.wm-logo.is-locked .wm-logo-preview { opacity:.6; }
+.wm-plus-tag { font-family:var(--font-mono); font-size:.56rem; letter-spacing:.12em; text-transform:uppercase; padding:.1rem .35rem; background:var(--accent); color:var(--accent-ink); }
+@media (max-width:520px) { .wm-logo { flex-wrap:wrap; } .wm-logo-actions { width:100%; } }
 .wm-hint { font-size:.8rem; color:var(--text-muted); line-height:1.6; padding:.7rem .85rem; border-left:2px solid var(--accent); background:var(--surface); }
 .wm-modal .steam-alt-toggle { margin-top:.8rem; }
 .wm-modal .steam-alt { margin-top:1rem; border-radius:0; }

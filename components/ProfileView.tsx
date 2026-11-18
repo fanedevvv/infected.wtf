@@ -51,7 +51,7 @@ export interface ProfileViewProps {
   views: number;
   createdAt: string;
   isOwner: boolean;
-  socialLinks: { id: number; platform: string; url: string }[];
+  socialLinks: { id: number; platform: string; url: string; iconUrl?: string | null }[];
   badges: { id: string; label: string; color?: string }[];
   cursorPath: string | null;
   discordInt: { discordUserId: string; discordUsername: string; discordGlobalName: string | null; discordAvatar: string | null } | null;
