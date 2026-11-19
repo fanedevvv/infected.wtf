@@ -7,7 +7,7 @@ import {
   hasWidgets, linkHost, metaItems, platformIcon, platformLabel, type LayoutProps,
 } from "./parts";
 
-export type CardLayout = "holo" | "split" | "dock" | "deck" | "orbit" | "terminal" | "scrapbook" | "hexgrid" | "vinyl" | "constellation";
+export type CardLayout = "infected" | "holo" | "split" | "dock" | "deck" | "orbit" | "terminal" | "scrapbook" | "hexgrid" | "vinyl" | "constellation";
 
 /** Small deterministic PRNG so decorative positions are stable per profile (and identical on server and client). */
 function seeded(text: string) {
@@ -19,6 +19,53 @@ function seeded(text: string) {
   };
 }
 
+/**
+ * 3D tilt toward the pointer (or with the phone's gyroscope): writes --rx/--ry (rotation), --mx/--my (pointer
+ * position, for glare/foil) and --hyp (distance from centre, 0–1) onto the element. Off for reduced motion.
+ * Returns whether the element is currently being tilted.
+ */
+function useTilt(ref: React.RefObject<HTMLElement | null>, maxY = 16, maxX = 12) {
+  const [active, setActive] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let frame = 0;
+    const set = (px: number, py: number) => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        el.style.setProperty("--mx", `${px * 100}%`);
+        el.style.setProperty("--my", `${py * 100}%`);
+        el.style.setProperty("--ry", `${(px - 0.5) * maxY}deg`);
+        el.style.setProperty("--rx", `${(0.5 - py) * maxX}deg`);
+        el.style.setProperty("--hyp", String(Math.min(1, Math.hypot(px - 0.5, py - 0.5) * 1.6)));
+      });
+    };
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
+      const r = el.getBoundingClientRect();
+      set(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)));
+      setActive(true);
+    };
+    const onLeave = () => { set(0.5, 0.5); setActive(false); };
+    // Phones: tilt with the device (browsers that allow it without a permission prompt).
+    const onTilt = (e: DeviceOrientationEvent) => {
+      if (e.beta == null || e.gamma == null) return;
+      set(Math.min(1, Math.max(0, 0.5 + e.gamma / 50)), Math.min(1, Math.max(0, 0.5 + (e.beta - 40) / 60)));
+    };
+    el.addEventListener("pointermove", onMove);
+    el.addEventListener("pointerleave", onLeave);
+    window.addEventListener("deviceorientation", onTilt);
+    onLeave();
+    return () => {
+      cancelAnimationFrame(frame);
+      el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerleave", onLeave);
+      window.removeEventListener("deviceorientation", onTilt);
+    };
+  }, [ref, maxX, maxY]);
+  return active;
+}
+
 /** Shell shared by every layout: profile font, owner edit button, the stage, then projects + comments. */
 export default function ProfileLayout({ layout, ...props }: LayoutProps & { layout: CardLayout }) {
   const { p, entered } = props;
@@ -28,11 +75,117 @@ export default function ProfileLayout({ layout, ...props }: LayoutProps & { layo
   return (
     <div className={`pl pl--${layout}${entered ? " is-entered" : ""}`} style={fontFamily ? { fontFamily } : undefined}>
       {fontHref && <link rel="stylesheet" href={fontHref} />}
+      {/* Full-page ambience for the layout (stars, scanlines, spores…), drawn in CSS per layout, behind everything. */}
+      <div className="pl-ambient" aria-hidden="true"><i /><i /><i /><i /></div>
       <OwnerEdit p={p} />
       <div className="pl-wrap">
         <Stage {...props} />
       </div>
       <BelowFold p={p} entered={entered} />
+    </div>
+  );
+}
+
+/* ── Infected: the profile as a biohazard quarantine case file ──────────── */
+// Hazard tape, a scanner around the avatar, a glitching name, views as the infection level and links as
+// transmission vectors — infected.wtf's own look.
+
+const INF_META_LABEL: Record<string, string> = { location: "ORIGIN", job: "OCCUPATION", age: "AGE" };
+
+function Infected({ p, entered, ...votes }: LayoutProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const active = useTilt(ref, 5, 4);
+  // Stable per profile: a short hex "strain" id from the username.
+  let h = 2166136261;
+  for (const ch of p.username) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  const strain = (h >>> 0).toString(16).toUpperCase().padStart(8, "0").slice(0, 6);
+  // 10 views ≈ 25%, 1k ≈ 75%, 10k+ = 100%.
+  const level = Math.min(100, Math.round(Math.log10(p.views + 1) * 25));
+  const joined = new Date(p.createdAt);
+  const year = Number.isNaN(joined.getTime()) ? "" : joined.getFullYear();
+  const meta = metaItems(p);
+  const tape = "⚠ BIOHAZARD · QUARANTINE ZONE · AUTHORISED PERSONNEL ONLY · ";
+
+  return (
+    <div className="pl-inf">
+      <div className="pl-inf-tape" aria-hidden="true"><span>{tape.repeat(6)}</span></div>
+
+      <div ref={ref} className={`pl-inf-file pl-tilt${active ? " is-active" : ""}`}>
+        <div className="pl-sheen" aria-hidden="true" />
+        <i className="pl-inf-corner pl-inf-corner--tl" aria-hidden="true" />
+        <i className="pl-inf-corner pl-inf-corner--br" aria-hidden="true" />
+
+        <header className="pl-inf-head">
+          <span className="pl-inf-tag">CASE FILE</span>
+          <span className="pl-inf-strain">STRAIN #{strain}</span>
+          <span className="pl-inf-status"><i />INFECTED</span>
+        </header>
+
+        <div className="pl-inf-main">
+          <div className="pl-inf-scan">
+            <div className="pl-inf-rings" aria-hidden="true"><i /><i /><i /></div>
+            <Avatar p={p} />
+            <div className="pl-inf-sweep" aria-hidden="true" />
+          </div>
+          <div className="pl-inf-id">
+            <div className="pl-inf-label">SUBJECT</div>
+            <DisplayName p={p} entered={entered} className="pl-inf-name" />
+            {p.badges.length > 0 && <div className="pl-inf-label">MUTATIONS</div>}
+            <Badges p={p} className="pl-inf-badges" />
+            <div className="pl-inf-meter">
+              <div className="pl-inf-label">INFECTION LEVEL <b>{level}%</b></div>
+              <div className="pl-inf-bar"><i style={{ width: entered ? `${level}%` : 0 }} /></div>
+              <small>{p.views.toLocaleString("en-US")} exposed{year ? ` · patient zero since ${year}` : ""}</small>
+            </div>
+          </div>
+        </div>
+
+        {p.bio && (
+          <section className="pl-inf-notes">
+            <div className="pl-inf-label">FIELD NOTES</div>
+            <Bio p={p} entered={entered} />
+          </section>
+        )}
+
+        {meta.length > 0 && (
+          <dl className="pl-inf-data">
+            {meta.map((m) => (
+              <div key={m.key}><dt>{INF_META_LABEL[m.key] ?? m.label.toUpperCase()}</dt><dd>{m.text}</dd></div>
+            ))}
+          </dl>
+        )}
+
+        {p.socialLinks.length > 0 && (
+          <section>
+            <div className="pl-inf-label">TRANSMISSION VECTORS</div>
+            <ul className="pl-inf-vectors">
+              {p.socialLinks.map((l, i) => (
+                <li key={l.id}>
+                  <SocialLink link={l} monochrome={p.monochromeIcons} className="pl-inf-vector">
+                    <span className="pl-inf-vector-n">V-{String(i + 1).padStart(2, "0")}</span>
+                    <span className="pl-inf-vector-icon">{platformIcon(l)}</span>
+                    <span className="pl-inf-vector-name">{platformLabel(l.platform)}</span>
+                    <span className="pl-inf-vector-host">{linkHost(l.url)}</span>
+                    <span className="pl-inf-vector-go" aria-hidden="true">→</span>
+                  </SocialLink>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <footer className="pl-inf-foot">
+          <span>infected.wtf/{p.username}</span>
+          <span>{p.isPremium ? "CLASS: PLUS" : "CLASS: STANDARD"}</span>
+        </footer>
+      </div>
+
+      <div className="pl-inf-extra">
+        <BestFriend p={p} />
+        <Widgets p={p} />
+        <Skills p={p} />
+        <Footer p={p} {...votes} />
+      </div>
     </div>
   );
 }
@@ -43,46 +196,7 @@ export default function ProfileLayout({ layout, ...props }: LayoutProps & { layo
 
 function Holo({ p, entered, ...votes }: LayoutProps) {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(false);
-
-  useEffect(() => {
-    const card = cardRef.current;
-    if (!card || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    let frame = 0;
-    const set = (px: number, py: number) => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        card.style.setProperty("--mx", `${px * 100}%`);
-        card.style.setProperty("--my", `${py * 100}%`);
-        card.style.setProperty("--ry", `${(px - 0.5) * 22}deg`);
-        card.style.setProperty("--rx", `${(0.5 - py) * 18}deg`);
-        card.style.setProperty("--hyp", String(Math.min(1, Math.hypot(px - 0.5, py - 0.5) * 1.6)));
-      });
-    };
-    const onMove = (e: PointerEvent) => {
-      if (e.pointerType === "touch") return;
-      const r = card.getBoundingClientRect();
-      set(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)));
-      setActive(true);
-    };
-    const onLeave = () => { set(0.5, 0.5); setActive(false); };
-    // Phones: tilt with the device (Android/desktop browsers allow it without a prompt).
-    const onTilt = (e: DeviceOrientationEvent) => {
-      if (e.beta == null || e.gamma == null) return;
-      set(Math.min(1, Math.max(0, 0.5 + e.gamma / 50)), Math.min(1, Math.max(0, 0.5 + (e.beta - 40) / 60)));
-      setActive(true);
-    };
-    card.addEventListener("pointermove", onMove);
-    card.addEventListener("pointerleave", onLeave);
-    window.addEventListener("deviceorientation", onTilt);
-    onLeave();
-    return () => {
-      cancelAnimationFrame(frame);
-      card.removeEventListener("pointermove", onMove);
-      card.removeEventListener("pointerleave", onLeave);
-      window.removeEventListener("deviceorientation", onTilt);
-    };
-  }, []);
+  const active = useTilt(cardRef, 22, 18);
 
   const joined = new Date(p.createdAt);
   const year = Number.isNaN(joined.getTime()) ? "" : joined.getFullYear();
@@ -150,8 +264,11 @@ function Holo({ p, entered, ...votes }: LayoutProps) {
 /* ── Split: identity column + about/links column ─────────────────────────── */
 
 function Split({ p, entered, ...votes }: LayoutProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const active = useTilt(ref, 6, 5);
   return (
-    <div className="pl-split pl-panel">
+    <div ref={ref} className={`pl-split pl-panel pl-tilt${active ? " is-active" : ""}`}>
+      <div className="pl-sheen" aria-hidden="true" />
       <aside className="pl-split-id">
         {p.banner && <div className="pl-split-banner" style={{ backgroundImage: `url(/${p.banner})` }} />}
         <Avatar p={p} />
@@ -255,6 +372,8 @@ function Deck({ p, entered, ...votes }: LayoutProps) {
   ];
   const [index, setIndex] = useState(0);
   const drag = useRef<number | null>(null);
+  const stackRef = useRef<HTMLDivElement>(null);
+  const tilting = useTilt(stackRef, 14, 10);
   const go = (d: number) => setIndex((i) => (i + d + cards.length) % cards.length);
 
   useEffect(() => {
@@ -269,7 +388,8 @@ function Deck({ p, entered, ...votes }: LayoutProps) {
   return (
     <div className="pl-deck">
       <div
-        className="pl-deck-stack"
+        ref={stackRef}
+        className={`pl-deck-stack pl-tilt${tilting ? " is-active" : ""}`}
         onPointerDown={(e) => { drag.current = e.clientX; }}
         onPointerUp={(e) => {
           if (drag.current === null) return;
@@ -511,6 +631,7 @@ function Vinyl({ p, entered, ...votes }: LayoutProps) {
           <div className="pl-vinyl-label"><Avatar p={p} /></div>
           <span className="pl-vinyl-hole" />
         </div>
+        <div className="pl-vinyl-eq" aria-hidden="true">{Array.from({ length: 16 }, (_, i) => <i key={i} style={{ ["--i" as string]: i }} />)}</div>
         <svg className="pl-vinyl-arm" viewBox="0 0 120 220" aria-hidden="true">
           <circle cx="96" cy="22" r="16" />
           <path d="M96 22 L96 120 L60 196" />
@@ -596,6 +717,7 @@ function Constellation({ p, entered, ...votes }: LayoutProps) {
 }
 
 const STAGES: Record<CardLayout, (props: LayoutProps) => React.ReactNode> = {
+  infected: Infected,
   holo: Holo,
   split: Split,
   dock: Dock,

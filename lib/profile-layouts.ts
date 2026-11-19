@@ -1,10 +1,11 @@
 // Profile layouts: one list shared by the editor picker, the save API and the profile page.
 
 export type LayoutId =
-  | "modern" | "classic" | "split" | "dock"
+  | "infected" | "modern" | "classic" | "split" | "dock"
   | "deck" | "orbit" | "terminal" | "scrapbook" | "hexgrid" | "vinyl" | "constellation" | "holo";
 
 export const PROFILE_LAYOUTS: { id: LayoutId; label: string; premium: boolean; comingSoon?: boolean }[] = [
+  { id: "infected", label: "Infected", premium: false },
   { id: "modern", label: "Modern", premium: false },
   { id: "classic", label: "Classic Card", premium: false },
   { id: "split", label: "Split", premium: false },
