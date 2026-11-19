@@ -130,12 +130,10 @@ export async function getDashboardBadgeState(userId: number): Promise<DashboardB
   const rankCount = await prisma.user.count({ where: { id: { lte: userId } } });
   const isOg = rankCount <= 1000;
   if (isOg) earned.push("og");
-  if (isOg) await syncDiscordBadgeRole(userId, "og", true);
 
   const top3 = await prisma.profile.findMany({ orderBy: { views: "desc" }, take: 3, select: { userId: true } });
   const isViewsMaster = top3.some((p) => p.userId === userId);
   if (isViewsMaster) earned.push("views_master");
-  await syncDiscordBadgeRole(userId, "views_master", isViewsMaster);
 
   const views = profile.views ?? 0;
   if (views >= 1000) earned.push("hall_of_fame");

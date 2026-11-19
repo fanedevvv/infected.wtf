@@ -18,6 +18,32 @@ const BADGE_KEYS = new Set([
 
 export type DesiredRoles = { discordId: string; keys: string[]; dynamicRoleIds: string[] };
 
+/** User ids whose profile is in the top 3 by views (Views Master). Computed once per batch. */
+async function viewsMasterUserIds(): Promise<Set<number>> {
+  const top3 = await prisma.profile.findMany({ orderBy: { views: "desc" }, take: 3, select: { userId: true } });
+  return new Set(top3.map((p) => p.userId));
+}
+
+/**
+ * Grades the site works out on the fly instead of storing on the profile — same rules as the Badges page
+ * (lib/badges.ts getDashboardBadgeState): OG = one of the first 1,000 accounts, Views Master = top 3 profiles,
+ * Hall of Fame / Champion = 1,000 / 10,000 views on the primary page, Promoter / Promoter Elite = 10 / 20 referrals.
+ */
+async function derivedGrades(userId: number, topViews: Set<number>): Promise<string[]> {
+  const out: string[] = [];
+  const rank = await prisma.user.count({ where: { id: { lte: userId } } });
+  if (rank <= 1000) out.push("og");
+  if (topViews.has(userId)) out.push("views_master");
+  const primary = await prisma.profile.findFirst({ where: { userId, isPrimary: true }, select: { views: true } });
+  const views = primary?.views ?? 0;
+  if (views >= 1000) out.push("hall_of_fame");
+  if (views >= 10000) out.push("champion");
+  const refs = await prisma.referral.count({ where: { referrerId: userId } });
+  if (refs >= 20) out.push("promoter_elite");
+  else if (refs >= 10) out.push("promoter");
+  return out;
+}
+
 function isPremiumActive(u: { isPremium: boolean | null; premiumExpiresAt: Date | null }) {
   return !!u.isPremium && (!u.premiumExpiresAt || u.premiumExpiresAt.getTime() > Date.now());
 }
@@ -28,7 +54,7 @@ async function dynamicRoleMap(): Promise<Map<string, string>> {
 }
 
 /** Every role the user should have on Discord, or null when they have no linked Discord account. */
-export async function desiredDiscordRoles(userId: number, dynamic?: Map<string, string>): Promise<DesiredRoles | null> {
+export async function desiredDiscordRoles(userId: number, dynamic?: Map<string, string>, topViews?: Set<number>): Promise<DesiredRoles | null> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { isOwner: true, isAdmin: true, isMod: true, isPremium: true, premiumExpiresAt: true, banned: true },
@@ -44,6 +70,9 @@ export async function desiredDiscordRoles(userId: number, dynamic?: Map<string, 
 
   const keys = new Set<string>(["infected", "discord"]);
   for (const b of owned) if (BADGE_KEYS.has(b)) keys.add(b);
+  for (const g of await derivedGrades(userId, topViews ?? (await viewsMasterUserIds()))) keys.add(g);
+  // Elite replaces Promoter (one referral role at a time), even if an old "promoter" badge is still stored.
+  if (keys.has("promoter_elite")) keys.delete("promoter");
   if (user.isOwner) keys.add("owner");
   if (user.isOwner || user.isAdmin) keys.add("admin");
   if (user.isMod && !user.isAdmin && !user.isOwner) keys.add("mod");
@@ -56,10 +85,11 @@ export async function desiredDiscordRoles(userId: number, dynamic?: Map<string, 
 /** Desired roles for every linked account — the bot pulls this for its periodic full reconcile. */
 export async function allDesiredDiscordRoles(): Promise<DesiredRoles[]> {
   const dyn = await dynamicRoleMap();
+  const top = await viewsMasterUserIds();
   const linked = await prisma.integration.findMany({ where: { type: "discord", discordUserId: { not: null } }, select: { userId: true } });
   const out: DesiredRoles[] = [];
   for (const { userId } of linked) {
-    const d = await desiredDiscordRoles(userId, dyn);
+    const d = await desiredDiscordRoles(userId, dyn, top);
     if (d) out.push(d);
   }
   return out;
