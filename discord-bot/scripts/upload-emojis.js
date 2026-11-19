@@ -1,6 +1,7 @@
 // Draws the bot's custom emojis (site colors), uploads them as *application* emojis (they don't use
 // server emoji slots and work in any channel the bot posts in) and saves the name → markup map to
-// discord-bot/emojis.json. Re-running replaces emojis whose artwork changed.
+// discord-bot/emojis.json. Also uploads the same set to the server (DISCORD_GUILD_ID) so members can use them.
+// Re-running replaces emojis whose artwork changed.
 // Run from discord-bot/:  node scripts/upload-emojis.js
 
 require("dotenv").config({ path: require("path").join(__dirname, "..", ".env") });
@@ -98,8 +99,32 @@ async function render(name) {
     map[name] = `<:${name}:${emoji.id}>`;
   }
 
-  fs.writeFileSync(OUT, JSON.stringify({ ...map, _hashes: hashes }, null, 2) + "\n");
-  console.log(`\nSaved ${Object.keys(map).length} emojis to ${OUT}`);
+  // Same set on the server itself, so members can use them too. Replaced only when the artwork changed.
+  const guildId = process.env.DISCORD_GUILD_ID;
+  const server = {};
+  if (guildId) {
+    const serverHashes = prev._serverHashes || {};
+    const onServer = await call("GET", `/guilds/${guildId}/emojis`);
+    for (const name of Object.keys(ICONS)) {
+      const png = await render(name);
+      const hash = crypto.createHash("sha1").update(png).digest("hex").slice(0, 12);
+      let emoji = onServer.find((e) => e.name === name);
+      if (emoji && serverHashes[name] && serverHashes[name] !== hash) {
+        await call("DELETE", `/guilds/${guildId}/emojis/${emoji.id}`);
+        emoji = null;
+      }
+      if (!emoji) {
+        emoji = await call("POST", `/guilds/${guildId}/emojis`, { name, image: `data:image/png;base64,${png.toString("base64")}`, roles: [] });
+        console.log(`[server]   ${name}`);
+      }
+      serverHashes[name] = hash;
+      server[name] = emoji.id;
+    }
+    prev._serverHashes = serverHashes;
+  }
+
+  fs.writeFileSync(OUT, JSON.stringify({ ...map, _hashes: hashes, _server: server, _serverHashes: prev._serverHashes || {} }, null, 2) + "\n");
+  console.log(`\nSaved ${Object.keys(map).length} bot emojis and ${Object.keys(server).length} server emojis to ${OUT}`);
 })().catch((e) => {
   console.error("Failed:", e.message);
   process.exit(1);
