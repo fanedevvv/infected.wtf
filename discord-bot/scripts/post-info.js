@@ -1,4 +1,5 @@
-// Posts (or updates in place) the bot's info messages: #pricing, #roles and #rules (#rules mirrors app/rules/page.tsx).
+// Posts (or updates in place) the bot's info messages: #pricing, #roles, #rules (mirrors app/rules/page.tsx) and #verify
+// (its Verify button is handled in index.js, customId "infected:verify").
 // Facts mirror the site — prices: lib/docs.tsx "Pricing & Plans"; perks: "Plans"; badges: lib/shop.ts + "Badges";
 // staff powers: app/api/admin_action/route.ts. Update both when anything changes, then re-run:
 //   node scripts/post-info.js            (from discord-bot/)
@@ -15,6 +16,8 @@ const R = (key) => (process.env[`DISCORD_ROLE_${key}`] ? `<@&${process.env[`DISC
 const CHANNEL_PRICING = "1572865920320147477";
 const CHANNEL_ROLES = "1572865955883782235";
 const CHANNEL_RULES = "1572169930835628135";
+const CHANNEL_VERIFY = "1572922976783835278";
+const CH = { chat: "1572865231762227220", news: "1572865070705418372", giveaways: "1572865177387532369", biolinks: "1572866741946810371" };
 const SITE = "https://infected.wtf";
 const DOCS = "https://docs.infected.wtf";
 const COLOR = 0xc6ff3d;
@@ -114,7 +117,7 @@ const roles = {
         `## ${E.inf_logo} INFECTED.WTF ROLES`,
         "Every grade on the site has a matching role here.",
         `**Link your Discord** on [infected.wtf](${SITE}/dashboard?page=integrations) and your roles are given **automatically** — and removed when you lose the grade.`,
-        `-# linking alone gets you ${R("INFECTED")} + ${R("DISCORD")}`,
+        `-# press Verify in <#${CHANNEL_VERIFY}> for ${R("INFECTED")} · linking your Discord adds ${R("DISCORD")}`,
       ].join("\n"),
     },
     {
@@ -246,6 +249,52 @@ const rules = {
   ]),
 };
 
+/* ───────────── #verify ───────────── */
+
+const emojiRef = (markup) => {
+  const m = /<:(\w+):(\d+)>/.exec(markup || "");
+  return m ? { name: m[1], id: m[2] } : undefined;
+};
+
+const verify = {
+  embeds: [
+    {
+      color: COLOR,
+      description: [
+        `## ${E.inf_logo} WELCOME TO INFECTED.WTF`,
+        `**One link that spreads every side of you** — bio pages, badges, effects and live Discord & Spotify widgets on [infected.wtf](${SITE}).`,
+        "",
+        `### ${E.inf_shield} Get access`,
+        list([
+          `Read the <#${CHANNEL_RULES}> — verifying means you agree to them`,
+          `Press **Verify** below to get ${R("INFECTED")}`,
+          "The whole server unlocks instantly",
+        ]),
+        "",
+        `### ${E.inf_sparkle} Once you're in`,
+        `${E.inf_users} Hang out in <#${CH.chat}> and show off your page in <#${CH.biolinks}>`,
+        `${E.inf_gift} News in <#${CH.news}>, free stuff in <#${CH.giveaways}>`,
+        `${E.inf_link} Link your Discord on the site — your grades show up as roles (<#${CHANNEL_ROLES}>)`,
+        `${E.inf_token} Plans and token packs in <#${CHANNEL_PRICING}>`,
+        "",
+        `-# ${E.inf_warning} Staff will never DM you for your password or a payment.`,
+      ].join("\n"),
+      image: { url: `${SITE}/assets/img/discord-banner.jpg` },
+      footer: { text: "INFECTED.WTF · get infected" },
+    },
+  ],
+  components: [
+    {
+      type: 1,
+      components: [
+        { type: 2, style: 3, label: "Verify", custom_id: "infected:verify", emoji: emojiRef(E.inf_check) },
+        { type: 2, style: 5, label: "Rules", url: `https://discord.com/channels/${process.env.DISCORD_GUILD_ID}/${CHANNEL_RULES}` },
+        { type: 2, style: 5, label: "Website", url: SITE },
+      ],
+    },
+  ],
+};
+
 /* ───────────── posting ───────────── */
 
 async function call(method, route, body) {
@@ -280,6 +329,7 @@ async function publish(channelId, message, label) {
   await publish(CHANNEL_PRICING, pricing, "#pricing");
   await publish(CHANNEL_ROLES, roles, "#roles");
   await publish(CHANNEL_RULES, rules, "#rules");
+  await publish(CHANNEL_VERIFY, verify, "#verify");
 })().catch((e) => {
   console.error("Failed:", e.message);
   process.exit(1);

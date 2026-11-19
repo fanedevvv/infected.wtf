@@ -72,7 +72,7 @@ export async function grantInfectedRole(discordUserId: string) {
   }).catch(() => {});
 }
 
-/** Unlinking: strip every site role (not just Infected) from the Discord account. */
+/** Unlinking: strip the site's grade roles from the Discord account (the verified-member role stays). */
 export async function revokeInfectedRole(discordUserId: string) {
   const { clearDiscordRoles } = await import("./discord-sync");
   await clearDiscordRoles(discordUserId);

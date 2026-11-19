@@ -5,6 +5,7 @@ const {
   Client,
   GatewayIntentBits,
   Partials,
+  MessageFlags,
 } = require('discord.js');
 
 const {
@@ -254,6 +255,43 @@ client.on('guildMemberAdd', async (member) => {
     }
   } catch (e) {
     console.error('[sync] guildMemberAdd failed:', e.message);
+  }
+});
+
+// ── #verify button (posted by scripts/post-info.js): gives the Infected member role ──
+const VERIFY_BUTTON_ID = 'infected:verify';
+const SITE_PUBLIC = 'https://infected.wtf';
+const linkRow = (links) => [{ type: 1, components: links.map(([label, url]) => ({ type: 2, style: 5, label, url })) }];
+
+client.on('interactionCreate', async (interaction) => {
+  if (!interaction.isButton() || interaction.customId !== VERIFY_BUTTON_ID) return;
+  const reply = (embed, components) =>
+    interaction.reply({ embeds: [{ color: 0xc6ff3d, ...embed }], components, flags: MessageFlags.Ephemeral }).catch(() => {});
+  try {
+    if (!DISCORD_ROLE_INFECTED) return reply({ description: `${em('inf_warning', '⚠️')} Verification isn't set up yet — please ping a staff member.` });
+    const member = interaction.member?.roles?.cache ? interaction.member : await interaction.guild.members.fetch(interaction.user.id);
+
+    if (member.roles.cache.has(DISCORD_ROLE_INFECTED)) {
+      return reply({ description: `${em('inf_check', '✅')} You're already verified — enjoy the server!` });
+    }
+
+    await member.roles.add(DISCORD_ROLE_INFECTED, 'Verified via #verify');
+    logToChannel(`${em('inf_check', '✅')} <@${member.id}> verified.`);
+    return reply(
+      {
+        description: [
+          `### ${em('inf_check', '✅')} You're verified, ${member.displayName}!`,
+          `Welcome to INFECTED.WTF — you now have <@&${DISCORD_ROLE_INFECTED}> and the whole server is open.`,
+          ``,
+          `${em('inf_rocket', '🚀')} **Make your page** — one link for all your socials, music and more.`,
+          `${em('inf_link', '🔗')} **Link your Discord** on the site and your badges show up here as roles.`,
+        ].join('\n'),
+      },
+      linkRow([['Make your page', `${SITE_PUBLIC}/register`], ['Link Discord', `${SITE_PUBLIC}/dashboard?page=integrations`]]),
+    );
+  } catch (e) {
+    console.error('[verify] failed:', e.message);
+    return reply({ description: `${em('inf_warning', '⚠️')} Something went wrong — try again in a moment or ping a staff member.` });
   }
 });
 

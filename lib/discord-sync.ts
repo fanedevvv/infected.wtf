@@ -127,7 +127,8 @@ export async function syncDiscordRoles(userId: number): Promise<SyncResult> {
   }
 }
 
-/** Strips every site role from a Discord account — used when the account is unlinked. */
+/** Strips the site's grade roles from a Discord account when it's unlinked. "infected" stays: it's also the
+ *  server's verified-member role (#verify), so unlinking must not lock someone out of the server. */
 export async function clearDiscordRoles(discordId: string): Promise<SyncResult> {
-  return postToBot({ discord_id: discordId, keys: [], dynamic_role_ids: [] });
+  return postToBot({ discord_id: discordId, keys: ["infected"], dynamic_role_ids: [] });
 }
