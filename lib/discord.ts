@@ -60,16 +60,33 @@ export async function setDiscordGuildRole(discordUserId: string, roleId: string,
   }).catch(() => {});
 }
 
+/** Linked-member role. Goes through the bot (the site has no bot token); the full sync that follows a link covers it too. */
 export async function grantInfectedRole(discordUserId: string) {
-  await setDiscordGuildRole(discordUserId, process.env.DISCORD_ROLE_INFECTED || "", true);
+  const botUrl = process.env.DISCORD_BOT_URL;
+  if (!botUrl) return;
+  await fetch(`${botUrl.replace(/\/$/, "")}/assign-infected-role`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Api-Key": process.env.DISCORD_BOT_API_KEY || "" },
+    body: JSON.stringify({ discord_id: discordUserId }),
+    signal: AbortSignal.timeout(3000),
+  }).catch(() => {});
 }
 
+/** Unlinking: strip every site role (not just Infected) from the Discord account. */
 export async function revokeInfectedRole(discordUserId: string) {
-  await setDiscordGuildRole(discordUserId, process.env.DISCORD_ROLE_INFECTED || "", false);
+  const { clearDiscordRoles } = await import("./discord-sync");
+  await clearDiscordRoles(discordUserId);
 }
 
-/** Syncs a site "grade" (profile badge) to its matching Discord role via the bot's internal API — mirrors grant/revoke onto the user's linked Discord account, if any. */
+/** Called whenever a site "grade" changes. Dynamic (Discord-created) roles are set directly; then the user's whole
+ *  role set is re-synced, so every other grade they hold is brought up to date as well. */
 export async function syncDiscordBadgeRole(userId: number, badgeId: string, grant: boolean) {
+  if (badgeId.startsWith("dc_")) await setDynamicBadgeRole(userId, badgeId, grant);
+  const { syncDiscordRoles } = await import("./discord-sync");
+  await syncDiscordRoles(userId);
+}
+
+async function setDynamicBadgeRole(userId: number, badgeId: string, grant: boolean) {
   const botUrl = process.env.DISCORD_BOT_URL;
   if (!botUrl) return;
   const apiKey = process.env.DISCORD_BOT_API_KEY || "";

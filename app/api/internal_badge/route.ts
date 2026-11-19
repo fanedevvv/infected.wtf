@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parseStringArray, serializeStringArray } from "@/lib/json-array";
+import { desiredDiscordRoles, allDesiredDiscordRoles } from "@/lib/discord-sync";
 
 function ok(message = "OK", extra: Record<string, unknown> = {}) {
   return NextResponse.json({ success: true, message, ...extra });
@@ -55,6 +56,21 @@ export async function POST(req: NextRequest) {
       await prisma.profile.update({ where: { id: p.id }, data: { badges: serializeStringArray(owned) } });
     }
     return ok(`Unregistered badge '${badgeKey}'.`);
+  }
+
+  // ── Full role sync: what roles a linked member should have (bot applies them on join + periodically) ──
+  if (action === "desired_roles") {
+    const discordId = String(input.discord_id || "").trim();
+    if (!/^\d{17,20}$/.test(discordId)) return err("Invalid discord_id.");
+    const integration = await prisma.integration.findFirst({ where: { type: "discord", discordUserId: discordId }, select: { userId: true } });
+    if (!integration) return ok("Not linked.", { linked: false });
+    const desired = await desiredDiscordRoles(integration.userId);
+    return ok("OK", { linked: !!desired, keys: desired?.keys ?? [], dynamic_role_ids: desired?.dynamicRoleIds ?? [] });
+  }
+
+  if (action === "all_desired_roles") {
+    const all = await allDesiredDiscordRoles();
+    return ok("OK", { members: all.map((d) => ({ discord_id: d.discordId, keys: d.keys, dynamic_role_ids: d.dynamicRoleIds })) });
   }
 
   // ── Discord → site ban sync: someone was banned/unbanned directly on the Discord server ──

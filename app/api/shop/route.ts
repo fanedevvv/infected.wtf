@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-helpers";
+import { requireUser, getCurrentUser } from "@/lib/auth-helpers";
+import { syncDiscordRoles } from "@/lib/discord-sync";
 import { getActiveProfileId } from "@/lib/active-profile";
 import { SHOP_BADGES, SHOP_EFFECTS } from "@/lib/shop";
 import { DECORATIONS, getCustomDecorationMeta, normalizeDecorationId } from "@/lib/decorations";
@@ -39,7 +40,23 @@ export async function GET() {
   });
 }
 
+// Shop actions that change a grade (badge, Plus, bundle) — Discord roles are re-synced after them; gifts sync the recipient too.
+const ROLE_ACTIONS = new Set(["buy", "buy_badge", "buy_premium_tokens", "buy_bundle"]);
+const GIFT_ROLE_ACTIONS = new Set(["gift", "gift_badge", "gift_premium_tokens", "gift_bundle"]);
+
 export async function POST(req: NextRequest) {
+  const body = await req.clone().json().catch(() => ({}));
+  const res = await handlePost(req);
+  if (res.status === 200) {
+    const action = String(body.action || "");
+    const me = await getCurrentUser();
+    if (me && (ROLE_ACTIONS.has(action) || GIFT_ROLE_ACTIONS.has(action))) await syncDiscordRoles(me.id);
+    if (GIFT_ROLE_ACTIONS.has(action) && Number(body.targetId)) await syncDiscordRoles(Number(body.targetId));
+  }
+  return res;
+}
+
+async function handlePost(req: NextRequest) {
   let user;
   try {
     user = await requireUser();

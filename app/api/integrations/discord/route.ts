@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
-import { revokeInfectedRole, syncDiscordBadgeRole } from "@/lib/discord";
+import { revokeInfectedRole } from "@/lib/discord";
 import { parseStringArray, serializeStringArray } from "@/lib/json-array";
 
 export async function GET() {
@@ -28,8 +28,8 @@ export async function DELETE() {
   const row = await prisma.integration.findUnique({ where: { userId_type: { userId: user.id, type: "discord" } } });
   if (row) {
     if (row.discordUserId) {
+      // Strips every site role; a full sync here would re-add them while the link still exists.
       await revokeInfectedRole(row.discordUserId);
-      await syncDiscordBadgeRole(user.id, "discord", false);
     }
     if (row.discordServerInvite) {
       await prisma.integration.update({

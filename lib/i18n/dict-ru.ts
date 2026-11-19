@@ -177,6 +177,7 @@ const ru: Record<string, string> = {
   "ELITE ✓": "ELITE ✓",
   "EQUIPPED": "НАДЕТО",
   "Edit": "Изменить",
+  "Sync roles": "Синхронизировать роли",
   "Effects": "Эффекты",
   "Email": "Email",
   "Email Address": "Адрес email",

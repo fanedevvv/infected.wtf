@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth-helpers";
 import { SHOP_EFFECTS } from "@/lib/shop";
 import { DECORATIONS } from "@/lib/decorations";
 import { syncDiscordBadgeRole, createDynamicBadge, deleteDynamicBadge } from "@/lib/discord";
+import { syncDiscordRoles } from "@/lib/discord-sync";
 import { parseStringArray, serializeStringArray } from "@/lib/json-array";
 import { isValidHostname, checkDnsPointsToServer, provisionDomain, deprovisionDomain } from "@/lib/domains";
 import { getEmailTemplateById, updateEmailTemplate, applyTemplateVariables } from "@/lib/email-templates";
@@ -63,21 +64,9 @@ async function notifyDiscordAdminLog(
   } catch {}
 }
 
-async function syncDiscordPremiumRole(userId: number, hasPremium: boolean) {
-  const botUrl = process.env.DISCORD_BOT_URL;
-  if (!botUrl) return;
-  const apiKey = process.env.DISCORD_BOT_API_KEY || "";
-  const integration = await prisma.integration.findFirst({ where: { userId, type: "discord" } });
-  if (!integration?.discordUserId) return;
-  const endpoint = hasPremium ? "/assign-premium-role" : "/remove-premium-role";
-  try {
-    await fetch(`${botUrl.replace(/\/$/, "")}${endpoint}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Api-Key": apiKey },
-      body: JSON.stringify({ discord_id: integration.discordUserId }),
-      signal: AbortSignal.timeout(2000),
-    });
-  } catch {}
+// The premium flag is already saved when this runs, so a full sync puts the right role on.
+async function syncDiscordPremiumRole(userId: number, _hasPremium: boolean) {
+  await syncDiscordRoles(userId);
 }
 
 async function getRateLimitCount(type: string, actorId: number): Promise<number> {

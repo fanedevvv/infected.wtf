@@ -118,8 +118,29 @@ type ActiveWidget = {
   visible?: boolean;
   onToggle?: () => void;
   onEdit?: () => void;
+  /** Discord only: push the user's site grades to their Discord roles right now. */
+  onSync?: () => Promise<void>;
   onRemove: () => Promise<void>;
 };
+
+function SyncButton({ onSync, label }: { onSync: () => Promise<void>; label: string }) {
+  const [busy, setBusy] = useState(false);
+  return (
+    <button
+      type="button"
+      className="wm-act"
+      disabled={busy}
+      title={label}
+      onClick={async () => {
+        setBusy(true);
+        try { await onSync(); } finally { setBusy(false); }
+      }}
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="13" height="13" style={{ marginRight: 5, verticalAlign: "-2px", animation: busy ? "spin 1s linear infinite" : undefined }}><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16" /><path d="M3 21v-5h5" /><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8" /><path d="M21 3v5h-5" /></svg>
+      {label}
+    </button>
+  );
+}
 
 async function api(url: string, method: string, body?: unknown) {
   const res = await fetch(url, {
@@ -240,6 +261,9 @@ export default function WidgetsManager({
       onToggle: async () => {
         if (await run(api("/api/integrations/discord", "PATCH"))) setIntegration((i) => (i ? { ...i, visible: !i.visible } : i));
       },
+      onSync: async () => {
+        await run(api("/api/integrations/discord/sync", "POST"));
+      },
       onRemove: async () => {
         if (await run(api("/api/integrations/discord", "DELETE"), t("Integration removed."))) {
           setIntegration((i) => (i && i.discordServerInvite ? { ...i, discordUserId: null, discordUsername: null, discordGlobalName: null, discordAvatar: null, visible: true } : null));
@@ -349,6 +373,7 @@ export default function WidgetsManager({
                       <span />
                     </button>
                   )}
+                  {w.onSync && <SyncButton onSync={w.onSync} label={t("Sync roles")} />}
                   {w.onEdit && <button type="button" className="wm-act" onClick={w.onEdit}>{t("Edit")}</button>}
                   <button type="button" className="wm-act wm-act--icon" onClick={() => setConfirmKey(w.key)} title={t("Remove")} aria-label={t("Remove")}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" /></svg>

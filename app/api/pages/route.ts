@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireUser, validateUsername } from "@/lib/auth-helpers";
+import { requireUser, validateUsername, getCurrentUser } from "@/lib/auth-helpers";
+import { syncDiscordRoles } from "@/lib/discord-sync";
 import { getActiveProfileId, setActiveProfileCookie, maxPagesFor } from "@/lib/active-profile";
 import { RESERVED_SLUGS, isSlugTaken } from "@/lib/slug-availability";
 
@@ -101,6 +102,15 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const res = await deletePage(req);
+  if (res.status === 200) {
+    const me = await getCurrentUser();
+    if (me) await syncDiscordRoles(me.id); // badges on the deleted page are gone
+  }
+  return res;
+}
+
+async function deletePage(req: NextRequest) {
   let user;
   try {
     user = await requireUser();

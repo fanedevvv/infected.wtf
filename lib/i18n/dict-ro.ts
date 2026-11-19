@@ -177,6 +177,7 @@ const ro: Record<string, string> = {
   "ELITE ✓": "ELITE ✓",
   "EQUIPPED": "ECHIPAT",
   "Edit": "Editează",
+  "Sync roles": "Sincronizează rolurile",
   "Effects": "Efecte",
   "Email": "Email",
   "Email Address": "Adresă de email",

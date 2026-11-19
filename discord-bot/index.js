@@ -20,7 +20,7 @@ const {
 } = process.env;
 
 // badge id (as used in profiles.badges on the site) -> Discord role id, read from env.
-// Populated by scripts/create-badge-roles.js.
+// Populated by scripts/setup-roles.js.
 const BADGE_ROLE_MAP = {
   verified: DISCORD_ROLE_VERIFIED,
   champion: process.env.DISCORD_ROLE_CHAMPION,
@@ -44,18 +44,28 @@ const BADGE_ROLE_MAP = {
   promoter_elite: process.env.DISCORD_ROLE_PROMOTER_ELITE,
 };
 
+// Every role the site owns on Discord, by key: the badge roles plus the linked-member, Plus and Moderator roles.
+// The full sync adds/removes exactly these and never touches any other role a member has.
+const SITE_ROLE_MAP = {
+  ...BADGE_ROLE_MAP,
+  infected: DISCORD_ROLE_INFECTED,
+  premium: DISCORD_ROLE_PREMIUM,
+  mod: process.env.DISCORD_ROLE_MOD,
+};
+const MANAGED_ROLE_IDS = new Set(Object.values(SITE_ROLE_MAP).filter(Boolean));
+
 // Role ids that already map to a hardcoded site badge — new-role/member-role sync should ignore these,
 // they're managed exclusively through the site's own grant/revoke + BADGE_ROLE_MAP flow.
-const KNOWN_ROLE_IDS = new Set([DISCORD_ROLE_INFECTED, DISCORD_ROLE_PREMIUM, ...Object.values(BADGE_ROLE_MAP)].filter(Boolean));
+const KNOWN_ROLE_IDS = MANAGED_ROLE_IDS;
 
-async function callSite(action, body) {
+async function callSite(action, body, timeoutMs = 4000) {
   if (!SITE_URL) return null;
   try {
     const res = await fetch(`${SITE_URL.replace(/\/$/, '')}/api/internal_badge`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Api-Key': API_KEY },
       body: JSON.stringify({ action, ...body }),
-      signal: AbortSignal.timeout(4000),
+      signal: AbortSignal.timeout(timeoutMs),
     });
     return await res.json().catch(() => null);
   } catch (e) {
@@ -82,8 +92,12 @@ const client = new Client({
   partials: [Partials.GuildMember, Partials.User],
 });
 
-client.once('ready', () => {
+client.once('clientReady', () => {
   console.log(`[bot] Logged in as ${client.user.tag}`);
+  // Full reconcile shortly after start, then every 5 minutes — catches anything an event missed
+  // (expired Infected Plus, changes made while the bot was offline, members who joined meanwhile).
+  setTimeout(reconcileAll, 15_000);
+  setInterval(reconcileAll, 5 * 60_000);
 });
 
 client.login(DISCORD_BOT_TOKEN);
@@ -184,6 +198,62 @@ client.on('guildMemberUpdate', async (oldMember, newMember) => {
     }
   } catch (e) {
     console.error('[bot] guildMemberUpdate badge sync failed:', e.message);
+  }
+});
+
+// ── Full role sync (site → Discord) ──────────────────────────────────────────
+// keys: SITE_ROLE_MAP keys the member should have; dynamicRoleIds: Discord-created grade roles they own on the site.
+// Adds what's missing, removes site roles they no longer earn. Dynamic roles are only ever added here —
+// removing them stays with the explicit revoke path, so a role staff just gave on Discord is never fought over.
+async function applySiteRoles(discordId, keys, dynamicRoleIds = []) {
+  const guild = await getGuild();
+  let member;
+  try {
+    member = await guild.members.fetch(discordId);
+  } catch {
+    return { in_guild: false, added: 0, removed: 0 };
+  }
+  const desired = new Set([...keys.map((k) => SITE_ROLE_MAP[k]), ...dynamicRoleIds].filter(Boolean));
+  const has = member.roles.cache;
+  const toAdd = [...desired].filter((id) => !has.has(id) && guild.roles.cache.has(id));
+  const toRemove = [...has.keys()].filter((id) => MANAGED_ROLE_IDS.has(id) && !desired.has(id));
+  if (toAdd.length) await member.roles.add(toAdd, 'infected.wtf role sync');
+  if (toRemove.length) await member.roles.remove(toRemove, 'infected.wtf role sync');
+  return { in_guild: true, added: toAdd.length, removed: toRemove.length };
+}
+
+let reconciling = false;
+async function reconcileAll() {
+  if (reconciling) return;
+  reconciling = true;
+  try {
+    const result = await callSite('all_desired_roles', {}, 20_000);
+    if (!result?.success) return;
+    let changed = 0;
+    for (const m of result.members || []) {
+      try {
+        const r = await applySiteRoles(m.discord_id, m.keys || [], m.dynamic_role_ids || []);
+        changed += r.added + r.removed;
+      } catch (e) {
+        console.error(`[sync] ${m.discord_id}:`, e.message);
+      }
+    }
+    if (changed) console.log(`[sync] periodic reconcile: ${changed} role change(s) across ${result.members.length} linked member(s)`);
+  } finally {
+    reconciling = false;
+  }
+}
+
+// Someone joins the server: give them their site roles straight away if their account is linked.
+client.on('guildMemberAdd', async (member) => {
+  try {
+    const result = await callSite('desired_roles', { discord_id: member.id });
+    if (result?.success && result.linked) {
+      const r = await applySiteRoles(member.id, result.keys || [], result.dynamic_role_ids || []);
+      if (r.added) console.log(`[sync] ${member.user.tag} joined — gave ${r.added} site role(s)`);
+    }
+  } catch (e) {
+    console.error('[sync] guildMemberAdd failed:', e.message);
   }
 });
 
@@ -317,6 +387,19 @@ app.post('/badge-role', async (req, res) => {
   try {
     await setRole(id, roleId, grant);
     res.json({ success: true, message: `Role for badge '${badgeId}' ${grant ? 'assigned' : 'removed'}.` });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// POST /sync-member { discord_id, keys: [...], dynamic_role_ids: [...] } — full site → Discord role sync for one member
+app.post('/sync-member', async (req, res) => {
+  const id = requireDiscordId(req, res, 'body');
+  if (!id) return;
+  const keys = Array.isArray(req.body.keys) ? req.body.keys.map(String).filter((k) => k in SITE_ROLE_MAP) : [];
+  const dyn = Array.isArray(req.body.dynamic_role_ids) ? req.body.dynamic_role_ids.map(String).filter((r) => DISCORD_ID_RE.test(r)) : [];
+  try {
+    res.json({ success: true, ...(await applySiteRoles(id, keys, dyn)) });
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });
   }

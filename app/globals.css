@@ -4009,3 +4009,5 @@ body:has(.unsaved-bar.visible) .toast-container { bottom: calc(1.5rem + 58px); }
 /* admin Partners tab: main partner marker */
 .pt-main-tag { display:inline-block; margin-left:.5rem; padding:.1rem .5rem; border-radius:999px; font-size:.68rem; font-weight:800; background:var(--accent); color:var(--accent-ink); vertical-align:middle; }
 .pt-item-main { border-color:color-mix(in srgb, var(--accent) 50%, transparent) !important; background:color-mix(in srgb, var(--accent) 6%, transparent) !important; }
+
+@keyframes spin { to { transform: rotate(360deg); } }

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-helpers";
+import { requireUser, getCurrentUser } from "@/lib/auth-helpers";
+import { syncDiscordRoles } from "@/lib/discord-sync";
 import { getActiveProfileId } from "@/lib/active-profile";
 import { DECORATION_FALLBACK_TOKENS, SPIN_COOLDOWN_MS, rollSpinPrize } from "@/lib/spin";
 import { DECORATIONS } from "@/lib/decorations";
@@ -20,6 +21,15 @@ export async function GET() {
 }
 
 export async function POST() {
+  const res = await spin();
+  if (res.status === 200) {
+    const me = await getCurrentUser();
+    if (me) await syncDiscordRoles(me.id); // a spin can award Verified or Plus
+  }
+  return res;
+}
+
+async function spin() {
   let user;
   try {
     user = await requireUser();
