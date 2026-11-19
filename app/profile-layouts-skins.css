@@ -401,3 +401,27 @@
 @keyframes sk-pan-260 { to { transform:translate3d(260px, 260px, 0); } }
 @keyframes sk-pan-120 { to { transform:translate3d(120px, 120px, 0); } }
 @keyframes sk-pan-220 { to { transform:translate3d(220px, 220px, 0); } }
+
+/* ══════════════════ GPU memory budget ══════════════════
+   Every animated full-page layer is its own GPU texture. On phones (and in the editor's scaled-down live preview,
+   which renders a whole desktop-size page) too many of them run the GPU out of memory: parts of the page are left
+   blank/black and flicker. So: */
+
+/* 1. Promote only while actually animating (no permanent will-change on the big layers). */
+.pl-ambient i, .im-ambient i { will-change:auto; }
+/* 2. The holo card doesn't need its own 3D rendering context (foil/glare are flat). */
+.pl-holo-card { transform-style:flat; }
+
+/* 3. Editor live preview: no full-page ambience, no tilt/foil — it's tiny there anyway. */
+.is-embed :is(.pl-ambient, .im-ambient, .im-spot, .pl-holo-foil, .pl-holo-glare, .pl-sheen, .im-halo) { display:none !important; }
+.is-embed :is(.pl-tilt, .pl-holo-card) { transform:none !important; will-change:auto !important; }
+.is-embed *, .is-embed *::before, .is-embed *::after { animation-iteration-count:1 !important; }
+
+/* 4. Touch devices / small screens: the full-page ambience stays (same colours), but stands still. */
+@media (hover: none), (max-width: 760px) {
+  .pl-ambient i, .im-ambient i, .pl-ambient, .im-ambient { animation:none !important; }
+  .im-spot { display:none; }
+  .im-halo { animation:none; filter:blur(14px); }
+  .pl--infected .pl-ambient i:nth-child(3), .im-ambient i:nth-child(3) { height:100%; }
+  .pl-holo-card { will-change:auto; }
+}

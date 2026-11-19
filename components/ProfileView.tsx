@@ -146,7 +146,8 @@ export default function ProfileView(p: ProfileViewProps) {
   };
 
   return (
-    <div className="profile-body" style={paletteVars}>
+    // is-embed: the dashboard editor's small live preview — heavy full-page effects are switched off there.
+    <div className={`profile-body${p.autoEnter ? " is-embed" : ""}`} style={paletteVars}>
       {!entered && (
         <div id="splash-screen" onClick={enter}>
           <div id="splash-text">
