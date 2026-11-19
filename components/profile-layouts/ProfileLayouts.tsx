@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { profileFontFamily, googleFontsHref } from "@/lib/profile-fonts";
+import { FREE_CANVAS, FREE_ELEMENT_SIZE, parseFreeLayout, type FreeElement } from "@/lib/free-layout";
 import {
-  Avatar, Badges, BelowFold, BestFriend, Bio, DisplayName, Footer, MetaRow, OwnerEdit, Skills, SocialLink, Widgets,
+  Avatar, Badges, BelowFold, BestFriend, Bio, DisplayName, Footer, MetaRow, OwnerEdit, Skills, SocialIcons, SocialLink, Widgets,
   hasWidgets, linkHost, metaItems, platformIcon, platformLabel, type LayoutProps,
 } from "./parts";
 
-export type CardLayout = "split" | "dock" | "deck" | "orbit" | "terminal" | "scrapbook" | "hexgrid" | "vinyl" | "constellation";
+export type CardLayout = "freemode" | "split" | "dock" | "deck" | "orbit" | "terminal" | "scrapbook" | "hexgrid" | "vinyl" | "constellation";
 
 /** Small deterministic PRNG so decorative positions are stable per profile (and identical on server and client). */
 function seeded(text: string) {
@@ -33,6 +34,56 @@ export default function ProfileLayout({ layout, ...props }: LayoutProps & { layo
         <Stage {...props} />
       </div>
       <BelowFold p={p} entered={entered} />
+    </div>
+  );
+}
+
+/* ── Free Mode: every element where the owner dragged it ──────────────────── */
+// The canvas has a fixed design size and is scaled as a whole to the available width, so the arrangement is
+// identical on every screen. Widgets and skills (variable height) flow underneath it.
+
+function FreeMode({ p, entered, ...votes }: LayoutProps) {
+  const layout = parseFreeLayout(p.freeLayout);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el) return;
+    const fit = () => setScale(Math.min(1, el.clientWidth / FREE_CANVAS.width));
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const content: Record<FreeElement, React.ReactNode> = {
+    avatar: <Avatar p={p} />,
+    name: <DisplayName p={p} entered={entered} />,
+    badges: <Badges p={p} />,
+    bio: p.bio ? <Bio p={p} entered={entered} /> : null,
+    meta: <MetaRow p={p} />,
+    links: <SocialIcons p={p} />,
+    bestfriend: <BestFriend p={p} />,
+    footer: <Footer p={p} {...votes} />,
+  };
+
+  return (
+    <div className="pl-free">
+      <div ref={boxRef} className="pl-free-box" style={{ height: FREE_CANVAS.height * scale }}>
+        <div className="pl-free-canvas" style={{ width: FREE_CANVAS.width, height: FREE_CANVAS.height, transform: `scale(${scale})` }}>
+          {(Object.keys(content) as FreeElement[]).map((key) => {
+            const item = layout[key];
+            if (item.hidden || !content[key]) return null;
+            return (
+              <div key={key} className={`pl-free-item pl-free-item--${key}`} style={{ left: `${item.x}%`, top: `${item.y}%`, maxWidth: FREE_ELEMENT_SIZE[key].w + 60 }}>
+                {content[key]}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      {hasWidgets(p) && <Widgets p={p} className="pl-free-widgets" />}
+      <Skills p={p} className="pl-free-skills" />
     </div>
   );
 }
@@ -486,6 +537,7 @@ function Constellation({ p, entered, ...votes }: LayoutProps) {
 }
 
 const STAGES: Record<CardLayout, (props: LayoutProps) => React.ReactNode> = {
+  freemode: FreeMode,
   split: Split,
   dock: Dock,
   deck: Deck,

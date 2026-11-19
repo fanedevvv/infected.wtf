@@ -16,6 +16,7 @@ import { getWeatherForLocation } from "@/lib/weather";
 import { getTimezoneForLocation } from "@/lib/timezone";
 import { applyEmbedVariables } from "@/lib/social-embed";
 import Link from "next/link";
+import { parseFreeLayout, serializeFreeLayout } from "@/lib/free-layout";
 
 const DRAFT_STRING_FIELDS = ["displayName", "bio", "location", "job", "layoutTemplate", "playlistStyle"] as const;
 const DRAFT_COLOR_FIELDS = ["accentColor", "backgroundColor", "nameColor", "bioColor", "overlayColor"] as const;
@@ -26,6 +27,8 @@ function parseEditorDraft(raw: string): Record<string, string> {
     const out: Record<string, string> = {};
     for (const f of DRAFT_STRING_FIELDS) if (typeof data[f] === "string") out[f] = (data[f] as string).slice(0, 300);
     for (const f of DRAFT_COLOR_FIELDS) if (typeof data[f] === "string" && /^#[0-9a-fA-F]{6}$/.test(data[f] as string)) out[f] = data[f] as string;
+    // Free Mode arrangement being dragged in the editor (sanitised the same way as on save).
+    if (typeof data.freeLayout === "string") out.freeLayout = serializeFreeLayout(parseFreeLayout(data.freeLayout.slice(0, 4000)));
     return out;
   } catch {
     return {};
@@ -283,6 +286,7 @@ export default async function ProfilePage({
       skills={skills.map((sk) => ({ id: sk.id, name: sk.name, level: sk.level }))}
       bestFriend={bestFriend}
       layoutTemplate={look.layoutTemplate}
+      freeLayout={look.freeLayout}
       purchasedEffects={purchasedEffects}
       activeCursorEffect={activeEffects.cursor || ""}
       activeBgEffect={activeEffects.bg || ""}

@@ -335,3 +335,15 @@
 .shape-sample { display:block; position:relative; }
 .shape-sample .avatar-img { width:64px; height:64px; object-fit:cover; display:block; border-radius:0; clip-path:var(--avatar-clip); }
 .shape-sample .decoration-frame { inset:-10%; }
+
+/* ── Free Mode ─────────────────────────────────────────────────────────── */
+.pl-free { width:100%; max-width:480px; margin:0 auto; display:flex; flex-direction:column; align-items:stretch; gap:1rem; }
+.pl-free-box { position:relative; width:100%; overflow:visible; }
+.pl-free-canvas { position:absolute; left:0; top:0; transform-origin:0 0; }
+.pl-free-item { position:absolute; transform:translate(-50%, -50%); display:flex; flex-direction:column; align-items:center; text-align:center; width:max-content; }
+.pl-free-item > * { margin:0 !important; }
+.pl-free-item--bio { width:380px; }
+.pl-free-item--bio, .pl-free-item--name, .pl-free-item--meta { text-shadow:0 2px 12px rgba(0,0,0,.65); }
+.pl-free-item--meta .profile-meta, .pl-free-item--meta > div { justify-content:center; flex-wrap:wrap; }
+.pl-free-item--links .social-icons { justify-content:center; flex-wrap:wrap; max-width:400px; }
+.pl-free-widgets, .pl-free-skills { width:100%; }

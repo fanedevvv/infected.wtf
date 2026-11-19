@@ -1,7 +1,7 @@
 import type { LayoutId } from "@/lib/profile-layouts";
 
 // Miniature sketches of each layout for the editor's picker.
-export default function LayoutThumb({ id }: { id: LayoutId | "freemode" }) {
+export default function LayoutThumb({ id }: { id: LayoutId }) {
   const lines = (n: number, cls = "lt-line") => Array.from({ length: n }, (_, i) => <i key={i} className={cls} />);
   switch (id) {
     case "freemode":
