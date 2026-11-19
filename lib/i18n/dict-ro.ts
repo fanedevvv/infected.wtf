@@ -627,6 +627,8 @@ const ro: Record<string, string> = {
   "Hide from profile": "Ascunde de pe profil",
   "Live presence, badges and activity": "Status live, badge-uri și activitate",
   "Live status of a Minecraft server": "Status live pentru un server de Minecraft",
+  "Live status of a SA:MP / open.mp server": "Status live pentru un server SA:MP / open.mp",
+  "Saved — the server didn't answer right now, so it shows as offline until it's back.": "Salvat — serverul nu a răspuns acum, așa că apare offline până revine.",
   "Minecraft username": "Username Minecraft",
   "No widgets match your search.": "Niciun widget nu se potrivește căutării.",
   "No widgets yet": "Încă nu ai widget-uri",

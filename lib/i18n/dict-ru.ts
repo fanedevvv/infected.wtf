@@ -627,6 +627,7 @@ const ru: Record<string, string> = {
   "Hide from profile": "Скрыть из профиля",
   "Live presence, badges and activity": "Статус, значки и активность в реальном времени",
   "Live status of a Minecraft server": "Живой статус сервера Minecraft",
+  "Live status of a SA:MP / open.mp server": "Живой статус сервера SA:MP / open.mp",
   "Minecraft username": "Ник в Minecraft",
   "No widgets match your search.": "Ничего не найдено.",
   "No widgets yet": "Виджетов пока нет",

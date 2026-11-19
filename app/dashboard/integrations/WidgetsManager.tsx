@@ -4,14 +4,14 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { showToast } from "@/lib/toast";
 import {
-  SteamIcon, RobloxIcon, MinecraftIcon, ServerIcon, ValorantIcon, TwitchIcon, SpotifyIcon, GithubIcon, PinterestIcon, YoutubeIcon,
+  SteamIcon, RobloxIcon, MinecraftIcon, ServerIcon, SampIcon, ValorantIcon, TwitchIcon, SpotifyIcon, GithubIcon, PinterestIcon, YoutubeIcon,
 } from "@/components/IntegrationIcons";
 import { PLATFORM_COLOR, PLATFORM_ICON, PLATFORM_PLACEHOLDER } from "@/lib/social-platforms";
 import { useT } from "@/lib/i18n/client";
 
 /* ── Catalog ─────────────────────────────────────────────────────────────── */
 
-const GAME_TYPES = ["steam", "roblox", "minecraft", "mcserver", "valorant", "twitch", "spotify", "github", "pinterest", "youtube"] as const;
+const GAME_TYPES = ["steam", "roblox", "minecraft", "mcserver", "sampserver", "valorant", "twitch", "spotify", "github", "pinterest", "youtube"] as const;
 type GameType = (typeof GAME_TYPES)[number];
 const SOCIAL_TYPES = ["instagram", "twitter", "youtube", "tiktok", "website"] as const;
 type SocialType = (typeof SOCIAL_TYPES)[number];
@@ -51,6 +51,7 @@ const WIDGETS: WidgetDef[] = [
   { key: "roblox", title: "Roblox", desc: "Your Roblox username and avatar", category: "gaming", color: "#e2231a", icon: <RobloxIcon size={18} />, setup: { kind: "form", fields: [{ name: "username", placeholder: "Roblox username" }] } },
   { key: "minecraft", title: "Minecraft", desc: "Your Minecraft username and skin", category: "gaming", color: "#5cb85c", icon: <MinecraftIcon size={18} />, setup: { kind: "form", fields: [{ name: "username", placeholder: "Minecraft username" }] } },
   { key: "mcserver", title: "MC Server", desc: "Live status of a Minecraft server", category: "gaming", color: "#7cb342", icon: <ServerIcon size={18} />, setup: { kind: "form", fields: [{ name: "host", placeholder: "play.hypixel.net" }] } },
+  { key: "sampserver", title: "SA:MP Server", desc: "Live status of a SA:MP / open.mp server", category: "gaming", color: "#ff9f1c", icon: <SampIcon size={18} />, setup: { kind: "form", fields: [{ name: "host", placeholder: "play.server.ro:7777" }] } },
   { key: "valorant", title: "Valorant", desc: "Your Riot ID (self-reported)", category: "gaming", color: "#ff4655", icon: <ValorantIcon size={18} />, setup: { kind: "form", fields: [{ name: "riotId", placeholder: "Riot name" }, { name: "tagLine", placeholder: "Tag (without #)" }, { name: "region", placeholder: "Region (NA/EU/AP/KR/BR/LATAM)" }] } },
   { key: "twitch", title: "Twitch", desc: "Your Twitch channel", category: "gaming", color: "#9146ff", icon: <TwitchIcon size={18} />, setup: { kind: "form", fields: [{ name: "username", placeholder: "Twitch username" }] } },
   { key: "spotify", title: "Spotify", desc: "Now playing and recently played", category: "music", color: "#1db954", icon: <SpotifyIcon size={18} />, setup: { kind: "oauth", href: "/api/integrations/spotify/connect" } },
@@ -75,6 +76,7 @@ function summarize(type: GameType, d: Record<string, unknown>): { name: string; 
     case "roblox": return { name: s(d.displayName || d.username), sub: `@${s(d.username)}`, img: img(d.avatarUrl) };
     case "minecraft": return { name: s(d.username), sub: "Minecraft", img: img(d.avatarUrl) };
     case "mcserver": return { name: s(d.host), sub: d.online ? `${s(d.playersOnline ?? 0)}/${s(d.playersMax ?? 0)} online` : "offline (last check)", img: img(d.icon) };
+    case "sampserver": return { name: s(d.hostname) || s(d.host), sub: d.online ? `${s(d.players ?? 0)}/${s(d.maxPlayers ?? 0)} online · ${s(d.host)}` : `offline (last check) · ${s(d.host)}` };
     case "valorant": return { name: `${s(d.riotId)}#${s(d.tagLine)}`, sub: `Valorant · ${s(d.region)}` };
     case "twitch": return { name: s(d.username), sub: `twitch.tv/${s(d.username)}` };
     case "spotify": {

@@ -7,7 +7,7 @@ import { recordProfileView } from "@/lib/views";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import ProfileView from "@/components/ProfileView";
 import { GameIntegration } from "@/components/GameIntegrationCards";
-import { lookupMcServer } from "@/lib/game-lookup";
+import { lookupMcServer, lookupSampServer } from "@/lib/game-lookup";
 import { refreshSpotifyIntegrationForUser } from "@/lib/spotify";
 import { parseStringArray, parseJsonObject, parseNumberArray } from "@/lib/json-array";
 import { pickThemeSnapshot } from "@/lib/theme-snapshot";
@@ -130,7 +130,7 @@ export default async function ProfilePage({
   const discordServerInt = integration && integration.discordServerId && integration.discordServerVisible ? integration : null;
 
   const gameRows = await prisma.integration.findMany({
-    where: { userId: user.id, visible: true, type: { in: ["steam", "roblox", "minecraft", "mcserver", "valorant", "twitch", "spotify", "github", "pinterest", "youtube"] } },
+    where: { userId: user.id, visible: true, type: { in: ["steam", "roblox", "minecraft", "mcserver", "sampserver", "valorant", "twitch", "spotify", "github", "pinterest", "youtube"] } },
   });
   const spotifySnapshot = gameRows.some((row) => row.type === "spotify")
     ? await refreshSpotifyIntegrationForUser(user.id).catch(() => null)
@@ -144,6 +144,12 @@ export default async function ProfilePage({
       if (!host) continue;
       const live = await lookupMcServer(host);
       gameIntegrations.push({ type: "mcserver", data: live || (parsedData as { host: string; online: boolean; playersOnline: number; playersMax: number; motd: string; icon: string }) });
+    } else if (row.type === "sampserver") {
+      const saved = parsedData as { host?: string } | null;
+      if (!saved?.host) continue;
+      // Live status on each view (short UDP query); falls back to the last saved snapshot shown as offline.
+      const live = await lookupSampServer(saved.host, 1500);
+      gameIntegrations.push({ type: "sampserver", data: (live ?? { ...(saved as object), online: false }) } as GameIntegration);
     } else if (row.type === "spotify") {
       if (spotifySnapshot) gameIntegrations.push({ type: "spotify", data: spotifySnapshot });
     } else {

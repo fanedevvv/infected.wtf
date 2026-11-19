@@ -108,3 +108,108 @@ export async function lookupMcServer(host: string) {
     icon: data.icon || "",
   };
 }
+
+/* ── SA:MP / open.mp server status (UDP query protocol, opcode "i") ───────────────────────────────── */
+
+export type SampServerInfo = {
+  host: string; // what the user entered, normalised to host:port
+  ip: string;
+  port: number;
+  online: boolean;
+  passworded: boolean;
+  players: number;
+  maxPlayers: number;
+  hostname: string;
+  gamemode: string;
+  language: string;
+};
+
+// Servers are queried straight from our box, so never let a user point it at our own network.
+function isPublicIPv4(ip: string): boolean {
+  const p = ip.split(".").map(Number);
+  if (p.length !== 4 || p.some((n) => !Number.isInteger(n) || n < 0 || n > 255)) return false;
+  const [a, b] = p;
+  if (a === 0 || a === 10 || a === 127 || a >= 224) return false;
+  if (a === 100 && b >= 64 && b <= 127) return false; // carrier-grade NAT
+  if (a === 169 && b === 254) return false;
+  if (a === 172 && b >= 16 && b <= 31) return false;
+  if (a === 192 && b === 168) return false;
+  return true;
+}
+
+// Server names are usually Windows-1250/1252, newer open.mp servers send UTF-8.
+function decodeSampString(buf: Buffer): string {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(buf).trim();
+  } catch {
+    try { return new TextDecoder("windows-1250").decode(buf).trim(); } catch { return buf.toString("latin1").trim(); }
+  }
+}
+
+function parseSampInfo(msg: Buffer): Omit<SampServerInfo, "host" | "ip" | "port" | "online"> | null {
+  // 11-byte echo of our request header, then: u8 password, u16 players, u16 max, u32+str hostname, u32+str gamemode, u32+str language
+  if (msg.length < 11 + 5 || msg.toString("latin1", 0, 4) !== "SAMP" || msg[10] !== 0x69) return null;
+  let o = 11;
+  const passworded = msg.readUInt8(o) === 1; o += 1;
+  const players = msg.readUInt16LE(o); o += 2;
+  const maxPlayers = msg.readUInt16LE(o); o += 2;
+  const str = () => {
+    if (o + 4 > msg.length) throw new Error("short");
+    const len = msg.readUInt32LE(o); o += 4;
+    if (len > 512 || o + len > msg.length) throw new Error("bad length");
+    const s = decodeSampString(msg.subarray(o, o + len)); o += len;
+    return s;
+  };
+  try {
+    return { passworded, players, maxPlayers, hostname: str(), gamemode: str(), language: str() };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Live status of a SA:MP / open.mp server. Accepts "host", "host:port" or "samp://host:port" (default port 7777).
+ * Returns null when the address is invalid or private; a valid address that doesn't answer comes back offline
+ * (like the Minecraft card), so a server that's down for a restart can still be added.
+ */
+export async function lookupSampServer(input: string, timeoutMs = 2500): Promise<SampServerInfo | null> {
+  const raw = input.trim().replace(/^samp:\/\//i, "").replace(/^https?:\/\//i, "").split("/")[0];
+  const m = /^([a-zA-Z0-9.-]{1,253})(?::(\d{1,5}))?$/.exec(raw);
+  if (!m) return null;
+  const hostName = m[1].toLowerCase();
+  const port = m[2] ? Number(m[2]) : 7777;
+  if (port < 1 || port > 65535) return null;
+
+  const { lookup } = await import("node:dns/promises");
+  let ip: string;
+  try {
+    ip = (await lookup(hostName, { family: 4 })).address;
+  } catch {
+    return null;
+  }
+  if (!isPublicIPv4(ip)) return null;
+
+  const req = Buffer.alloc(11);
+  req.write("SAMP", 0, "latin1");
+  ip.split(".").forEach((n, i) => req.writeUInt8(Number(n), 4 + i));
+  req.writeUInt16LE(port, 8);
+  req.writeUInt8(0x69, 10); // "i" = server info
+
+  const dgram = await import("node:dgram");
+  const ask = () =>
+    new Promise<Buffer | null>((resolve) => {
+      const sock = dgram.createSocket("udp4");
+      const done = (v: Buffer | null) => { clearTimeout(timer); try { sock.close(); } catch {} resolve(v); };
+      const timer = setTimeout(() => done(null), timeoutMs / 2);
+      sock.on("error", () => done(null));
+      sock.on("message", (msg, rinfo) => { if (rinfo.address === ip && rinfo.port === port) done(msg); });
+      sock.send(req, port, ip, (err) => { if (err) done(null); });
+    });
+
+  // UDP can drop a packet — one retry inside the overall timeout.
+  const msg = (await ask()) ?? (await ask());
+  const info = msg ? parseSampInfo(msg) : null;
+  const host = m[2] ? `${hostName}:${port}` : hostName;
+  if (!info) return { host, ip, port, online: false, passworded: false, players: 0, maxPlayers: 0, hostname: "", gamemode: "", language: "" };
+  return { host, ip, port, online: true, ...info };
+}

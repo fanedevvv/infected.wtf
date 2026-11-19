@@ -1,4 +1,4 @@
-import { ValorantIcon, TwitchIcon, SpotifyIcon, GithubIcon, PinterestIcon, YoutubeIcon } from "@/components/IntegrationIcons";
+import { SampIcon, ValorantIcon, TwitchIcon, SpotifyIcon, GithubIcon, PinterestIcon, YoutubeIcon } from "@/components/IntegrationIcons";
 import { openSteamInApp } from "@/lib/app-links";
 
 export type GameIntegration =
@@ -6,6 +6,7 @@ export type GameIntegration =
   | { type: "roblox"; data: { userId: number; username: string; displayName: string; avatarUrl: string } }
   | { type: "minecraft"; data: { uuid: string; username: string; avatarUrl: string } }
   | { type: "mcserver"; data: { host: string; online: boolean; playersOnline: number; playersMax: number; motd: string; icon: string } }
+  | { type: "sampserver"; data: { host: string; ip: string; port: number; online: boolean; passworded: boolean; players: number; maxPlayers: number; hostname: string; gamemode: string; language: string } }
   | { type: "valorant"; data: { riotId: string; tagLine: string; region: string } }
   | { type: "twitch"; data: { username: string } }
   | { type: "github"; data: { username: string; name: string; avatarUrl: string; profileUrl: string; publicRepos: number; followers: number } }
@@ -50,6 +51,7 @@ const COLORS: Record<string, string> = {
   roblox: "#e2231a",
   minecraft: "#5cb85c",
   mcserver: "#7cb342",
+  sampserver: "#ff9f1c",
   valorant: "#ff4655",
   twitch: "#9146ff",
   spotify: "#1db954",
@@ -61,6 +63,8 @@ const COLORS: Record<string, string> = {
 function GameCardShell({ type, href, children }: { type: string; href?: string; children: React.ReactNode }) {
   const style = { ["--int-color" as string]: COLORS[type] };
   if (!href) return <div className="game-int-card" style={style}>{children}</div>;
+  // samp:// hands off to the installed SA:MP / open.mp client — no new tab for that.
+  if (href.startsWith("samp://")) return <a className="game-int-card" style={style} href={href} title="Join in SA:MP">{children}</a>;
   return (
     <a className="game-int-card" style={style} href={href} target="_blank" rel="noopener noreferrer" onClick={(e) => openSteamInApp(e, href)}>
       {children}
@@ -130,6 +134,25 @@ export default function GameIntegrationCards({ integrations }: { integrations: G
                   ) : (
                     <span style={{ color: "rgba(255,255,255,.35)" }}>○ offline</span>
                   )}
+                </div>
+              </div>
+            </GameCardShell>
+          );
+        }
+        if (it.type === "sampserver") {
+          const d = it.data;
+          return (
+            <GameCardShell key="sampserver" type="sampserver" href={d.ip ? `samp://${d.ip}:${d.port}` : undefined}>
+              <div className="game-int-icon"><SampIcon size={18} /></div>
+              <div className="game-int-info">
+                <div className="game-int-name">{d.hostname || d.host}{d.passworded ? " 🔒" : ""}</div>
+                <div className="game-int-sub">
+                  {d.online ? (
+                    <span style={{ color: "#23a55a" }}>● {d.players}/{d.maxPlayers} online</span>
+                  ) : (
+                    <span style={{ color: "rgba(255,255,255,.35)" }}>○ offline</span>
+                  )}
+                  <span style={{ color: "rgba(255,255,255,.45)" }}> · {d.host}</span>
                 </div>
               </div>
             </GameCardShell>
