@@ -65,8 +65,9 @@ export const PLATFORM_COLOR: Record<string, string> = {
 export function linkIcon(link: { platform: string; iconUrl?: string | null }): React.ReactNode {
   if (link.iconUrl) {
     return (
-      <svg viewBox="0 0 24 24" className="link-custom-icon" aria-hidden="true">
-        <image href={`/${link.iconUrl}`} width="24" height="24" preserveAspectRatio="xMidYMid meet" />
+      // No viewBox: the logo fills whatever box the layout gives the icon (square or wide) and keeps its own aspect.
+      <svg className="link-custom-icon" aria-hidden="true">
+        <image href={`/${link.iconUrl}`} width="100%" height="100%" preserveAspectRatio="xMidYMid meet" />
       </svg>
     );
   }
