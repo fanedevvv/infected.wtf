@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-helpers";
 import { lookupSampServer } from "@/lib/game-lookup";
+import { resolveSampLogo } from "@/lib/samp-logo";
 import { integrationStatus, disconnectIntegration, toggleIntegrationVisibility } from "@/lib/integration-helpers";
 
 export async function GET() {
@@ -25,15 +26,21 @@ export async function POST(req: NextRequest) {
   const result = await lookupSampServer(host);
   if (!result) return NextResponse.json({ success: false, error: "That address isn't valid. Use host or host:port, e.g. play.server.ro:7777." }, { status: 400 });
 
+  // Logo found automatically (open.mp logo, else the server website's icon). Keep the old one if this try finds none.
+  const existing = await prisma.integration.findUnique({ where: { userId_type: { userId: user.id, type: "sampserver" } }, select: { data: true } });
+  const prev = (() => { try { return JSON.parse(existing?.data || "{}"); } catch { return {}; } })() as { host?: string; logo?: string };
+  const logo = (await resolveSampLogo(result.ip, result.port)) ?? (prev.host === result.host ? prev.logo : undefined);
+  const saved = { ...result, logo, logoCheckedAt: Date.now() };
+
   await prisma.integration.upsert({
     where: { userId_type: { userId: user.id, type: "sampserver" } },
-    create: { userId: user.id, type: "sampserver", visible: true, data: JSON.stringify(result) },
-    update: { visible: true, data: JSON.stringify(result) },
+    create: { userId: user.id, type: "sampserver", visible: true, data: JSON.stringify(saved) },
+    update: { visible: true, data: JSON.stringify(saved) },
   });
 
   return NextResponse.json({
     success: true,
-    data: result,
+    data: saved,
     message: result.online ? undefined : "Saved — the server didn't answer right now, so it shows as offline until it's back.",
   });
 }

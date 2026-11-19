@@ -6,7 +6,7 @@ export type GameIntegration =
   | { type: "roblox"; data: { userId: number; username: string; displayName: string; avatarUrl: string } }
   | { type: "minecraft"; data: { uuid: string; username: string; avatarUrl: string } }
   | { type: "mcserver"; data: { host: string; online: boolean; playersOnline: number; playersMax: number; motd: string; icon: string } }
-  | { type: "sampserver"; data: { host: string; ip: string; port: number; online: boolean; passworded: boolean; players: number; maxPlayers: number; hostname: string; gamemode: string; language: string } }
+  | { type: "sampserver"; data: { host: string; ip: string; port: number; online: boolean; passworded: boolean; players: number; maxPlayers: number; hostname: string; gamemode: string; language: string; logo?: string } }
   | { type: "valorant"; data: { riotId: string; tagLine: string; region: string } }
   | { type: "twitch"; data: { username: string } }
   | { type: "github"; data: { username: string; name: string; avatarUrl: string; profileUrl: string; publicRepos: number; followers: number } }
@@ -143,7 +143,10 @@ export default function GameIntegrationCards({ integrations }: { integrations: G
           const d = it.data;
           return (
             <GameCardShell key="sampserver" type="sampserver" href={d.ip ? `samp://${d.ip}:${d.port}` : undefined}>
-              <div className="game-int-icon"><SampIcon size={18} /></div>
+              <div className="game-int-icon">
+                {/* eslint-disable-next-line @next/next/no-img-element -- stored data: URI, not a remote image */}
+                {d.logo ? <img src={d.logo} alt="" /> : <SampIcon size={18} />}
+              </div>
               <div className="game-int-info">
                 <div className="game-int-name">{d.hostname || d.host}{d.passworded ? " 🔒" : ""}</div>
                 <div className="game-int-sub">

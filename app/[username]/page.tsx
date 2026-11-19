@@ -8,6 +8,7 @@ import { getCurrentUser } from "@/lib/auth-helpers";
 import ProfileView from "@/components/ProfileView";
 import { GameIntegration } from "@/components/GameIntegrationCards";
 import { lookupMcServer, lookupSampServer } from "@/lib/game-lookup";
+import { resolveSampLogo, SAMP_LOGO_TTL_MS } from "@/lib/samp-logo";
 import { refreshSpotifyIntegrationForUser } from "@/lib/spotify";
 import { parseStringArray, parseJsonObject, parseNumberArray } from "@/lib/json-array";
 import { pickThemeSnapshot } from "@/lib/theme-snapshot";
@@ -145,11 +146,18 @@ export default async function ProfilePage({
       const live = await lookupMcServer(host);
       gameIntegrations.push({ type: "mcserver", data: live || (parsedData as { host: string; online: boolean; playersOnline: number; playersMax: number; motd: string; icon: string }) });
     } else if (row.type === "sampserver") {
-      const saved = parsedData as { host?: string } | null;
+      const saved = parsedData as { host?: string; logo?: string; logoCheckedAt?: number } | null;
       if (!saved?.host) continue;
       // Live status on each view (short UDP query); falls back to the last saved snapshot shown as offline.
       const live = await lookupSampServer(saved.host, 1500);
-      gameIntegrations.push({ type: "sampserver", data: (live ?? { ...(saved as object), online: false }) } as GameIntegration);
+      gameIntegrations.push({ type: "sampserver", data: { ...(live ?? { ...(saved as object), online: false }), logo: saved.logo } } as GameIntegration);
+      // Refresh the logo at most once a day, in the background so the page isn't held up.
+      if (live?.online && Date.now() - (saved.logoCheckedAt ?? 0) > SAMP_LOGO_TTL_MS) {
+        const rowId = row.id;
+        resolveSampLogo(live.ip, live.port)
+          .then((logo) => prisma.integration.update({ where: { id: rowId }, data: { data: JSON.stringify({ ...saved, logo: logo ?? saved.logo, logoCheckedAt: Date.now() }) } }))
+          .catch(() => {});
+      }
     } else if (row.type === "spotify") {
       if (spotifySnapshot) gameIntegrations.push({ type: "spotify", data: spotifySnapshot });
     } else {

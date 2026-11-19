@@ -76,7 +76,7 @@ function summarize(type: GameType, d: Record<string, unknown>): { name: string; 
     case "roblox": return { name: s(d.displayName || d.username), sub: `@${s(d.username)}`, img: img(d.avatarUrl) };
     case "minecraft": return { name: s(d.username), sub: "Minecraft", img: img(d.avatarUrl) };
     case "mcserver": return { name: s(d.host), sub: d.online ? `${s(d.playersOnline ?? 0)}/${s(d.playersMax ?? 0)} online` : "offline (last check)", img: img(d.icon) };
-    case "sampserver": return { name: s(d.hostname) || s(d.host), sub: d.online ? `${s(d.players ?? 0)}/${s(d.maxPlayers ?? 0)} online · ${s(d.host)}` : `offline (last check) · ${s(d.host)}` };
+    case "sampserver": return { name: s(d.hostname) || s(d.host), sub: d.online ? `${s(d.players ?? 0)}/${s(d.maxPlayers ?? 0)} online · ${s(d.host)}` : `offline (last check) · ${s(d.host)}`, img: img(d.logo) };
     case "valorant": return { name: `${s(d.riotId)}#${s(d.tagLine)}`, sub: `Valorant · ${s(d.region)}` };
     case "twitch": return { name: s(d.username), sub: `twitch.tv/${s(d.username)}` };
     case "spotify": {

@@ -122,10 +122,13 @@ export type SampServerInfo = {
   hostname: string;
   gamemode: string;
   language: string;
+  /** 128px PNG data URI: the open.mp logo, else the server website's icon (lib/samp-logo.ts). Refreshed daily. */
+  logo?: string;
+  logoCheckedAt?: number;
 };
 
 // Servers are queried straight from our box, so never let a user point it at our own network.
-function isPublicIPv4(ip: string): boolean {
+export function isPublicIPv4(ip: string): boolean {
   const p = ip.split(".").map(Number);
   if (p.length !== 4 || p.some((n) => !Number.isInteger(n) || n < 0 || n > 255)) return false;
   const [a, b] = p;
@@ -189,22 +192,7 @@ export async function lookupSampServer(input: string, timeoutMs = 2500): Promise
   }
   if (!isPublicIPv4(ip)) return null;
 
-  const req = Buffer.alloc(11);
-  req.write("SAMP", 0, "latin1");
-  ip.split(".").forEach((n, i) => req.writeUInt8(Number(n), 4 + i));
-  req.writeUInt16LE(port, 8);
-  req.writeUInt8(0x69, 10); // "i" = server info
-
-  const dgram = await import("node:dgram");
-  const ask = () =>
-    new Promise<Buffer | null>((resolve) => {
-      const sock = dgram.createSocket("udp4");
-      const done = (v: Buffer | null) => { clearTimeout(timer); try { sock.close(); } catch {} resolve(v); };
-      const timer = setTimeout(() => done(null), timeoutMs / 2);
-      sock.on("error", () => done(null));
-      sock.on("message", (msg, rinfo) => { if (rinfo.address === ip && rinfo.port === port) done(msg); });
-      sock.send(req, port, ip, (err) => { if (err) done(null); });
-    });
+  const ask = () => sampQuery(ip, port, "i", timeoutMs / 2);
 
   // UDP can drop a packet — one retry inside the overall timeout.
   const msg = (await ask()) ?? (await ask());
@@ -212,4 +200,24 @@ export async function lookupSampServer(input: string, timeoutMs = 2500): Promise
   const host = m[2] ? `${hostName}:${port}` : hostName;
   if (!info) return { host, ip, port, online: false, passworded: false, players: 0, maxPlayers: 0, hostname: "", gamemode: "", language: "" };
   return { host, ip, port, online: true, ...info };
+}
+
+/** One SA:MP query packet ("i" info, "r" rules, "o" open.mp extras) → the raw reply, or null on timeout. */
+export async function sampQuery(ip: string, port: number, opcode: "i" | "r" | "o", timeoutMs: number): Promise<Buffer | null> {
+  const req = Buffer.alloc(11);
+  req.write("SAMP", 0, "latin1");
+  ip.split(".").forEach((n, i) => req.writeUInt8(Number(n), 4 + i));
+  req.writeUInt16LE(port, 8);
+  req.write(opcode, 10, "latin1");
+  const dgram = await import("node:dgram");
+  return new Promise<Buffer | null>((resolve) => {
+    const sock = dgram.createSocket("udp4");
+    const done = (v: Buffer | null) => { clearTimeout(timer); try { sock.close(); } catch {} resolve(v); };
+    const timer = setTimeout(() => done(null), timeoutMs);
+    sock.on("error", () => done(null));
+    sock.on("message", (msg, rinfo) => {
+      if (rinfo.address === ip && rinfo.port === port && msg.length >= 11 && msg.toString("latin1", 10, 11) === opcode) done(msg);
+    });
+    sock.send(req, port, ip, (err) => { if (err) done(null); });
+  });
 }
