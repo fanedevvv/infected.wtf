@@ -6,6 +6,7 @@ const {
   GatewayIntentBits,
   Partials,
   MessageFlags,
+  ActivityType,
 } = require('discord.js');
 
 const {
@@ -91,6 +92,11 @@ const client = new Client({
     GatewayIntentBits.GuildModeration,  // guildBanAdd / guildBanRemove
   ],
   partials: [Partials.GuildMember, Partials.User],
+  // Custom status shown under the bot's name. Set at login, so it's re-sent on every reconnect.
+  presence: {
+    status: 'online',
+    activities: [{ type: ActivityType.Custom, name: 'Custom Status', state: 'infect the world' }],
+  },
 });
 
 client.once('clientReady', () => {
