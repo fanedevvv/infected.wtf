@@ -92,6 +92,12 @@ async function getGuild() {
   return client.guilds.fetch(DISCORD_GUILD_ID);
 }
 
+// Custom application emojis (scripts/upload-emojis.js); falls back to plain emoji if the map is missing.
+const EMOJI = (() => {
+  try { return require("./emojis.json"); } catch { return {}; }
+})();
+const em = (name, fallback) => EMOJI[name] || fallback;
+
 async function logToChannel(text) {
   if (!DISCORD_LOG_CHANNEL_ID) return;
   try {
@@ -116,7 +122,7 @@ client.on('guildBanAdd', async (ban) => {
     const userId = await setSiteBanStateByDiscordId(ban.user.id, true);
     if (userId) {
       console.log(`[bot] Synced Discord ban → site ban for user #${userId} (discord ${ban.user.id})`);
-      logToChannel(`🔨 **${ban.user.tag}** was banned on Discord — synced to their linked site account.`);
+      logToChannel(`${em("inf_ban", "🔨")} **${ban.user.tag}** was banned on Discord — synced to their linked site account.`);
     }
   } catch (e) {
     console.error('[bot] guildBanAdd sync failed:', e.message);
@@ -128,7 +134,7 @@ client.on('guildBanRemove', async (ban) => {
     const userId = await setSiteBanStateByDiscordId(ban.user.id, false);
     if (userId) {
       console.log(`[bot] Synced Discord unban → site unban for user #${userId} (discord ${ban.user.id})`);
-      logToChannel(`✅ **${ban.user.tag}** was unbanned on Discord — synced to their linked site account.`);
+      logToChannel(`${em("inf_unban", "✅")} **${ban.user.tag}** was unbanned on Discord — synced to their linked site account.`);
     }
   } catch (e) {
     console.error('[bot] guildBanRemove sync failed:', e.message);
@@ -351,7 +357,7 @@ app.post('/ban', async (req, res) => {
   try {
     const guild = await getGuild();
     await guild.members.ban(id, { reason });
-    logToChannel(`🔨 <@${id}> was banned (synced from the site). Reason: ${reason}`);
+    logToChannel(`${em("inf_ban", "🔨")} <@${id}> was banned (synced from the site). Reason: ${reason}`);
     res.json({ success: true, message: 'Banned on Discord.' });
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });
@@ -365,7 +371,7 @@ app.post('/unban', async (req, res) => {
   try {
     const guild = await getGuild();
     await guild.members.unban(id, 'Unbanned on infected.wtf');
-    logToChannel(`✅ <@${id}> was unbanned (synced from the site).`);
+    logToChannel(`${em("inf_unban", "✅")} <@${id}> was unbanned (synced from the site).`);
     res.json({ success: true, message: 'Unbanned on Discord.' });
   } catch (e) {
     // Not banned on Discord — treat as success (idempotent)
