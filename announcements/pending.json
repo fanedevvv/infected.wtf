@@ -1,0 +1,15 @@
+{
+  "kind": "layout",
+  "title": "Every layout got a glow-up — plus two new ones",
+  "summary": "Your whole profile now matches the layout you pick, from the top of the page to the comments.",
+  "changes": [
+    "New **Infected** layout (free): a biohazard quarantine file with a scanner around your avatar, a glitching name and your views as the infection level",
+    "New **Holo Card** layout (Infected Plus): your profile as a holographic trading card that tilts and shines as you move",
+    "The whole page now matches your layout — widgets, Discord and Spotify cards, skills, projects and comments",
+    "Animated backgrounds for every layout: starfields, CRT scanlines, nebulas, a honeycomb and more",
+    "**Modern** got a makeover: aurora background, a glowing ring around your avatar and smoother cards",
+    "Smoother on phones"
+  ],
+  "link": "https://infected.wtf/dashboard?page=editor&tile=look",
+  "linkLabel": "Pick a layout"
+}
