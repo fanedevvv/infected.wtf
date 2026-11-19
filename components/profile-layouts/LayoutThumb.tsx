@@ -4,8 +4,8 @@ import type { LayoutId } from "@/lib/profile-layouts";
 export default function LayoutThumb({ id }: { id: LayoutId }) {
   const lines = (n: number, cls = "lt-line") => Array.from({ length: n }, (_, i) => <i key={i} className={cls} />);
   switch (id) {
-    case "freemode":
-      return <div className="lt lt-free">{Array.from({ length: 6 }, (_, i) => <i key={i} className="lt-chip" />)}</div>;
+    case "holo":
+      return <div className="lt lt-holo"><div className="lt-holo-card"><i className="lt-holo-art" />{lines(3)}<i className="lt-holo-foil" /></div></div>;
     case "modern":
       return <div className="lt lt-modern"><div className="lt-box"><i className="lt-dot" /><div>{lines(2)}</div><div className="lt-cols">{lines(4, "lt-block")}</div></div></div>;
     case "classic":

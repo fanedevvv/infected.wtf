@@ -1,11 +1,10 @@
 // Profile layouts: one list shared by the editor picker, the save API and the profile page.
 
 export type LayoutId =
-  | "freemode" | "modern" | "classic" | "split" | "dock"
-  | "deck" | "orbit" | "terminal" | "scrapbook" | "hexgrid" | "vinyl" | "constellation";
+  | "modern" | "classic" | "split" | "dock"
+  | "deck" | "orbit" | "terminal" | "scrapbook" | "hexgrid" | "vinyl" | "constellation" | "holo";
 
 export const PROFILE_LAYOUTS: { id: LayoutId; label: string; premium: boolean; comingSoon?: boolean }[] = [
-  { id: "freemode", label: "Free Mode", premium: false },
   { id: "modern", label: "Modern", premium: false },
   { id: "classic", label: "Classic Card", premium: false },
   { id: "split", label: "Split", premium: false },
@@ -17,6 +16,7 @@ export const PROFILE_LAYOUTS: { id: LayoutId; label: string; premium: boolean; c
   { id: "hexgrid", label: "Hex Grid", premium: true },
   { id: "vinyl", label: "Vinyl", premium: true },
   { id: "constellation", label: "Constellation", premium: true },
+  { id: "holo", label: "Holo Card", premium: true },
 ];
 
 export const DEFAULT_LAYOUT: LayoutId = "modern";
@@ -27,6 +27,7 @@ const PREMIUM = new Set<string>(PROFILE_LAYOUTS.filter((l) => l.premium).map((l)
 // Layouts from before the current set (still possible in saved marketplace themes) map to their nearest successor.
 const LEGACY: Record<string, LayoutId> = {
   editorial: "split", banner: "classic", compact: "classic", aurora: "orbit", cinematic: "deck", dossier: "split",
+  freemode: "holo", // Free Mode was replaced by Holo Card
 };
 
 export function isPremiumLayout(id: string) {

@@ -102,7 +102,6 @@ model Profile {
   musicLyricsStyle String   @default("line") @map("music_lyrics_style") @db.VarChar(10)
   musicShowLyrics  Boolean   @default(false) @map("music_show_lyrics")
   layoutTemplate   String    @default("modern") @map("layout_template") @db.VarChar(20)
-  freeLayout       String?   @map("free_layout") @db.Text
   cursorPath       String?   @map("cursor_path") @db.VarChar(500)
   cursorTrail      Boolean?  @default(false) @map("cursor_trail")
   particleEffect   Boolean?  @default(false) @map("particle_effect")

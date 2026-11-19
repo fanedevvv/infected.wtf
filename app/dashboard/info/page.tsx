@@ -100,7 +100,6 @@ export default async function ProfileInfoPage({
                   musicShowLyrics={profile.musicShowLyrics}
                   playlistStyle={profile.playlistStyle}
                   layoutTemplate={profile.layoutTemplate}
-                  freeLayout={profile.freeLayout}
                   isPremium={isPremium}
                   cursorPath={profile.cursorPath}
                   displayName={profile.displayName || ""}

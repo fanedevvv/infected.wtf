@@ -6,8 +6,6 @@ import { useT } from "@/lib/i18n/client";
 import { PROFILE_FONTS, googleFontsHref } from "@/lib/profile-fonts";
 import { PROFILE_LAYOUTS, isPremiumLayout } from "@/lib/profile-layouts";
 import LayoutThumb from "@/components/profile-layouts/LayoutThumb";
-import FreeLayoutEditor from "@/components/FreeLayoutEditor";
-import { parseFreeLayout, serializeFreeLayout } from "@/lib/free-layout";
 
 
 type Props = {
@@ -28,8 +26,6 @@ type Props = {
   musicLyricsStyle: string;
   playlistStyle: string;
   layoutTemplate: string;
-  /** Free Mode arrangement as stored (JSON); null/empty = default. */
-  freeLayout?: string | null;
   isPremium: boolean;
   cursorPath: string | null;
   displayName: string;
@@ -92,8 +88,6 @@ export default function ProfileInfoForm(props: Props) {
   const [findingFromYoutube, setFindingFromYoutube] = useState(false);
   const [playlistStyle, setPlaylistStyle] = useState(props.playlistStyle);
   const [layoutTemplate, setLayoutTemplate] = useState(props.layoutTemplate);
-  // Kept as the normalised JSON string so "unchanged" compares cleanly.
-  const [freeLayout, setFreeLayout] = useState(() => serializeFreeLayout(parseFreeLayout(props.freeLayout)));
   const [cursorPath, setCursorPath] = useState(props.cursorPath);
 
   const [displayName, setDisplayName] = useState(props.displayName);
@@ -120,7 +114,6 @@ export default function ProfileInfoForm(props: Props) {
     font: props.profileFont,
     playlistStyle: props.playlistStyle,
     layoutTemplate: props.layoutTemplate,
-    freeLayout: serializeFreeLayout(parseFreeLayout(props.freeLayout)),
     opacity: props.profileOpacity,
     blur: props.profileBlur,
     accentColor: props.accentColor,
@@ -156,7 +149,6 @@ export default function ProfileInfoForm(props: Props) {
       font,
       playlistStyle,
       layoutTemplate,
-      freeLayout,
       opacity,
       blur,
       accentColor,
@@ -177,7 +169,6 @@ export default function ProfileInfoForm(props: Props) {
       cur.font !== o.font ||
       cur.playlistStyle !== o.playlistStyle ||
       cur.layoutTemplate !== o.layoutTemplate ||
-      cur.freeLayout !== o.freeLayout ||
       cur.opacity !== o.opacity ||
       cur.accentColor !== o.accentColor ||
       cur.backgroundColor !== o.backgroundColor ||
@@ -192,7 +183,7 @@ export default function ProfileInfoForm(props: Props) {
   useEffect(() => {
     checkDirty();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [displayName, location, job, birthDate, bio, font, playlistStyle, layoutTemplate, freeLayout, opacity, blur, accentColor, backgroundColor, nameColor, bioColor, overlayColor, monochromeIcons]);
+  }, [displayName, location, job, birthDate, bio, font, playlistStyle, layoutTemplate, opacity, blur, accentColor, backgroundColor, nameColor, bioColor, overlayColor, monochromeIcons]);
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -595,7 +586,6 @@ export default function ProfileInfoForm(props: Props) {
     fd.append("profile_font", font);
     fd.append("playlist_style", playlistStyle);
     fd.append("layout_template", layoutTemplate);
-    fd.append("free_layout", freeLayout);
     fd.append("avatar", avatar || "");
     fd.append("background_image", bgType === "image" ? bgValue : "");
     fd.append("profile_opacity", String(opacity));
@@ -611,7 +601,7 @@ export default function ProfileInfoForm(props: Props) {
       const j = await res.json();
       if (j.success) {
         showToast(t("Profile saved!"), "success");
-        original.current = { displayName, location, job, birthDate, bio, font, playlistStyle, layoutTemplate, freeLayout, opacity, blur, accentColor, backgroundColor, nameColor, bioColor, overlayColor, monochromeIcons };
+        original.current = { displayName, location, job, birthDate, bio, font, playlistStyle, layoutTemplate, opacity, blur, accentColor, backgroundColor, nameColor, bioColor, overlayColor, monochromeIcons };
         checkDirty();
       } else {
         showToast(j.error || "Error", "error");
@@ -629,8 +619,8 @@ export default function ProfileInfoForm(props: Props) {
 
   const { onDraftChange, onSaveStateChange } = props;
   useEffect(() => {
-    onDraftChange?.({ displayName, bio, location, job, layoutTemplate, freeLayout, playlistStyle, accentColor, backgroundColor, nameColor, bioColor, overlayColor });
-  }, [onDraftChange, displayName, bio, location, job, layoutTemplate, freeLayout, playlistStyle, accentColor, backgroundColor, nameColor, bioColor, overlayColor]);
+    onDraftChange?.({ displayName, bio, location, job, layoutTemplate, playlistStyle, accentColor, backgroundColor, nameColor, bioColor, overlayColor });
+  }, [onDraftChange, displayName, bio, location, job, layoutTemplate, playlistStyle, accentColor, backgroundColor, nameColor, bioColor, overlayColor]);
 
   const saveRef = useRef(save);
   const resetRef = useRef(reset);
@@ -652,7 +642,6 @@ export default function ProfileInfoForm(props: Props) {
     setFont(o.font);
     setPlaylistStyle(o.playlistStyle);
     setLayoutTemplate(o.layoutTemplate);
-    setFreeLayout(o.freeLayout);
     setOpacity(o.opacity);
     setBlur(o.blur);
     setAccentColor(o.accentColor);
@@ -1076,9 +1065,6 @@ export default function ProfileInfoForm(props: Props) {
             })}
           </div>
           <p className="layout-picker-foot">{t("Switch layouts without losing your content.")}</p>
-          {layoutTemplate === "freemode" && (
-            <FreeLayoutEditor value={parseFreeLayout(freeLayout)} onChange={(next) => setFreeLayout(serializeFreeLayout(next))} />
-          )}
         </div>
       )}
 

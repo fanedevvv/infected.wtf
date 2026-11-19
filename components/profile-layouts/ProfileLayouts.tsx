@@ -2,13 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { profileFontFamily, googleFontsHref } from "@/lib/profile-fonts";
-import { FREE_CANVAS, FREE_ELEMENT_SIZE, parseFreeLayout, type FreeElement } from "@/lib/free-layout";
 import {
-  Avatar, Badges, BelowFold, BestFriend, Bio, DisplayName, Footer, MetaRow, OwnerEdit, Skills, SocialIcons, SocialLink, Widgets,
+  Avatar, Badges, BelowFold, BestFriend, Bio, DisplayName, Footer, MetaRow, OwnerEdit, Skills, SocialLink, Widgets,
   hasWidgets, linkHost, metaItems, platformIcon, platformLabel, type LayoutProps,
 } from "./parts";
 
-export type CardLayout = "freemode" | "split" | "dock" | "deck" | "orbit" | "terminal" | "scrapbook" | "hexgrid" | "vinyl" | "constellation";
+export type CardLayout = "holo" | "split" | "dock" | "deck" | "orbit" | "terminal" | "scrapbook" | "hexgrid" | "vinyl" | "constellation";
 
 /** Small deterministic PRNG so decorative positions are stable per profile (and identical on server and client). */
 function seeded(text: string) {
@@ -38,52 +37,112 @@ export default function ProfileLayout({ layout, ...props }: LayoutProps & { layo
   );
 }
 
-/* ── Free Mode: every element where the owner dragged it ──────────────────── */
-// The canvas has a fixed design size and is scaled as a whole to the available width, so the arrangement is
-// identical on every screen. Widgets and skills (variable height) flow underneath it.
+/* ── Holo Card: the profile as a holographic collectible trading card ────── */
+// The card tilts in 3D toward the pointer (or with the phone's gyroscope) and a rainbow foil + glare slide across
+// it as it moves. Views sit in the corner like the card's power, badges are its types, links are its moves.
 
-function FreeMode({ p, entered, ...votes }: LayoutProps) {
-  const layout = parseFreeLayout(p.freeLayout);
-  const boxRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
+function Holo({ p, entered, ...votes }: LayoutProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(false);
+
   useEffect(() => {
-    const el = boxRef.current;
-    if (!el) return;
-    const fit = () => setScale(Math.min(1, el.clientWidth / FREE_CANVAS.width));
-    fit();
-    const ro = new ResizeObserver(fit);
-    ro.observe(el);
-    return () => ro.disconnect();
+    const card = cardRef.current;
+    if (!card || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let frame = 0;
+    const set = (px: number, py: number) => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        card.style.setProperty("--mx", `${px * 100}%`);
+        card.style.setProperty("--my", `${py * 100}%`);
+        card.style.setProperty("--ry", `${(px - 0.5) * 22}deg`);
+        card.style.setProperty("--rx", `${(0.5 - py) * 18}deg`);
+        card.style.setProperty("--hyp", String(Math.min(1, Math.hypot(px - 0.5, py - 0.5) * 1.6)));
+      });
+    };
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
+      const r = card.getBoundingClientRect();
+      set(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)));
+      setActive(true);
+    };
+    const onLeave = () => { set(0.5, 0.5); setActive(false); };
+    // Phones: tilt with the device (Android/desktop browsers allow it without a prompt).
+    const onTilt = (e: DeviceOrientationEvent) => {
+      if (e.beta == null || e.gamma == null) return;
+      set(Math.min(1, Math.max(0, 0.5 + e.gamma / 50)), Math.min(1, Math.max(0, 0.5 + (e.beta - 40) / 60)));
+      setActive(true);
+    };
+    card.addEventListener("pointermove", onMove);
+    card.addEventListener("pointerleave", onLeave);
+    window.addEventListener("deviceorientation", onTilt);
+    onLeave();
+    return () => {
+      cancelAnimationFrame(frame);
+      card.removeEventListener("pointermove", onMove);
+      card.removeEventListener("pointerleave", onLeave);
+      window.removeEventListener("deviceorientation", onTilt);
+    };
   }, []);
 
-  const content: Record<FreeElement, React.ReactNode> = {
-    avatar: <Avatar p={p} />,
-    name: <DisplayName p={p} entered={entered} />,
-    badges: <Badges p={p} />,
-    bio: p.bio ? <Bio p={p} entered={entered} /> : null,
-    meta: <MetaRow p={p} />,
-    links: <SocialIcons p={p} />,
-    bestfriend: <BestFriend p={p} />,
-    footer: <Footer p={p} {...votes} />,
-  };
+  const joined = new Date(p.createdAt);
+  const year = Number.isNaN(joined.getTime()) ? "" : joined.getFullYear();
+  const rarity = p.isPremium ? "Holo Rare" : "Common";
 
   return (
-    <div className="pl-free">
-      <div ref={boxRef} className="pl-free-box" style={{ height: FREE_CANVAS.height * scale }}>
-        <div className="pl-free-canvas" style={{ width: FREE_CANVAS.width, height: FREE_CANVAS.height, transform: `scale(${scale})` }}>
-          {(Object.keys(content) as FreeElement[]).map((key) => {
-            const item = layout[key];
-            if (item.hidden || !content[key]) return null;
-            return (
-              <div key={key} className={`pl-free-item pl-free-item--${key}`} style={{ left: `${item.x}%`, top: `${item.y}%`, maxWidth: FREE_ELEMENT_SIZE[key].w + 60 }}>
-                {content[key]}
+    <div className="pl-holo">
+      <div className="pl-holo-scene">
+        <div ref={cardRef} className={`pl-holo-card${active ? " is-active" : ""}${p.isPremium ? " is-rare" : ""}`}>
+          <div className="pl-holo-inner">
+            <header className="pl-holo-head">
+              <span className="pl-holo-stage">{p.isPremium ? "PLUS" : "BASIC"}</span>
+              <DisplayName p={p} entered={entered} className="pl-holo-name" />
+              <span className="pl-holo-power"><small>VIEWS</small>{p.views.toLocaleString("en-US")}</span>
+            </header>
+
+            <div className="pl-holo-art" style={p.banner ? { backgroundImage: `url(/${p.banner})` } : undefined}>
+              <Avatar p={p} />
+            </div>
+            <div className="pl-holo-strip">infected.wtf/{p.username}{year ? ` · since ${year}` : ""}</div>
+
+            <Badges p={p} className="pl-holo-types" />
+
+            {(p.bio || metaItems(p).length > 0) && (
+              <div className="pl-holo-text">
+                <Bio p={p} entered={entered} />
+                <MetaRow p={p} />
               </div>
-            );
-          })}
+            )}
+
+            {p.socialLinks.length > 0 && (
+              <ul className="pl-holo-moves">
+                {p.socialLinks.slice(0, 6).map((l) => (
+                  <li key={l.id}>
+                    <SocialLink link={l} monochrome={p.monochromeIcons} className="pl-holo-move">
+                      <span className="pl-holo-move-icon">{platformIcon(l)}</span>
+                      <span className="pl-holo-move-name">{platformLabel(l.platform)}</span>
+                      <span className="pl-holo-move-host">{linkHost(l.url)}</span>
+                    </SocialLink>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <footer className="pl-holo-foot">
+              <span>{p.isPremium ? "★" : "●"} {rarity}</span>
+              <span>Illus. infected.wtf</span>
+            </footer>
+          </div>
+          <div className="pl-holo-foil" aria-hidden="true" />
+          <div className="pl-holo-glare" aria-hidden="true" />
         </div>
       </div>
-      {hasWidgets(p) && <Widgets p={p} className="pl-free-widgets" />}
-      <Skills p={p} className="pl-free-skills" />
+
+      <div className="pl-holo-extra">
+        <BestFriend p={p} />
+        <Widgets p={p} />
+        <Skills p={p} />
+        <Footer p={p} {...votes} />
+      </div>
     </div>
   );
 }
@@ -537,7 +596,7 @@ function Constellation({ p, entered, ...votes }: LayoutProps) {
 }
 
 const STAGES: Record<CardLayout, (props: LayoutProps) => React.ReactNode> = {
-  freemode: FreeMode,
+  holo: Holo,
   split: Split,
   dock: Dock,
   deck: Deck,

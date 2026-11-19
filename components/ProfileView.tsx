@@ -61,8 +61,6 @@ export interface ProfileViewProps {
   skills: { id: number; name: string; level: number }[];
   bestFriend: { slug: string; displayName: string; avatar: string | null } | null;
   layoutTemplate: string;
-  /** Free Mode arrangement (JSON, lib/free-layout.ts); null = default. */
-  freeLayout?: string | null;
   purchasedEffects: string[];
   activeCursorEffect: string;
   activeBgEffect: string;

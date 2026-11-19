@@ -9,7 +9,6 @@ import { getActiveProfileId } from "@/lib/active-profile";
 import { parseStringArray, serializeStringArray, parseJsonObject } from "@/lib/json-array";
 import { isKnownFont, isPremiumFont, DEFAULT_PROFILE_FONT } from "@/lib/profile-fonts";
 import { DEFAULT_LAYOUT, isPremiumLayout, resolveLayout } from "@/lib/profile-layouts";
-import { parseFreeLayout, serializeFreeLayout } from "@/lib/free-layout";
 import { resolveShape } from "@/lib/avatar-shapes";
 
 function ok(message = "OK") {
@@ -177,13 +176,9 @@ export async function POST(req: NextRequest) {
     const bioColor = hexColor("bio_color", "#c9c9d1");
     const overlayColor = hexColor("overlay_color", "#060610");
     const monochromeIcons = form.get("monochrome_icons") === "1";
-    // Free Mode arrangement: only touched when the editor sends it, always sanitised (positions clamped to the canvas).
-    const freeLayoutRaw = form.get("free_layout");
-    const freeLayout = typeof freeLayoutRaw === "string" && freeLayoutRaw ? serializeFreeLayout(parseFreeLayout(freeLayoutRaw.slice(0, 4000))) : undefined;
 
     await prisma.profile.updateMany({ where: { id: activeProfileId },
       data: {
-        ...(freeLayout !== undefined ? { freeLayout } : {}),
         displayName: dn || null,
         bio: bio || null,
         location: loc || null,
