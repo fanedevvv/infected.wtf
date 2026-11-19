@@ -4011,3 +4011,7 @@ body:has(.unsaved-bar.visible) .toast-container { bottom: calc(1.5rem + 58px); }
 .pt-item-main { border-color:color-mix(in srgb, var(--accent) 50%, transparent) !important; background:color-mix(in srgb, var(--accent) 6%, transparent) !important; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Custom link logos (Infected Plus): uploaded logos have their own padding/whitespace, so at the same box size
+   as a platform glyph they look tiny — draw them larger everywhere (Hex Grid sizes them itself). */
+svg.link-custom-icon { overflow:visible; transform:scale(1.4); transform-origin:center; }
