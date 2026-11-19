@@ -6,6 +6,11 @@ cd "$(dirname "$0")/.." || exit 0
 export GIT_TERMINAL_PROMPT=0
 LOG=/tmp/auto-push-$(id -u).log
 
+# One run at a time (the Stop hook and the 5-minute cron can fire together): otherwise both could post the same
+# announcement before either archives it.
+exec 9>/tmp/infected-auto-push.lock
+flock -w 60 9 || exit 0
+
 branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || exit 0
 
 commit_all() {
