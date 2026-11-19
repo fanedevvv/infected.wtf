@@ -321,3 +321,69 @@
 .lt-inf-file { display:flex; align-items:center; gap:6px; padding:6px 8px; border:1px solid #b6ff3b; background:rgba(182,255,59,.06); clip-path:polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%); }
 .lt-inf-scan { width:24px; height:24px; border-radius:50%; border:2px dashed #b6ff3b; }
 .lt-inf-file .lt-line { width:44px; }
+
+/* ══════════════════ MODERN (ProfileImmersive) ══════════════════ */
+.im-ambient { position:fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden; }
+.im-ambient i { position:absolute; display:block; }
+.im-ambient i:nth-child(1), .im-ambient i:nth-child(2) { width:70vmax; height:50vmax; border-radius:50%; filter:blur(100px); opacity:.2; animation:sk-drift 24s ease-in-out infinite alternate; }
+.im-ambient i:nth-child(1) { left:-20vmax; top:-15vmax; background:radial-gradient(circle, var(--accent), transparent 65%); }
+.im-ambient i:nth-child(2) { right:-25vmax; bottom:-20vmax; background:radial-gradient(circle, color-mix(in srgb, var(--accent) 35%, #6a5cff), transparent 65%); animation-duration:32s; animation-direction:alternate-reverse; }
+/* rising particles */
+.im-ambient i:nth-child(3) { left:0; right:0; top:0; height:200%; opacity:.45; animation:sk-rise 50s linear infinite;
+  background:radial-gradient(circle at 15% 25%, var(--accent) 0 1.2px, transparent 2px), radial-gradient(circle at 65% 65%, color-mix(in srgb, var(--accent) 60%, #fff) 0 1px, transparent 1.8px), radial-gradient(circle at 85% 15%, var(--accent) 0 .8px, transparent 1.5px);
+  background-size:380px 380px; }
+.im-ambient i:nth-child(4) { inset:0; background:radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0,0,0,.45)); }
+.im-spot { position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:radial-gradient(520px circle at var(--px, 70%) var(--py, 40%), color-mix(in srgb, var(--accent) 9%, transparent), transparent 60%); }
+
+/* avatar: rotating light halo, gentle float, 3D tilt toward the pointer */
+.im-avatar-col { position:relative; }
+.im-halo { position:absolute; left:50%; top:50%; width:270px; height:270px; translate:-50% -50%; border-radius:36px; pointer-events:none; z-index:0;
+  background:conic-gradient(from 0deg, var(--accent), transparent 30%, color-mix(in srgb, var(--accent) 40%, #6a5cff) 55%, transparent 80%, var(--accent));
+  filter:blur(18px); opacity:.55; animation:pl-spin 9s linear infinite; }
+.im-avatar.avatar-wrapper { position:relative; z-index:1; }
+.im-entered .im-avatar.avatar-wrapper { animation:sk-bob 6s ease-in-out infinite; }
+.im-avatar .avatar-img { box-shadow:0 20px 50px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.08); }
+
+/* name: a light sweep across the underline + slow glow */
+.im-underline { position:relative; overflow:hidden; }
+.im-underline i { position:absolute; top:0; bottom:0; width:30%; left:-30%; background:linear-gradient(90deg, transparent, rgba(255,255,255,.9), transparent); animation:sk-sweep 3.6s ease-in-out infinite 1.2s; }
+.im-entered .im-name { animation:fadeInUp .45s ease both, sk-name-glow 5s ease-in-out 1s infinite; }
+
+/* socials: staggered pop-in, glow on hover */
+.im-entered .im-socials a { animation:sk-pop .5s cubic-bezier(.3,1.5,.5,1) both; }
+.im-entered .im-socials a:nth-child(2) { animation-delay:.06s; } .im-entered .im-socials a:nth-child(3) { animation-delay:.12s; }
+.im-entered .im-socials a:nth-child(4) { animation-delay:.18s; } .im-entered .im-socials a:nth-child(5) { animation-delay:.24s; }
+.im-entered .im-socials a:nth-child(n+6) { animation-delay:.3s; }
+.im-socials a:hover { transform:translateY(-4px) scale(1.14) rotate(-4deg); }
+
+/* every card on the page: glass with an accent edge, lift + glow on hover */
+.im-root :is(.game-int-card, .discord-server-card, .dpc-card, .spotify-presence-card, .pp-card) {
+  border:1px solid color-mix(in srgb, var(--accent) 18%, rgba(255,255,255,.06)) !important; border-radius:18px !important;
+  background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 45%), var(--im-panel) !important;
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  box-shadow:0 16px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  transition:transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s, border-color .25s; }
+.im-root :is(.game-int-card, .discord-server-card, .pp-card):hover { transform:translateY(-4px); border-color:color-mix(in srgb, var(--accent) 50%, transparent) !important;
+  box-shadow:0 20px 46px rgba(0,0,0,.5), 0 0 30px -6px color-mix(in srgb, var(--accent) 45%, transparent); }
+.im-entered .im-widgets > * { animation:fadeInUp .45s ease both; }
+.im-entered .im-widgets > *:nth-child(2) { animation-delay:.07s; } .im-entered .im-widgets > *:nth-child(3) { animation-delay:.14s; } .im-entered .im-widgets > *:nth-child(n+4) { animation-delay:.21s; }
+.im-root .profile-skill-bar span { background:linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 50%, #fff), var(--accent)); background-size:200% 100%; animation:sk-shimmer 2.5s linear infinite; box-shadow:0 0 12px color-mix(in srgb, var(--accent) 50%, transparent); }
+
+/* floating controls + comments drawer */
+.im-chat { animation:sk-ring 2.8s ease-out infinite; }
+.im-votes > * { backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); }
+.im-drawer { background:linear-gradient(180deg, color-mix(in srgb, var(--accent) 6%, transparent), transparent 30%), rgba(8,8,12,.92) !important; backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-left:1px solid color-mix(in srgb, var(--accent) 25%, transparent) !important; }
+
+@media (max-width:900px) {
+  .im-halo { left:75px; width:190px; height:190px; border-radius:30px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .im-ambient i, .im-halo, .im-underline i, .im-chat, .im-entered .im-avatar.avatar-wrapper, .im-entered .im-name { animation:none !important; }
+}
+
+@keyframes sk-sweep { 0% { left:-30%; } 60%, 100% { left:110%; } }
+@keyframes sk-name-glow { 50% { text-shadow:0 0 40px color-mix(in srgb, var(--accent) 70%, transparent), 0 0 4px rgba(255,255,255,.4); } }
+@keyframes sk-pop { from { opacity:0; transform:translateY(10px) scale(.6); } }
+@keyframes sk-shimmer { to { background-position:-200% 0; } }
+@keyframes sk-ring { 0% { box-shadow:0 0 0 3px var(--accent), 0 0 0 3px color-mix(in srgb, var(--accent) 60%, transparent); } 100% { box-shadow:0 0 0 3px var(--accent), 0 0 0 16px transparent; } }

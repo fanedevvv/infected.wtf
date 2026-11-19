@@ -18,6 +18,7 @@ import { profileFontFamily, googleFontsHref } from "@/lib/profile-fonts";
 import ClockWidget from "./ClockWidget";
 import { shapeStyle } from "@/lib/avatar-shapes";
 import type { ProfileViewProps } from "./ProfileView";
+import { useTilt } from "./profile-layouts/useTilt";
 
 type Tab = "home" | "widgets" | "projects";
 
@@ -98,6 +99,25 @@ export default function ProfileImmersive({
   const spotifyLive = useSpotifyLive(spotify?.type === "spotify" ? spotify.data.nowPlaying : null, p.username, spotify?.type === "spotify");
   const [tab, setTab] = useState<Tab>("home");
   const [commentsOpen, setCommentsOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const avatarRef = useRef<HTMLDivElement>(null);
+  const avatarTilting = useTilt(avatarRef, 18, 14);
+
+  // A soft light that follows the pointer across the whole page.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let frame = 0;
+    const onMove = (e: PointerEvent) => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        root.style.setProperty("--px", `${e.clientX}px`);
+        root.style.setProperty("--py", `${e.clientY}px`);
+      });
+    };
+    window.addEventListener("pointermove", onMove);
+    return () => { cancelAnimationFrame(frame); window.removeEventListener("pointermove", onMove); };
+  }, []);
   const hasChampion = p.badges.some((b) => b.id === "champion");
   const totalVotes = likeCount + dislikeCount;
   const ratio = totalVotes ? likeCount / totalVotes : 0.5;
@@ -116,10 +136,13 @@ export default function ProfileImmersive({
   ].filter(Boolean) as { key: string; icon: React.ReactNode; text: string }[];
 
   return (
-    <div className={`im-root ${entered ? "im-entered" : ""}`} style={profileFontFamily(p.profileFont) ? { fontFamily: profileFontFamily(p.profileFont)! } : undefined}>
+    <div ref={rootRef} className={`im-root ${entered ? "im-entered" : ""}`} style={profileFontFamily(p.profileFont) ? { fontFamily: profileFontFamily(p.profileFont)! } : undefined}>
       {googleFontsHref([p.profileFont]) && (
         <link rel="stylesheet" href={googleFontsHref([p.profileFont])!} />
       )}
+      {/* Full-page ambience: drifting aurora, rising particles, a light under the pointer. */}
+      <div className="im-ambient" aria-hidden="true"><i /><i /><i /><i /></div>
+      <div className="im-spot" aria-hidden="true" />
       <div className="im-views" title="Profile views">
         <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" /></svg>
         {p.views.toLocaleString()}
@@ -142,7 +165,8 @@ export default function ProfileImmersive({
           </nav>
         )}
 
-        <div className="im-avatar-col">
+        <div ref={avatarRef} className={`im-avatar-col pl-tilt${avatarTilting ? " is-active" : ""}`}>
+          <i className="im-halo" aria-hidden="true" />
           <div className="avatar-wrapper im-avatar" style={shapeStyle(p.avatarShape)}>
             <div className="avatar-decoration-anchor">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -184,7 +208,7 @@ export default function ProfileImmersive({
                   </div>
                 )}
               </div>
-              <div className="im-underline" />
+              <div className="im-underline"><i /></div>
 
               {p.bio && (
                 <p className="im-bio">
