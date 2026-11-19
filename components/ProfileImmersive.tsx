@@ -107,12 +107,15 @@ export default function ProfileImmersive({
   useEffect(() => {
     const root = rootRef.current;
     if (!root || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // Moved with a transform on the light itself (compositor only) — no repaint, no restyle of the page.
+    const spot = root.querySelector<HTMLElement>(".im-spot");
+    if (!spot) return;
     let frame = 0;
     const onMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        root.style.setProperty("--px", `${e.clientX}px`);
-        root.style.setProperty("--py", `${e.clientY}px`);
+        spot.style.transform = `translate3d(${e.clientX - 520}px, ${e.clientY - 520}px, 0)`;
       });
     };
     window.addEventListener("pointermove", onMove);

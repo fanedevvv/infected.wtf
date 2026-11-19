@@ -21,7 +21,7 @@
 
 /* ── full-page ambience layer ── */
 .pl-ambient { position:fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden; }
-.pl-ambient i { position:absolute; display:block; }
+.pl-ambient i { position:absolute; display:block; will-change:transform; }
 
 /* ── shared blocks: smooth hover everywhere ── */
 .pl :is(.game-int-card, .discord-server-card, .dpc-card, .pp-card) { transition:transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s, border-color .25s, filter .25s; }
@@ -35,7 +35,7 @@
 
 /* ══════════════════ HOLO CARD ══════════════════ */
 .pl--holo .pl-ambient { background:radial-gradient(ellipse at 50% -10%, rgba(255,79,216,.10), transparent 55%); }
-.pl--holo .pl-ambient i:nth-child(1), .pl--holo .pl-ambient i:nth-child(2) { width:55vmax; height:55vmax; border-radius:50%; filter:blur(80px); opacity:.22; animation:sk-drift 26s ease-in-out infinite alternate; }
+.pl--holo .pl-ambient i:nth-child(1), .pl--holo .pl-ambient i:nth-child(2) { width:55vmax; height:55vmax; border-radius:50%; opacity:.22; animation:sk-drift 26s ease-in-out infinite alternate; }
 .pl--holo .pl-ambient i:nth-child(1) { left:-15vmax; top:-10vmax; background:radial-gradient(circle, #4fd0ff, transparent 65%); }
 .pl--holo .pl-ambient i:nth-child(2) { right:-20vmax; bottom:-20vmax; background:radial-gradient(circle, #ff4fd8, transparent 65%); animation-duration:32s; animation-direction:alternate-reverse; }
 .pl--holo .pl-ambient i:nth-child(3) { inset:0; opacity:.5; animation:sk-twinkle 4s ease-in-out infinite;
@@ -44,9 +44,9 @@
 .pl--holo :is(.game-int-card, .discord-server-card, .dpc-card, .spotify-presence-card, .pp-card, .pc-section) {
   border:1px solid transparent !important; border-radius:16px !important;
   background:linear-gradient(rgba(12,13,18,.9), rgba(12,13,18,.9)) padding-box, linear-gradient(115deg, #ff4fd8, #ffd34f, #4fffa8, #4fd0ff, #b14fff, #ff4fd8) border-box !important;
-  background-size:100% 100%, 300% 300% !important; animation:sk-foil 8s linear infinite;
+  background-size:100% 100%, 300% 300% !important;
   box-shadow:0 14px 34px rgba(0,0,0,.5); }
-.pl--holo :is(.game-int-card, .discord-server-card, .pp-card):hover { box-shadow:0 18px 40px rgba(0,0,0,.55), 0 0 26px rgba(79,208,255,.25); }
+.pl--holo :is(.game-int-card, .discord-server-card, .pp-card):hover { animation:sk-foil 3s linear infinite; box-shadow:0 18px 40px rgba(0,0,0,.55), 0 0 26px rgba(79,208,255,.25); }
 .pl--holo :is(.profile-views-pill, .profile-like-pill, .profile-bestfriend) { border-color:rgba(233,196,106,.45); background:rgba(233,196,106,.08); }
 .pl--holo .profile-skill-bar span { background:linear-gradient(90deg, #ff4fd8, #ffd34f, #4fffa8, #4fd0ff); }
 @keyframes sk-foil { to { background-position:0 0, 300% 0; } }
@@ -54,11 +54,11 @@
 /* ══════════════════ INFECTED ══════════════════ */
 .pl--infected { --inf:#b6ff3b; --inf-dim:rgba(182,255,59,.35); --inf-red:#ff2a4f; }
 .pl--infected .pl-ambient { background:radial-gradient(ellipse at 50% 120%, rgba(182,255,59,.12), transparent 60%), radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0,0,0,.55)); }
-.pl--infected .pl-ambient i:nth-child(1), .pl--infected .pl-ambient i:nth-child(2) { width:60vmax; height:45vmax; border-radius:50%; filter:blur(90px); opacity:.18; background:radial-gradient(circle, var(--inf), transparent 65%); animation:sk-drift 22s ease-in-out infinite alternate; }
+.pl--infected .pl-ambient i:nth-child(1), .pl--infected .pl-ambient i:nth-child(2) { width:60vmax; height:45vmax; border-radius:50%; opacity:.18; background:radial-gradient(circle, var(--inf), transparent 65%); animation:sk-drift 22s ease-in-out infinite alternate; }
 .pl--infected .pl-ambient i:nth-child(1) { left:-20vmax; bottom:-15vmax; }
 .pl--infected .pl-ambient i:nth-child(2) { right:-25vmax; top:-15vmax; opacity:.12; animation-duration:30s; animation-direction:alternate-reverse; }
 /* floating spores */
-.pl--infected .pl-ambient i:nth-child(3) { left:0; right:0; top:0; height:200%; opacity:.55; animation:sk-rise 40s linear infinite;
+.pl--infected .pl-ambient i:nth-child(3) { left:0; right:0; top:0; height:calc(100% + 420px); opacity:.55; animation:sk-rise-420 16s linear infinite;
   background:radial-gradient(circle at 10% 20%, var(--inf) 0 1.5px, transparent 2.5px), radial-gradient(circle at 60% 70%, var(--inf) 0 1px, transparent 2px), radial-gradient(circle at 85% 35%, rgba(182,255,59,.7) 0 2px, transparent 3px), radial-gradient(circle at 35% 85%, rgba(182,255,59,.5) 0 1px, transparent 2px);
   background-size:420px 420px; }
 /* scanlines */
@@ -103,7 +103,7 @@
 .pl-inf-rings i:nth-child(3) { inset:-8px; border:1px solid rgba(182,255,59,.15); box-shadow:0 0 30px rgba(182,255,59,.15) inset; animation:sk-pulse 2.4s ease-in-out infinite; }
 .pl-inf-sweep { position:absolute; inset:14px; z-index:2; border-radius:50%; overflow:hidden; pointer-events:none; }
 .pl-inf-sweep::before { content:""; position:absolute; left:0; right:0; height:30%; background:linear-gradient(180deg, transparent, rgba(182,255,59,.45), transparent); box-shadow:0 0 18px rgba(182,255,59,.5); animation:sk-scan 2.6s ease-in-out infinite alternate; }
-.pl-inf-name.profile-username { justify-content:flex-start !important; margin:0 0 .6rem !important; font-size:2.1rem !important; line-height:1.05; text-align:left !important; animation:fadeInUp .35s .1s ease both, sk-name-glitch 4.5s 1.2s infinite; }
+.pl-inf-name.profile-username { justify-content:flex-start !important; margin:0 0 .6rem !important; font-size:2.1rem !important; line-height:1.05; text-align:left !important; animation:fadeInUp .35s .1s ease both, sk-name-glitch 4.5s steps(1, end) 1.2s infinite; }
 .pl-inf-badges.profile-badges { justify-content:flex-start !important; margin:0 0 .8rem !important; }
 .pl-inf-meter small { display:block; margin-top:.35rem; font:.66rem var(--font-mono); color:rgba(255,255,255,.5); }
 .pl-inf-bar { height:10px; background:rgba(182,255,59,.08); border:1px solid var(--inf-dim); overflow:hidden; }
@@ -158,7 +158,7 @@
 
 /* ══════════════════ VINYL ══════════════════ */
 .pl--vinyl .pl-ambient { background:radial-gradient(ellipse at 30% 20%, rgba(255,170,90,.10), transparent 55%), radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0,0,0,.5)); }
-.pl--vinyl .pl-ambient i:nth-child(1) { left:50%; top:50%; width:160vmax; height:160vmax; margin:-80vmax 0 0 -80vmax; opacity:.12; animation:pl-spin 60s linear infinite;
+.pl--vinyl .pl-ambient i:nth-child(1) { left:50%; top:50%; width:100vmax; height:100vmax; margin:-50vmax 0 0 -50vmax; opacity:.12; animation:pl-spin 60s linear infinite;
   background:conic-gradient(from 0deg, transparent, rgba(255,190,120,.6) 6%, transparent 12%, transparent 50%, rgba(255,190,120,.4) 56%, transparent 62%); }
 .pl--vinyl .pl-ambient i:nth-child(2) { inset:0; opacity:.06; background:repeating-radial-gradient(circle at 30% 40%, #fff 0 .5px, transparent .5px 3px); }
 .pl-vinyl-deck { margin-bottom:34px; }
@@ -176,11 +176,12 @@
 
 /* ══════════════════ CONSTELLATION ══════════════════ */
 .pl--constellation .pl-ambient { background:radial-gradient(ellipse at 50% 0%, rgba(60,80,200,.16), transparent 60%), radial-gradient(ellipse at 50% 100%, rgba(140,60,200,.12), transparent 60%); }
-.pl--constellation .pl-ambient i:nth-child(1), .pl--constellation .pl-ambient i:nth-child(2) { inset:-50%; }
-.pl--constellation .pl-ambient i:nth-child(1) { opacity:.7; animation:sk-starfield 120s linear infinite, sk-twinkle 5s ease-in-out infinite;
+.pl--constellation .pl-ambient i:nth-child(1) { left:-260px; top:-260px; right:0; bottom:0; }
+.pl--constellation .pl-ambient i:nth-child(2) { left:-120px; top:-120px; right:0; bottom:0; }
+.pl--constellation .pl-ambient i:nth-child(1) { opacity:.7; animation:sk-pan-260 40s linear infinite, sk-twinkle 5s ease-in-out infinite;
   background:radial-gradient(circle at 20% 30%, #fff 0 1px, transparent 1.5px), radial-gradient(circle at 70% 60%, #fff 0 .8px, transparent 1.3px), radial-gradient(circle at 40% 80%, #cfd8ff 0 1px, transparent 1.5px), radial-gradient(circle at 85% 15%, #fff 0 1.2px, transparent 1.8px);
   background-size:260px 260px; }
-.pl--constellation .pl-ambient i:nth-child(2) { opacity:.45; animation:sk-starfield 200s linear infinite reverse;
+.pl--constellation .pl-ambient i:nth-child(2) { opacity:.45; animation:sk-pan-120 30s linear infinite;
   background:radial-gradient(circle at 50% 50%, #fff 0 .6px, transparent 1px), radial-gradient(circle at 15% 75%, #fff 0 .5px, transparent 1px);
   background-size:120px 120px; }
 .pl--constellation .pl-ambient i:nth-child(3), .pl--constellation .pl-ambient i:nth-child(4) { top:10%; left:60%; width:160px; height:2px; border-radius:2px; opacity:0;
@@ -189,17 +190,17 @@
 .pl--constellation .pl-const-lines path { animation:sk-dash 30s linear infinite; }
 .pl--constellation :is(.game-int-card, .discord-server-card, .dpc-card, .spotify-presence-card, .pp-card, .pc-section) {
   border-radius:18px !important; border:1px solid rgba(170,185,255,.16) !important;
-  background:rgba(8,10,28,.72) !important; backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  background:rgba(8,10,28,.88) !important;
   box-shadow:0 16px 40px rgba(0,0,0,.55), inset 0 1px 0 rgba(200,210,255,.06); }
 .pl--constellation :is(.game-int-card, .discord-server-card, .pp-card):hover { box-shadow:0 16px 40px rgba(0,0,0,.55), 0 0 26px rgba(150,170,255,.28); border-color:rgba(190,200,255,.4) !important; }
 .pl--constellation :is(.profile-views-pill, .profile-like-pill) { border-color:rgba(170,185,255,.22); background:rgba(120,140,255,.07); }
 
 /* ══════════════════ ORBIT ══════════════════ */
 .pl--orbit .pl-ambient { background:radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 55%); }
-.pl--orbit .pl-ambient i:nth-child(1), .pl--orbit .pl-ambient i:nth-child(2) { left:50%; top:45%; width:70vmax; height:70vmax; margin:-35vmax 0 0 -35vmax; border-radius:50%; filter:blur(70px); opacity:.2; animation:pl-spin 50s linear infinite; }
+.pl--orbit .pl-ambient i:nth-child(1), .pl--orbit .pl-ambient i:nth-child(2) { left:50%; top:45%; width:70vmax; height:70vmax; margin:-35vmax 0 0 -35vmax; border-radius:50%; opacity:.2; animation:pl-spin 50s linear infinite; }
 .pl--orbit .pl-ambient i:nth-child(1) { background:radial-gradient(circle at 25% 30%, var(--accent), transparent 45%); }
 .pl--orbit .pl-ambient i:nth-child(2) { background:radial-gradient(circle at 75% 70%, #7a5cff, transparent 45%); animation-direction:reverse; animation-duration:70s; }
-.pl--orbit .pl-ambient i:nth-child(3) { inset:-50%; opacity:.55; animation:sk-starfield 160s linear infinite;
+.pl--orbit .pl-ambient i:nth-child(3) { left:-220px; top:-220px; right:0; bottom:0; opacity:.55; animation:sk-pan-220 50s linear infinite;
   background:radial-gradient(circle at 30% 40%, #fff 0 .8px, transparent 1.3px), radial-gradient(circle at 80% 20%, #fff 0 1px, transparent 1.5px), radial-gradient(circle at 60% 85%, #fff 0 .6px, transparent 1px);
   background-size:220px 220px; }
 .pl-orbit-core::after { content:""; position:absolute; left:50%; top:50%; width:100%; height:100%; transform:translate(-50%,-50%); border-radius:50%; border:1px solid color-mix(in srgb, var(--accent) 60%, transparent); animation:sk-ripple 3s ease-out infinite; pointer-events:none; }
@@ -246,7 +247,6 @@
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='97' viewBox='0 0 56 97'%3E%3Cpath d='M28 0l28 16v32L28 64 0 48V16zM28 64v33' fill='none' stroke='%23ffffff' stroke-opacity='.06' stroke-width='1'/%3E%3C/svg%3E") 0 0 / 56px 97px; }
 .pl--hexgrid .pl-ambient i:nth-child(1) { left:50%; top:50%; width:80vmax; height:80vmax; margin:-40vmax 0 0 -40vmax; border-radius:50%;
   background:radial-gradient(circle, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%); animation:sk-breathe 6s ease-in-out infinite; }
-.pl.is-entered .pl-hex-cell--link { animation:pl-hex-in .5s cubic-bezier(.3,1.4,.5,1) both, sk-hex-wave 5s ease-in-out infinite; animation-delay:calc(var(--i) * 60ms), calc(1s + var(--i) * .35s); }
 .pl-hex-core::before { animation:sk-hex-glow 3s ease-in-out infinite; }
 .pl--hexgrid :is(.game-int-card, .discord-server-card, .dpc-card, .spotify-presence-card, .pp-card, .pc-section) {
   border-radius:0 !important; border:1px solid color-mix(in srgb, var(--accent) 22%, transparent) !important;
@@ -256,28 +256,27 @@
 .pl--hexgrid :is(.profile-views-pill, .profile-like-pill) { border-radius:4px; clip-path:polygon(8px 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0 50%); }
 
 /* ══════════════════ SPLIT ══════════════════ */
-.pl--split .pl-ambient i:nth-child(1), .pl--split .pl-ambient i:nth-child(2) { width:90vmax; height:30vmax; border-radius:50%; filter:blur(90px); opacity:.16; animation:sk-drift 24s ease-in-out infinite alternate; }
-.pl--split .pl-ambient i:nth-child(1) { left:-20vmax; top:10%; background:var(--accent); transform:rotate(-12deg); }
-.pl--split .pl-ambient i:nth-child(2) { right:-25vmax; bottom:5%; background:#5b7cff; transform:rotate(10deg); animation-direction:alternate-reverse; }
+.pl--split .pl-ambient i:nth-child(1), .pl--split .pl-ambient i:nth-child(2) { width:90vmax; height:30vmax; border-radius:50%; opacity:.16; animation:sk-drift 24s ease-in-out infinite alternate; }
+.pl--split .pl-ambient i:nth-child(1) { left:-20vmax; top:10%; background:radial-gradient(closest-side, var(--accent), transparent); transform:rotate(-12deg); }
+.pl--split .pl-ambient i:nth-child(2) { right:-25vmax; bottom:5%; background:radial-gradient(closest-side, #5b7cff, transparent); transform:rotate(10deg); animation-direction:alternate-reverse; }
 .pl-split-banner { animation:sk-pan 30s ease-in-out infinite alternate; background-size:120% auto !important; }
 .pl--split :is(.game-int-card, .discord-server-card, .dpc-card, .spotify-presence-card, .pp-card, .pc-section) {
   border-radius:14px !important; border:1px solid rgba(255,255,255,.09) !important;
-  background:color-mix(in srgb, var(--profile-overlay, #060610) 84%, transparent) !important; backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  background:color-mix(in srgb, var(--profile-overlay, #060610) 92%, transparent) !important;
   box-shadow:0 14px 34px rgba(0,0,0,.5); }
 .pl--split :is(.game-int-card, .discord-server-card, .pp-card):hover { border-color:color-mix(in srgb, var(--accent) 45%, transparent) !important; }
 
 /* ══════════════════ DOCK ══════════════════ */
-.pl--dock .pl-ambient i:nth-child(1), .pl--dock .pl-ambient i:nth-child(2) { width:80vmax; height:40vmax; border-radius:50%; filter:blur(100px); opacity:.18; animation:sk-drift 28s ease-in-out infinite alternate; }
-.pl--dock .pl-ambient i:nth-child(1) { left:-10vmax; top:-10vmax; background:var(--accent); }
-.pl--dock .pl-ambient i:nth-child(2) { right:-20vmax; top:30%; background:#ff5fa2; animation-direction:alternate-reverse; }
+.pl--dock .pl-ambient i:nth-child(1), .pl--dock .pl-ambient i:nth-child(2) { width:80vmax; height:40vmax; border-radius:50%; opacity:.18; animation:sk-drift 28s ease-in-out infinite alternate; }
+.pl--dock .pl-ambient i:nth-child(1) { left:-10vmax; top:-10vmax; background:radial-gradient(closest-side, var(--accent), transparent); }
+.pl--dock .pl-ambient i:nth-child(2) { right:-20vmax; top:30%; background:radial-gradient(closest-side, #ff5fa2, transparent); animation-direction:alternate-reverse; }
 .pl--dock .pl-ambient i:nth-child(3) { left:0; right:0; bottom:0; height:140px; background:linear-gradient(0deg, color-mix(in srgb, var(--accent) 10%, transparent), transparent); }
-.pl-dock-card { animation:sk-bob 6s ease-in-out infinite; }
 .pl-dock { box-shadow:0 18px 40px rgba(0,0,0,.55), 0 0 30px -8px color-mix(in srgb, var(--accent) 40%, transparent); }
 .pl-dock-item::after { content:""; position:absolute; left:50%; bottom:-7px; width:4px; height:4px; margin-left:-2px; border-radius:50%; background:rgba(255,255,255,.7); opacity:0; transition:opacity .2s; }
 .pl-dock-item:hover::after { opacity:1; }
 .pl--dock :is(.game-int-card, .discord-server-card, .dpc-card, .spotify-presence-card, .pp-card, .pc-section) {
   border-radius:18px !important; border:1px solid rgba(255,255,255,.12) !important;
-  background:rgba(22,22,32,.6) !important; backdrop-filter:blur(22px) saturate(150%); -webkit-backdrop-filter:blur(22px) saturate(150%);
+  background:rgba(20,20,30,.9) !important;
   box-shadow:0 18px 40px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08); }
 
 /* ══════════════════ keyframes ══════════════════ */
@@ -310,7 +309,7 @@
 @keyframes sk-sway { 0%, 100% { rotate:0deg; } 50% { rotate:2deg; } }
 @keyframes sk-breathe { 50% { transform:scale(1.15); opacity:.6; } }
 @keyframes sk-hex-wave { 0%, 80%, 100% { filter:brightness(1); } 88% { filter:brightness(1.45) drop-shadow(0 0 10px rgba(255,255,255,.4)); } }
-@keyframes sk-hex-glow { 50% { filter:drop-shadow(0 0 16px var(--accent)); } }
+@keyframes sk-hex-glow { 50% { opacity:.65; } }
 @keyframes sk-pan { from { background-position:0% 50%; } to { background-position:100% 50%; } }
 @keyframes sk-bob { 50% { translate:0 -8px; } }
 
@@ -324,17 +323,18 @@
 
 /* ══════════════════ MODERN (ProfileImmersive) ══════════════════ */
 .im-ambient { position:fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden; }
-.im-ambient i { position:absolute; display:block; }
-.im-ambient i:nth-child(1), .im-ambient i:nth-child(2) { width:70vmax; height:50vmax; border-radius:50%; filter:blur(100px); opacity:.2; animation:sk-drift 24s ease-in-out infinite alternate; }
+.im-ambient i { position:absolute; display:block; will-change:transform; }
+.im-ambient i:nth-child(1), .im-ambient i:nth-child(2) { width:70vmax; height:50vmax; border-radius:50%; opacity:.2; animation:sk-drift 24s ease-in-out infinite alternate; }
 .im-ambient i:nth-child(1) { left:-20vmax; top:-15vmax; background:radial-gradient(circle, var(--accent), transparent 65%); }
 .im-ambient i:nth-child(2) { right:-25vmax; bottom:-20vmax; background:radial-gradient(circle, color-mix(in srgb, var(--accent) 35%, #6a5cff), transparent 65%); animation-duration:32s; animation-direction:alternate-reverse; }
 /* rising particles */
-.im-ambient i:nth-child(3) { left:0; right:0; top:0; height:200%; opacity:.45; animation:sk-rise 50s linear infinite;
+.im-ambient i:nth-child(3) { left:0; right:0; top:0; height:calc(100% + 380px); opacity:.45; animation:sk-rise-380 18s linear infinite;
   background:radial-gradient(circle at 15% 25%, var(--accent) 0 1.2px, transparent 2px), radial-gradient(circle at 65% 65%, color-mix(in srgb, var(--accent) 60%, #fff) 0 1px, transparent 1.8px), radial-gradient(circle at 85% 15%, var(--accent) 0 .8px, transparent 1.5px);
   background-size:380px 380px; }
 .im-ambient i:nth-child(4) { inset:0; background:radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0,0,0,.45)); }
-.im-spot { position:fixed; inset:0; z-index:-1; pointer-events:none;
-  background:radial-gradient(520px circle at var(--px, 70%) var(--py, 40%), color-mix(in srgb, var(--accent) 9%, transparent), transparent 60%); }
+.im-spot { position:fixed; left:0; top:0; width:1040px; height:1040px; z-index:-1; pointer-events:none; will-change:transform;
+  transform:translate3d(calc(70vw - 520px), calc(40vh - 520px), 0);
+  background:radial-gradient(closest-side, color-mix(in srgb, var(--accent) 9%, transparent), transparent); }
 
 /* avatar: rotating light halo, gentle float, 3D tilt toward the pointer */
 .im-avatar-col { position:relative; }
@@ -348,7 +348,7 @@
 /* name: a light sweep across the underline + slow glow */
 .im-underline { position:relative; overflow:hidden; }
 .im-underline i { position:absolute; top:0; bottom:0; width:30%; left:-30%; background:linear-gradient(90deg, transparent, rgba(255,255,255,.9), transparent); animation:sk-sweep 3.6s ease-in-out infinite 1.2s; }
-.im-entered .im-name { animation:fadeInUp .45s ease both, sk-name-glow 5s ease-in-out 1s infinite; }
+.im-entered .im-name { animation:fadeInUp .45s ease both; }
 
 /* socials: staggered pop-in, glow on hover */
 .im-entered .im-socials a { animation:sk-pop .5s cubic-bezier(.3,1.5,.5,1) both; }
@@ -360,8 +360,7 @@
 /* every card on the page: glass with an accent edge, lift + glow on hover */
 .im-root :is(.game-int-card, .discord-server-card, .dpc-card, .spotify-presence-card, .pp-card) {
   border:1px solid color-mix(in srgb, var(--accent) 18%, rgba(255,255,255,.06)) !important; border-radius:18px !important;
-  background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 45%), var(--im-panel) !important;
-  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 45%), color-mix(in srgb, var(--profile-overlay, #060610) 90%, transparent) !important;
   box-shadow:0 16px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
   transition:transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s, border-color .25s; }
 .im-root :is(.game-int-card, .discord-server-card, .pp-card):hover { transform:translateY(-4px); border-color:color-mix(in srgb, var(--accent) 50%, transparent) !important;
@@ -371,9 +370,8 @@
 .im-root .profile-skill-bar span { background:linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 50%, #fff), var(--accent)); background-size:200% 100%; animation:sk-shimmer 2.5s linear infinite; box-shadow:0 0 12px color-mix(in srgb, var(--accent) 50%, transparent); }
 
 /* floating controls + comments drawer */
-.im-chat { animation:sk-ring 2.8s ease-out infinite; }
-.im-votes > * { backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); }
-.im-drawer { background:linear-gradient(180deg, color-mix(in srgb, var(--accent) 6%, transparent), transparent 30%), rgba(8,8,12,.92) !important; backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-left:1px solid color-mix(in srgb, var(--accent) 25%, transparent) !important; }
+.im-chat::after { content:""; position:absolute; inset:0; border-radius:50%; box-shadow:0 0 0 3px var(--accent); pointer-events:none; animation:sk-ring 2.8s ease-out infinite; will-change:transform, opacity; }
+.im-drawer { background:linear-gradient(180deg, color-mix(in srgb, var(--accent) 6%, transparent), transparent 30%), rgba(8,8,12,.97) !important; border-left:1px solid color-mix(in srgb, var(--accent) 25%, transparent) !important; }
 
 @media (max-width:900px) {
   .im-halo { left:75px; width:190px; height:190px; border-radius:30px; }
@@ -386,4 +384,20 @@
 @keyframes sk-name-glow { 50% { text-shadow:0 0 40px color-mix(in srgb, var(--accent) 70%, transparent), 0 0 4px rgba(255,255,255,.4); } }
 @keyframes sk-pop { from { opacity:0; transform:translateY(10px) scale(.6); } }
 @keyframes sk-shimmer { to { background-position:-200% 0; } }
-@keyframes sk-ring { 0% { box-shadow:0 0 0 3px var(--accent), 0 0 0 3px color-mix(in srgb, var(--accent) 60%, transparent); } 100% { box-shadow:0 0 0 3px var(--accent), 0 0 0 16px transparent; } }
+@keyframes sk-ring { from { transform:scale(1); opacity:.8; } to { transform:scale(1.45); opacity:0; } }
+
+/* ══════════════════ performance ══════════════════
+   Layout panels sit over an animated full-page background; a backdrop blur there is re-computed every frame.
+   The panels are nearly opaque anyway, so drop the blur and make them a touch more solid. */
+.pl .pl-panel { backdrop-filter:none; -webkit-backdrop-filter:none; background:color-mix(in srgb, var(--profile-overlay, #060610) 93%, transparent); }
+.pl-ambient, .im-ambient { contain:strict; }
+/* Holo: keep the text above the foil/glare so it never shimmers or "pulses" as the card tilts. */
+.pl-holo-head, .pl-holo-types, .pl-holo-text, .pl-holo-moves, .pl-holo-foot, .pl-holo-strip { position:relative; z-index:3; }
+.pl-holo-foil { opacity:calc(.1 + var(--hyp) * .3); }
+.pl-holo-card.is-rare .pl-holo-foil { opacity:calc(.14 + var(--hyp) * .38); }
+.pl-holo-card { will-change:transform; }
+@keyframes sk-rise-420 { to { transform:translate3d(0, -420px, 0); } }
+@keyframes sk-rise-380 { to { transform:translate3d(0, -380px, 0); } }
+@keyframes sk-pan-260 { to { transform:translate3d(260px, 260px, 0); } }
+@keyframes sk-pan-120 { to { transform:translate3d(120px, 120px, 0); } }
+@keyframes sk-pan-220 { to { transform:translate3d(220px, 220px, 0); } }

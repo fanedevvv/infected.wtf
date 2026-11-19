@@ -65,7 +65,7 @@ function Infected({ p, entered, ...votes }: LayoutProps) {
       <div className="pl-inf-tape" aria-hidden="true"><span>{tape.repeat(6)}</span></div>
 
       <div ref={ref} className={`pl-inf-file pl-tilt${active ? " is-active" : ""}`}>
-        <div className="pl-sheen" aria-hidden="true" />
+        <div className="pl-sheen" data-tilt-fx aria-hidden="true" />
         <i className="pl-inf-corner pl-inf-corner--tl" aria-hidden="true" />
         <i className="pl-inf-corner pl-inf-corner--br" aria-hidden="true" />
 
@@ -150,7 +150,7 @@ function Infected({ p, entered, ...votes }: LayoutProps) {
 
 function Holo({ p, entered, ...votes }: LayoutProps) {
   const cardRef = useRef<HTMLDivElement>(null);
-  const active = useTilt(cardRef, 22, 18);
+  const active = useTilt(cardRef, 22, 18, 0);
 
   const joined = new Date(p.createdAt);
   const year = Number.isNaN(joined.getTime()) ? "" : joined.getFullYear();
@@ -200,8 +200,8 @@ function Holo({ p, entered, ...votes }: LayoutProps) {
               <span>Illus. infected.wtf</span>
             </footer>
           </div>
-          <div className="pl-holo-foil" aria-hidden="true" />
-          <div className="pl-holo-glare" aria-hidden="true" />
+          <div className="pl-holo-foil" data-tilt-fx aria-hidden="true" />
+          <div className="pl-holo-glare" data-tilt-fx aria-hidden="true" />
         </div>
       </div>
 
@@ -222,7 +222,7 @@ function Split({ p, entered, ...votes }: LayoutProps) {
   const active = useTilt(ref, 6, 5);
   return (
     <div ref={ref} className={`pl-split pl-panel pl-tilt${active ? " is-active" : ""}`}>
-      <div className="pl-sheen" aria-hidden="true" />
+      <div className="pl-sheen" data-tilt-fx aria-hidden="true" />
       <aside className="pl-split-id">
         {p.banner && <div className="pl-split-banner" style={{ backgroundImage: `url(/${p.banner})` }} />}
         <Avatar p={p} />
