@@ -177,9 +177,9 @@
 @keyframes pl-hex-in { from { opacity:0; scale:.4; } }
 .pl-hex-cell--link { background:linear-gradient(160deg, color-mix(in srgb, var(--platform-color) 70%, #fff 12%), color-mix(in srgb, var(--platform-color) 85%, #000)); transition:filter .2s, scale .2s; }
 .pl-hex-cell--link svg { width:28px; height:28px; }
-/* Custom link logos fill most of the hex (they carry their own padding, unlike platform glyphs) */
-/* wide box inside the hex's flat-sided middle band: wide logos use the full width, square ones the full height */
-.pl-hex-cell--link svg.link-custom-icon { width:90%; height:58%; transform:none; }
+/* Custom link logos: a wide box in the hex's flat-sided middle band — wide logos use the width, square ones the height.
+   Sized from --h, not %: the cell is a grid, where a % height can't resolve and the svg falls back to 300×150. */
+.pl-hex-cell--link svg.link-custom-icon { width:calc(var(--h) * .86); height:calc(var(--h) * .6); transform:none; }
 .pl-hex-cell--link:hover { filter:brightness(1.25); scale:1.08; z-index:2; }
 .pl-hex-core { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:3; }
 .pl-hex-core .avatar-wrapper { --av:calc(var(--h) * 1.06); margin:0; }
