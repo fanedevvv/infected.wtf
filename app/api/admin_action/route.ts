@@ -57,7 +57,7 @@ async function notifyDiscordAdminLog(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         username: "Infected · Admin Log",
-        avatar_url: `${siteUrl}/assets/img/logo.png`,
+        avatar_url: `${siteUrl}/assets/img/mark-512.png`,
         embeds: [{ title, color, fields, footer: { text: "Infected · Admin Log" }, timestamp: new Date().toISOString() }],
       }),
     });

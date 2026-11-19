@@ -206,7 +206,7 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sa
 a{color:inherit}
 header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--line)}
 header .brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:800}
-header .brand img{width:28px;height:28px}
+header .brand img{width:28px;height:28px;border-radius:7px}
 header .brand span{font-size:15px}
 .touch{padding:9px 16px;border-radius:12px;border:1px solid var(--line);background:#1b202b;color:var(--ink);text-decoration:none;font-weight:600;font-size:14px}
 .touch:hover{background:#222836}
@@ -289,7 +289,7 @@ function writePage(html) {
 function ensureAssets() {
   try {
     fs.mkdirSync(OUT_DIR, { recursive: true });
-    fs.copyFileSync(path.join(ROOT, "public", "assets", "img", "logo-icon.png"), path.join(OUT_DIR, "logo.png"));
+    fs.copyFileSync(path.join(ROOT, "public", "assets", "img", "mark-512.png"), path.join(OUT_DIR, "logo.png"));
   } catch (e) {
     console.error("[status] could not copy logo:", e.message);
   }
