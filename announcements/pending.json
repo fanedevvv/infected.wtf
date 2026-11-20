@@ -1,0 +1,14 @@
+{
+  "kind": "feature",
+  "title": "Dragons, a phoenix and more — new profile effects",
+  "summary": "Eight new animated profile effects with real creatures flying over your page.",
+  "changes": [
+    "**Jade, Inferno and Storm Dragons** — a full dragon flies across your profile breathing mist, fire or lightning",
+    "**Phoenix** — a bird of fire sweeps through, trailing embers",
+    "**Aurora** — northern lights over a starry sky",
+    "**Koi Pond**, **Butterfly Garden** and **Deep Glow** jellyfish",
+    "Preview any of them in Dashboard → Collectibles before you buy"
+  ],
+  "link": "https://infected.wtf/dashboard?page=collectibles",
+  "linkLabel": "See the effects"
+}

@@ -37,7 +37,7 @@ export default function CollectiblesClient({ displayName }: { displayName: strin
   // Play an effect full-screen for a few seconds.
   useEffect(() => {
     if (!preview) return;
-    const t = setTimeout(() => setPreview(null), 5000);
+    const t = setTimeout(() => setPreview(null), 9000);
     return () => clearTimeout(t);
   }, [preview]);
 

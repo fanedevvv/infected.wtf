@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { SCENES } from "./profile-effects/scenes";
 
 /**
  * Profile effects (collectibles): an animation over the whole profile — a burst when the page is opened, then a
@@ -15,6 +16,8 @@ type Preset = {
   burst: number; steady: number; size: [number, number]; speed: [number, number];
   gravity?: number; wobble?: number; spin?: boolean; fade?: boolean;
   flash?: string; bolts?: boolean; symbol?: string;
+  /** a hand-drawn creature scene (dragons, phoenix…) drawn over the particles */
+  scene?: string;
 };
 
 const PRESETS: Record<string, Preset> = {
@@ -30,6 +33,15 @@ const PRESETS: Record<string, Preset> = {
   luckyspin: { shape: "spark", mode: "burst", colors: ["#ffd23f", "#fff2b0", "#ffb800"], burst: 90, steady: 22, size: [2, 4], speed: [120, 380], fade: true },
   completionist: { shape: "spark", mode: "burst", colors: ["#ff4fd8", "#ffd34f", "#4fffa8", "#4fd0ff", "#b14fff"], burst: 110, steady: 26, size: [2, 4.5], speed: [140, 420], fade: true },
   plusaura: { shape: "glow", mode: "rise", colors: ["#ffd700", "#fff1a8", "#ffb800"], burst: 50, steady: 30, size: [1.5, 3.5], speed: [30, 80], wobble: 30, fade: true },
+  // scenes: the creature does the show; particles are just a light ambience
+  jadedragon: { scene: "jadedragon", shape: "glow", mode: "rise", colors: ["#b6ff3b", "#39ff88", "#e6ffb0"], burst: 0, steady: 22, size: [1.2, 3], speed: [20, 55], wobble: 24, fade: true },
+  infernodragon: { scene: "infernodragon", shape: "glow", mode: "rise", colors: ["#ffb347", "#ff7a18", "#ffd166"], burst: 0, steady: 26, size: [1.5, 3.5], speed: [40, 100], wobble: 26, fade: true },
+  stormdragon: { scene: "stormdragon", shape: "dot", mode: "fall", colors: ["rgba(190,210,255,.45)"], burst: 0, steady: 34, size: [1, 1.5], speed: [600, 900] },
+  phoenix: { scene: "phoenix", shape: "glow", mode: "rise", colors: ["#ffd166", "#ff7a18"], burst: 0, steady: 14, size: [1.2, 2.8], speed: [25, 60], wobble: 20, fade: true },
+  koi: { scene: "koi", shape: "petal", mode: "fall", colors: ["#ffb7cf", "#ffd6e4"], burst: 0, steady: 7, size: [4, 7], speed: [18, 34], wobble: 30, spin: true },
+  butterflies: { scene: "butterflies", shape: "glow", mode: "rise", colors: ["#ffffff"], burst: 0, steady: 0, size: [1, 2], speed: [10, 20] },
+  aurora: { scene: "aurora", shape: "spark", mode: "streak", colors: ["#ffffff", "#cfe0ff"], burst: 0, steady: 2, size: [1.2, 2], speed: [700, 1000] },
+  jellyfish: { scene: "jellyfish", shape: "glow", mode: "rise", colors: ["#5ff3ff", "#a98bff", "#ffffff"], burst: 0, steady: 30, size: [0.8, 2], speed: [8, 24], wobble: 14, fade: true },
   patientzero: { shape: "spore", mode: "burst", colors: ["#b6ff3b", "#39ff14", "#e6ffb0"], burst: 150, steady: 36, size: [2, 7], speed: [200, 520], wobble: 14, fade: true, flash: "rgba(182,255,59,.3)", symbol: "☣" },
 };
 
@@ -53,8 +65,10 @@ export default function ProfileEffect({ effect, active }: { effect: string | nul
     const scale = small ? 0.5 : 1;
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     let W = 0, H = 0;
+    let sceneRef: { resize(w: number, h: number): void } | null = null;
     const resize = () => {
       W = window.innerWidth; H = window.innerHeight;
+      sceneRef?.resize(W, H);
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
@@ -90,7 +104,9 @@ export default function ProfileEffect({ effect, active }: { effect: string | nul
     };
 
     for (let i = 0; i < Math.round(preset.burst * scale); i++) spawn(true);
-    const steady = Math.max(2, Math.round(preset.steady * scale));
+    const steady = preset.steady ? Math.max(2, Math.round(preset.steady * scale)) : 0;
+    const scene = preset.scene && SCENES[preset.scene] ? SCENES[preset.scene](W, H, small) : null;
+    sceneRef = scene;
     let flash = preset.flash ? 1 : 0;
     let symbol = preset.symbol ? 1 : 0;
     let nextBolt = 0.8;
@@ -181,6 +197,7 @@ export default function ProfileEffect({ effect, active }: { effect: string | nul
         drawShape(p, a);
       }
       ctx.globalAlpha = 1;
+      if (scene) { scene.update(dt); scene.draw(ctx); ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over"; }
     };
     raf = requestAnimationFrame(tick);
 

@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
           if (next > item.limited!.supply) throw new Error("SOLD_OUT");
           const mint = await tx.collectibleMint.create({ data: { itemKey: key, serial: next, userId: user.id } });
           const fresh = await tx.user.findUnique({ where: { id: user.id }, select: { tokens: true } });
-          if (!fresh || fresh.tokens < item.price!) throw new Error("NO_TOKENS");
+          if (!fresh || (fresh.tokens ?? 0) < item.price!) throw new Error("NO_TOKENS");
           await tx.user.update({ where: { id: user.id }, data: { tokens: { decrement: item.price! }, tokensSpent: { increment: item.price! } } });
           await tx.profile.update({ where: { id: s.profileId }, data: { [OWNED_FIELD[kind]]: ownedNext } });
           return mint.serial;

@@ -55,6 +55,14 @@ export const PROFILE_EFFECTS: CollectibleDef[] = [
   { id: "luckyspin", kind: "effect", name: "Lucky Sparks", desc: "Golden sparks — only from the Daily Spin.", rarity: "epic", source: "spin" },
   { id: "completionist", kind: "effect", name: "Completionist", desc: "Rainbow sparkles for finishing every one-time quest.", rarity: "legendary", source: "quest" },
   { id: "plusaura", kind: "effect", name: "Plus Aura", desc: "A golden aura, free while you have Infected Plus.", rarity: "legendary", source: "plus" },
+  { id: "butterflies", kind: "effect", name: "Butterfly Garden", desc: "A swarm of butterflies bursts out and flutters around your page.", rarity: "epic", source: "shop", price: 650 },
+  { id: "koi", kind: "effect", name: "Koi Pond", desc: "Koi fish swimming around the edges, with ripples and drifting petals.", rarity: "epic", source: "shop", price: 700 },
+  { id: "jellyfish", kind: "effect", name: "Deep Glow", desc: "Glowing jellyfish pulsing up through your profile.", rarity: "epic", source: "shop", price: 750 },
+  { id: "aurora", kind: "effect", name: "Aurora", desc: "Northern lights waving over a starry sky.", rarity: "legendary", source: "shop", price: 900 },
+  { id: "phoenix", kind: "effect", name: "Phoenix", desc: "A phoenix of fire sweeps across your page, trailing embers.", rarity: "legendary", source: "shop", price: 1100 },
+  { id: "jadedragon", kind: "effect", name: "Jade Dragon", desc: "A jade dragon coils across your profile, breathing spirit mist.", rarity: "mythic", source: "shop", price: 1400 },
+  { id: "infernodragon", kind: "effect", name: "Inferno Dragon", desc: "A crimson dragon flies through, breathing fire.", rarity: "mythic", source: "shop", price: 1400 },
+  { id: "stormdragon", kind: "effect", name: "Storm Dragon", desc: "A storm dragon crackling with lightning, in the rain.", rarity: "mythic", source: "shop", price: 1400 },
   { id: "patientzero", kind: "effect", name: "Patient Zero", desc: "A toxic green outbreak with a biohazard flash. Limited to 50 copies.", rarity: "mythic", source: "limited", price: 1500, limited: { supply: 50, endsAt: "2027-01-01T00:00:00Z" } },
 ];
 
