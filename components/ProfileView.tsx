@@ -30,6 +30,7 @@ export interface ProfileViewProps {
   /** Collectibles: nameplate behind the name, effect over the page, crew tag, limited items owned (with serial). */
   nameplate?: string | null;
   profileEffect?: string | null;
+  profileEffectMedia?: { url: string; kind: "video" | "image" } | null;
   crew?: { tag: string; color: string; name: string } | null;
   /** The owner's group, for the pill + sheet at the top of the profile. */
   group?: GroupCard | null;
@@ -215,7 +216,7 @@ export default function ProfileView(p: ProfileViewProps) {
           <ProfileLayout layout={layout} p={p} entered={entered} {...votes} />
         )}
 
-        <ProfileEffect effect={p.profileEffect} active={entered} />
+        <ProfileEffect effect={p.profileEffect} media={p.profileEffectMedia} active={entered} />
         {p.group && entered && <GroupPill group={p.group} />}
         {reportOpen && <ReportProfileModal slug={p.username} onClose={() => setReportOpen(false)} />}
 

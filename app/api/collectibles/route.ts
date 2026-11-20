@@ -4,7 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
 import { getActiveProfileId } from "@/lib/active-profile";
 import { parseStringArray, serializeStringArray } from "@/lib/json-array";
-import { ALL_COLLECTIBLES, canUse, getCollectible, isLimitedOpen, mintKey, type CollectibleKind } from "@/lib/collectibles";
+import { ALL_COLLECTIBLES, canUse, getCollectible, isLimitedOpen, mintKey, type CollectibleDef, type CollectibleKind } from "@/lib/collectibles";
+import { getCustomEffect, listCustomEffects } from "@/lib/custom-effects";
+
+/** Built-in item, or (effects only) one uploaded from /admin. Buying needs it enabled; equipping an owned one doesn't. */
+async function findItem(kind: CollectibleKind, id: string, forBuy: boolean): Promise<CollectibleDef | null> {
+  return getCollectible(kind, id) ?? (kind === "effect" ? await getCustomEffect(id, !forBuy) : null);
+}
 
 const OWNED_FIELD = { nameplate: "nameplatesOwned", effect: "profileEffectsOwned" } as const;
 const ACTIVE_FIELD = { nameplate: "activeNameplate", effect: "activeProfileEffect" } as const;
@@ -20,13 +26,14 @@ async function state(userId: number) {
   const minted = await prisma.collectibleMint.groupBy({ by: ["itemKey"], where: { itemKey: { in: limitedKeys } }, _max: { serial: true } });
   const mine = await prisma.collectibleMint.findMany({ where: { userId, itemKey: { in: limitedKeys } }, select: { itemKey: true, serial: true } });
   const premium = user ? isPremiumNow(user) : false;
+  const customs = await listCustomEffects();
   return {
     tokens: user?.tokens ?? 0,
     premium,
     profileId,
     owned,
     active: { nameplate: profile?.activeNameplate ?? null, effect: profile?.activeProfileEffect ?? null },
-    items: ALL_COLLECTIBLES.map((c) => {
+    items: [...ALL_COLLECTIBLES, ...customs].map((c) => {
       const key = mintKey(c);
       return {
         ...c,
@@ -60,7 +67,7 @@ export async function POST(req: NextRequest) {
   if (body.action === "equip") {
     const id = body.id ? String(body.id) : null;
     if (id) {
-      const item = getCollectible(kind, id);
+      const item = await findItem(kind, id, false);
       if (!canUse(item, s.owned[kind], s.premium)) {
         return NextResponse.json({ success: false, error: item?.source === "plus" ? "This one is for Infected Plus members." : "You don't own this yet." }, { status: 400 });
       }
@@ -71,7 +78,7 @@ export async function POST(req: NextRequest) {
 
   // ── Buy (shop items and limited drops) ──
   if (body.action === "buy") {
-    const item = getCollectible(kind, String(body.id || ""));
+    const item = await findItem(kind, String(body.id || ""), true);
     if (!item || !item.price || (item.source !== "shop" && item.source !== "limited")) return NextResponse.json({ success: false, error: "This item can't be bought." }, { status: 400 });
     if (s.owned[kind].has(item.id)) return NextResponse.json({ success: false, error: "You already own this." }, { status: 400 });
     if (s.tokens < item.price) return NextResponse.json({ success: false, error: "Not enough tokens." }, { status: 400 });

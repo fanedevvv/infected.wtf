@@ -1,0 +1,14 @@
+{
+  "kind": "design",
+  "title": "Profile effects now frame your profile card",
+  "summary": "Profile effects were rebuilt Discord-style: they wrap around your profile card with a big intro, then keep looping.",
+  "changes": [
+    "**Dragons** now coil around your card, breathing mist, fire or lightning, with clouds, flames or a storm",
+    "The **Phoenix** rises from below and hovers on top of your card over a wall of fire",
+    "**Koi** circle the edges, **butterflies** land on your card, **aurora** and **jellyfish** glow inside it",
+    "Every effect plays a big intro when someone opens your profile, then a calmer loop",
+    "**Preview** any effect on your own profile card in Dashboard → Collectibles before you buy"
+  ],
+  "link": "https://infected.wtf/dashboard?page=collectibles",
+  "linkLabel": "See the effects"
+}

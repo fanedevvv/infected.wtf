@@ -7,6 +7,6 @@ import CollectiblesClient from "./CollectiblesClient";
 export default async function CollectiblesPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  const profile = await prisma.profile.findUnique({ where: { id: await getActiveProfileId(user.id) }, select: { displayName: true } });
-  return <CollectiblesClient displayName={profile?.displayName || user.username} />;
+  const profile = await prisma.profile.findUnique({ where: { id: await getActiveProfileId(user.id) }, select: { displayName: true, slug: true, avatar: true, banner: true } });
+  return <CollectiblesClient displayName={profile?.displayName || user.username} username={profile?.slug || user.username} avatar={profile?.avatar ?? null} banner={profile?.banner ?? null} />;
 }

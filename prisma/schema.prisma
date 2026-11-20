@@ -748,3 +748,17 @@ model CrewBoost {
   @@index([userId], map: "idx_crew_boost_user")
   @@map("crew_boosts")
 }
+
+model CustomEffect {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(60)
+  description String?  @db.VarChar(200)
+  rarity      String   @default("epic") @db.VarChar(16)
+  price       Int      @default(500)
+  file        String   @db.VarChar(255)
+  kind        String   @default("image") @db.VarChar(8)
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at") @db.DateTime(3)
+
+  @@map("custom_effects")
+}

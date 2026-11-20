@@ -7,7 +7,7 @@ import NameTag from "@/components/NameTag";
 import ProfileEffect from "@/components/ProfileEffect";
 import { RARITY_COLOR, type CollectibleDef } from "@/lib/collectibles";
 
-type Item = CollectibleDef & { owned: boolean; usable: boolean; minted?: number; open?: boolean; serial?: number };
+type Item = CollectibleDef & { owned: boolean; usable: boolean; minted?: number; open?: boolean; serial?: number; media?: { url: string; kind: "video" | "image" } };
 type Tab = "nameplate" | "effect" | "limited";
 
 const SOURCE_NOTE: Record<string, string> = { spin: "Daily Spin only", quest: "Quest reward", plus: "Free with Infected Plus" };
@@ -20,13 +20,13 @@ function timeLeft(iso: string) {
   return d > 0 ? `${d}d ${h}h left` : `${h}h left`;
 }
 
-export default function CollectiblesClient({ displayName }: { displayName: string }) {
+export default function CollectiblesClient({ displayName, username, avatar, banner }: { displayName: string; username: string; avatar: string | null; banner: string | null }) {
   const [tab, setTab] = useState<Tab>("nameplate");
   const [items, setItems] = useState<Item[]>([]);
   const [tokens, setTokens] = useState(0);
   const [active, setActive] = useState<{ nameplate: string | null; effect: string | null }>({ nameplate: null, effect: null });
   const [busy, setBusy] = useState<string | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [preview, setPreview] = useState<Item | null>(null);
 
   const load = useCallback(async () => {
     const j = await fetch("/api/collectibles").then((r) => r.json()).catch(() => null);
@@ -37,8 +37,10 @@ export default function CollectiblesClient({ displayName }: { displayName: strin
   // Play an effect full-screen for a few seconds.
   useEffect(() => {
     if (!preview) return;
-    const t = setTimeout(() => setPreview(null), 9000);
-    return () => clearTimeout(t);
+    const t = setTimeout(() => setPreview(null), 12000);
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setPreview(null); };
+    window.addEventListener("keydown", onKey);
+    return () => { clearTimeout(t); window.removeEventListener("keydown", onKey); };
   }, [preview]);
 
   async function act(item: Item, action: "buy" | "equip" | "unequip") {
@@ -67,7 +69,7 @@ export default function CollectiblesClient({ displayName }: { displayName: strin
       <div className="dash-card coll-head">
         <div>
           <h2>Collectibles</h2>
-          <p>Nameplates show behind your name everywhere — your page, comments, the leaderboard, crews. Profile effects play over your page when someone opens it.</p>
+          <p>Nameplates show behind your name everywhere — your page, comments, the leaderboard, crews. Profile effects play around your profile card when someone opens it — a big intro, then a loop.</p>
         </div>
         <div className="coll-balance"><span>Balance</span><b>{tokens.toLocaleString()}</b><small>tokens</small></div>
       </div>
@@ -91,9 +93,17 @@ export default function CollectiblesClient({ displayName }: { displayName: strin
                 {item.kind === "nameplate" ? (
                   <NameTag name={displayName} nameplate={item.id} className="coll-preview-name" />
                 ) : (
-                  <button type="button" className="coll-play" onClick={() => setPreview(item.id)} aria-label={`Preview ${item.name}`}>
+                  <>
+                  {item.media && (
+                    <span className="coll-preview-media" aria-hidden="true">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- uploaded effect */}
+                      {item.media.kind === "video" ? <video src={item.media.url} autoPlay muted loop playsInline /> : <img src={item.media.url} alt="" />}
+                    </span>
+                  )}
+                  <button type="button" className="coll-play" onClick={() => setPreview(item)} aria-label={`Preview ${item.name}`}>
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M8 5v14l11-7z" /></svg> Preview
                   </button>
+                  </>
                 )}
               </div>
               <div className="coll-info">
@@ -134,7 +144,23 @@ export default function CollectiblesClient({ displayName }: { displayName: strin
         })}
       </div>
 
-      {preview && <ProfileEffect effect={preview} active />}
+      {preview && (
+        <>
+          <div className="fxp-overlay" onClick={() => setPreview(null)} role="dialog" aria-label={`Preview of ${preview.name}`}>
+            <div className="fxp-card" data-fx-card>
+              <div className="fxp-banner" style={banner ? { backgroundImage: `url(/${banner})` } : undefined} />
+              <div className="fxp-avatar" style={{ backgroundImage: `url(${avatar ? `/${avatar}` : "/assets/img/default-avatar.png"})` }} />
+              <div className="fxp-body">
+                <div className="fxp-name">{displayName}</div>
+                <div className="fxp-sub">infected.wtf/{username}</div>
+                <div className="fxp-lines"><i /><i /><i /></div>
+              </div>
+            </div>
+          </div>
+          <ProfileEffect effect={preview.id} media={preview.media} active />
+          <span className="fxp-label">{preview.name} · tap anywhere to close</span>
+        </>
+      )}
     </div>
   );
 }

@@ -12,6 +12,7 @@ import OwnerTab from "./OwnerTab";
 import ReportsTab from "./ReportsTab";
 import ProjectsReviewTab from "./ProjectsReviewTab";
 import PartnersTab from "./PartnersTab";
+import EffectsTab from "./EffectsTab";
 
 type AdminUser = {
   id: number; username: string; isAdmin: boolean; isOwner: boolean; isMod: boolean;
@@ -23,7 +24,7 @@ type AdminUser = {
 type Bundle = { id: number; name: string; price: number; priceType: "euro" | "tokens"; badges: string[]; effects: string[]; premiumDays: number };
 type RedeemCode = { id: number; code: string; tokens: number; maxUses: number; usesCount: number; expiresAt: string | null; active: boolean };
 type DynamicBadge = { badgeKey: string; label: string; color: string };
-type AdminTab = "staff" | "reports" | "projects" | "partners" | "owner";
+type AdminTab = "staff" | "reports" | "projects" | "partners" | "effects" | "owner";
 const noopSubscribe = () => () => {};
 type SiteDomain = { id: number; hostname: string; status: string; errorMessage: string | null; isDefault: boolean; tier: string };
 type EmailTemplate = { id: number; templateKey: string; subject: string; bodyHtml: string; availableVariables: string[]; updatedAt: string };
@@ -448,6 +449,12 @@ export default function AdminClient(props: Props) {
               Partners
             </button>
           )}
+          {(props.iAmAdmin || props.iAmOwner) && (
+            <button className={`admin-tab-btn ${tab === "effects" ? "active" : ""}`} onClick={() => switchTab("effects")}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M12 3l1.9 5.8L20 10l-5 3.6L16.8 20 12 16.4 7.2 20 9 13.6 4 10l6.1-1.2z" /></svg>
+              Effects
+            </button>
+          )}
           {props.iAmOwner && (
             <button id="btn-tab-owner" className={`admin-tab-btn ${tab === "owner" ? "active" : ""}`} onClick={() => switchTab("owner")}>
               <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14" style={{ color: "#fbbf24" }}><path d="M5 16L3 5l5.5 5L12 2l3.5 8L21 5l-2 11H5zm14 3H5v2h14v-2z" /></svg>
@@ -593,6 +600,7 @@ export default function AdminClient(props: Props) {
       {tab === "reports" && <ReportsTab onOpenCount={setOpenReports} />}
       {tab === "projects" && <ProjectsReviewTab onPendingCount={setPendingProjects} />}
       {tab === "partners" && (props.iAmAdmin || props.iAmOwner) && <PartnersTab />}
+      {tab === "effects" && (props.iAmAdmin || props.iAmOwner) && <EffectsTab />}
 
       {props.iAmOwner && tab === "owner" && (
         <OwnerTab

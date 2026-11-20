@@ -73,6 +73,8 @@ a.nt-crew:hover { background:color-mix(in srgb, var(--crew, #c6ff3d) 26%, rgba(0
 
 /* profile effect canvas: above the profile, below dialogs; never blocks clicks */
 .profile-effect-canvas { position:fixed; inset:0; width:100vw; height:100vh; pointer-events:none; z-index:90; }
+.profile-effect-media { position:fixed; left:0; top:0; pointer-events:none; z-index:90; will-change:transform; }
+.profile-effect-media video, .profile-effect-media img { width:100%; height:100%; object-fit:fill; display:block; }
 
 /* ══════════════════ crews pages ══════════════════ */
 .crew-page { position:relative; z-index:10; width:100%; max-width:880px; margin:0 auto; padding:6rem 1rem 4rem; }
@@ -130,7 +132,7 @@ a.nt-crew:hover { background:color-mix(in srgb, var(--crew, #c6ff3d) 26%, rgba(0
 .coll-card { display:flex; flex-direction:column; border:1px solid var(--border); background:var(--panel-2, #151811); border-top:3px solid var(--rar); transition:border-color .2s, transform .2s; }
 .coll-card:hover { transform:translateY(-2px); }
 .coll-card.is-equipped { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
-.coll-preview { height:92px; display:grid; place-items:center; padding:0 .8rem; background:radial-gradient(ellipse at 50% 120%, color-mix(in srgb, var(--rar) 22%, transparent), transparent 70%), #0b0c10; overflow:hidden; }
+.coll-preview { position:relative; height:92px; display:grid; place-items:center; padding:0 .8rem; background:radial-gradient(ellipse at 50% 120%, color-mix(in srgb, var(--rar) 22%, transparent), transparent 70%), #0b0c10; overflow:hidden; }
 .coll-preview-name { font-size:1.15rem; font-weight:800; color:#fff; max-width:100%; }
 .coll-play { display:inline-flex; align-items:center; gap:.4rem; padding:.5rem 1rem; border-radius:999px; border:1px solid color-mix(in srgb, var(--rar) 60%, transparent); background:color-mix(in srgb, var(--rar) 14%, rgba(0,0,0,.4)); color:#fff; font:inherit; font-weight:700; cursor:pointer; }
 .coll-info { flex:1; padding:.75rem .85rem .5rem; }
@@ -326,3 +328,27 @@ a.nt-crew:hover { background:color-mix(in srgb, var(--crew, #c6ff3d) 26%, rgba(0
 .grp-link-row { display:grid; grid-template-columns:1fr 2fr auto; gap:.4rem; margin-bottom:.4rem; }
 .crew-preview-emblem img { width:100%; height:100%; object-fit:cover; border-radius:inherit; }
 @media (max-width:560px) { .grp-media { flex-direction:column; align-items:flex-start; } .grp-link-row { grid-template-columns:1fr; } }
+
+/* ── admin: uploaded profile effects ── */
+.fx-admin-pick, .fx-admin-thumb { display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; border-radius:var(--radius);
+  background:repeating-conic-gradient(#20242b 0% 25%, #171a1f 0% 50%) 0 0/16px 16px; }
+.fx-admin-pick { width:96px; height:150px; border:2px dashed rgba(255,255,255,.15); cursor:pointer; color:rgba(255,255,255,.55); font-size:.78rem; font-weight:600; text-align:center; }
+.fx-admin-pick:hover { border-color:var(--accent); color:#fff; }
+.fx-admin-thumb { width:48px; height:76px; }
+.fx-admin-pick img, .fx-admin-pick video, .fx-admin-thumb img, .fx-admin-thumb video { width:100%; height:100%; object-fit:contain; }
+
+/* ── collectibles: preview an effect on a profile card ── */
+.fxp-overlay { position:fixed; inset:0; z-index:80; display:grid; place-items:center; padding:3.5rem 1rem; background:rgba(4,6,4,.82); animation:fxpIn .2s ease-out; }
+@keyframes fxpIn { from { opacity:0; } }
+.fxp-card { position:relative; width:min(340px, 74vw); height:min(540px, 72vh); border-radius:18px; overflow:hidden; background:#16191a; border:1px solid rgba(255,255,255,.08); box-shadow:0 30px 80px rgba(0,0,0,.6); }
+.fxp-banner { height:30%; background:linear-gradient(135deg, color-mix(in srgb, var(--accent, #7cff3b) 70%, #000), #0d140c); background-size:cover; background-position:center; }
+.fxp-avatar { width:92px; height:92px; border-radius:50%; margin:-50px 0 0 18px; border:6px solid #16191a; background:#2a2e33 center/cover; }
+.fxp-body { padding:.6rem 1.1rem; }
+.fxp-name { font-size:1.35rem; font-weight:800; color:#fff; }
+.fxp-sub { font-size:.82rem; color:rgba(255,255,255,.55); }
+.fxp-lines { margin-top:1rem; display:grid; gap:.5rem; }
+.fxp-lines i { display:block; height:.6rem; border-radius:99px; background:rgba(255,255,255,.07); }
+.fxp-lines i:nth-child(2) { width:80%; } .fxp-lines i:nth-child(3) { width:55%; }
+.fxp-label { position:fixed; left:50%; bottom:1.2rem; transform:translateX(-50%); z-index:95; padding:.45rem .9rem; border-radius:99px; background:rgba(0,0,0,.7); color:#fff; font-size:.8rem; font-weight:600; pointer-events:none; white-space:nowrap; }
+.coll-preview-media { position:absolute; inset:.4rem; pointer-events:none; opacity:.9; }
+.coll-preview-media img, .coll-preview-media video { width:100%; height:100%; object-fit:contain; }

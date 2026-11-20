@@ -17,6 +17,7 @@ import { getTimezoneForLocation } from "@/lib/timezone";
 import { applyEmbedVariables } from "@/lib/social-embed";
 import Link from "next/link";
 import { canUse, getCollectible, RARITY_COLOR } from "@/lib/collectibles";
+import { getCustomEffect, type CustomEffectDef } from "@/lib/custom-effects";
 import { crewTagFor, groupCardFor } from "@/lib/crews";
 
 const DRAFT_STRING_FIELDS = ["displayName", "bio", "location", "job", "layoutTemplate", "playlistStyle"] as const;
@@ -130,9 +131,10 @@ export default async function ProfilePage({
 
   // Collectibles: only show what this page can actually use (owned, or a Plus item while the owner has Plus).
   const nameplateItem = getCollectible("nameplate", profile.activeNameplate);
-  const effectItem = getCollectible("effect", profile.activeProfileEffect);
+  const effectItem = getCollectible("effect", profile.activeProfileEffect) ?? (await getCustomEffect(profile.activeProfileEffect));
   const nameplate = canUse(nameplateItem, new Set(parseStringArray(profile.nameplatesOwned)), isPremium) ? nameplateItem!.id : null;
   const profileEffect = canUse(effectItem, new Set(parseStringArray(profile.profileEffectsOwned)), isPremium) ? effectItem!.id : null;
+  const profileEffectMedia = profileEffect && effectItem && "media" in effectItem ? (effectItem as CustomEffectDef).media : null;
   const [crew, group] = await Promise.all([crewTagFor(user.id), groupCardFor(user.id)]);
   const mints = await prisma.collectibleMint.findMany({ where: { userId: user.id }, orderBy: { mintedAt: "asc" }, select: { itemKey: true, serial: true } });
   const collection = mints.flatMap((m) => {
@@ -237,6 +239,7 @@ export default async function ProfilePage({
       activeDecoration={profile.activeDecoration}
       nameplate={nameplate}
       profileEffect={profileEffect}
+      profileEffectMedia={profileEffectMedia}
       crew={crew}
       group={group}
       collection={collection}
