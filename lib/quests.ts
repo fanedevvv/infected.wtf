@@ -18,7 +18,7 @@ export const QUESTS: QuestDef[] = [
   { id: "once_discord", period: "once", title: "Plug in", desc: "Link your Discord account.", goal: 1, reward: { tokens: 100 } },
   { id: "once_links", period: "once", title: "All my socials", desc: "Add 3 links to your profile.", goal: 3, reward: { tokens: 50 } },
   { id: "once_layout", period: "once", title: "Make it yours", desc: "Pick a layout other than Modern.", goal: 1, reward: { tokens: 50 } },
-  { id: "once_crew", period: "once", title: "Squad up", desc: "Create or join a crew.", goal: 1, reward: { tokens: 80 } },
+  { id: "once_crew", period: "once", title: "Squad up", desc: "Create or join a group.", goal: 1, reward: { tokens: 80 } },
   { id: "once_collectible", period: "once", title: "Collector", desc: "Equip a nameplate or a profile effect.", goal: 1, reward: { tokens: 60 } },
   { id: "once_referral", period: "once", title: "Patient zero", desc: "Invite a friend with your referral link.", goal: 1, reward: { tokens: 120 } },
   { id: "milestone_10", period: "once", title: "Quest runner", desc: "Complete 10 quests.", goal: 10, reward: { nameplate: "questrunner" } },

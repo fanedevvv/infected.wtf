@@ -20,9 +20,9 @@ export default function NameTag({
   const label = children ?? <span className="nt-name">{name}</span>;
   const crewChip = crew ? (
     linkCrew ? (
-      <Link href={`/c/${crew.tag}`} className="nt-crew" style={{ ["--crew" as string]: crew.color }} title={crew.name ? `Crew: ${crew.name}` : "Crew"}>{crew.tag}</Link>
+      <Link href={`/g/${crew.tag}`} className="nt-crew" style={{ ["--crew" as string]: crew.color }} title={crew.name ? `Group: ${crew.name}` : "Group"}>{crew.tag}</Link>
     ) : (
-      <span className="nt-crew" style={{ ["--crew" as string]: crew.color }} title={crew.name ? `Crew: ${crew.name}` : "Crew"}>{crew.tag}</span>
+      <span className="nt-crew" style={{ ["--crew" as string]: crew.color }} title={crew.name ? `Group: ${crew.name}` : "Group"}>{crew.tag}</span>
     )
   ) : null;
   return (

@@ -149,6 +149,7 @@ const ro: Record<string, string> = {
   "Collectibles": "Colecționabile",
   "Quests": "Misiuni",
   "Crew": "Crew",
+  "Group": "Grup",
   "Define your palette": "Definește paleta",
   "Delete": "Șterge",
   "Delete Account": "Șterge contul",

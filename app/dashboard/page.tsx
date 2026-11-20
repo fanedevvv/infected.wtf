@@ -61,6 +61,7 @@ export default async function DashboardPage({
     case "quests":
       return <QuestsPage />;
     case "crew":
+    case "group":
       return <CrewPage />;
     case "editor":
       return <EditorPage searchParams={Promise.resolve({ tile: params.tile, error: params.error, connected: params.connected })} />;

@@ -13,6 +13,8 @@ import ProfileClassic from "./ProfileClassic";
 import ProfileLayout from "./profile-layouts/ProfileLayouts";
 import { resolveLayout } from "@/lib/profile-layouts";
 import ProfileEffect from "./ProfileEffect";
+import GroupPill from "./GroupPill";
+import type { GroupCard } from "@/lib/crews";
 
 export interface ProfileViewProps {
   username: string;
@@ -29,6 +31,8 @@ export interface ProfileViewProps {
   nameplate?: string | null;
   profileEffect?: string | null;
   crew?: { tag: string; color: string; name: string } | null;
+  /** The owner's group, for the pill + sheet at the top of the profile. */
+  group?: GroupCard | null;
   collection?: { key: string; name: string; serial: number; supply: number; color: string }[];
   accentColor: string;
   backgroundColor: string;
@@ -153,7 +157,7 @@ export default function ProfileView(p: ProfileViewProps) {
 
   return (
     // is-embed: the dashboard editor's small live preview — heavy full-page effects are switched off there.
-    <div className={`profile-body${p.autoEnter ? " is-embed" : ""}`} style={paletteVars}>
+    <div className={`profile-body${p.autoEnter ? " is-embed" : ""}${p.group ? " has-group" : ""}`} style={paletteVars}>
       {!entered && (
         <div id="splash-screen" onClick={enter}>
           <div id="splash-text">
@@ -212,6 +216,7 @@ export default function ProfileView(p: ProfileViewProps) {
         )}
 
         <ProfileEffect effect={p.profileEffect} active={entered} />
+        {p.group && entered && <GroupPill group={p.group} />}
         {reportOpen && <ReportProfileModal slug={p.username} onClose={() => setReportOpen(false)} />}
 
       </div>

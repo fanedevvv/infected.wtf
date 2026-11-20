@@ -8,6 +8,7 @@ import { useScrolled } from "../useScrolled";
 
 const LINKS = [
   { href: "/leaderboard", label: "Leaderboard" },
+  { href: "/groups", label: "Groups" },
   { href: "/dashboard?page=shop", label: "Shop" },
   { href: "/partners", label: "Partners" },
   { href: "https://infected.wtf/discord", label: "Discord", external: true },

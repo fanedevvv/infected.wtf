@@ -17,7 +17,7 @@ import { getTimezoneForLocation } from "@/lib/timezone";
 import { applyEmbedVariables } from "@/lib/social-embed";
 import Link from "next/link";
 import { canUse, getCollectible, RARITY_COLOR } from "@/lib/collectibles";
-import { crewTagFor } from "@/lib/crews";
+import { crewTagFor, groupCardFor } from "@/lib/crews";
 
 const DRAFT_STRING_FIELDS = ["displayName", "bio", "location", "job", "layoutTemplate", "playlistStyle"] as const;
 const DRAFT_COLOR_FIELDS = ["accentColor", "backgroundColor", "nameColor", "bioColor", "overlayColor"] as const;
@@ -133,7 +133,7 @@ export default async function ProfilePage({
   const effectItem = getCollectible("effect", profile.activeProfileEffect);
   const nameplate = canUse(nameplateItem, new Set(parseStringArray(profile.nameplatesOwned)), isPremium) ? nameplateItem!.id : null;
   const profileEffect = canUse(effectItem, new Set(parseStringArray(profile.profileEffectsOwned)), isPremium) ? effectItem!.id : null;
-  const crew = await crewTagFor(user.id);
+  const [crew, group] = await Promise.all([crewTagFor(user.id), groupCardFor(user.id)]);
   const mints = await prisma.collectibleMint.findMany({ where: { userId: user.id }, orderBy: { mintedAt: "asc" }, select: { itemKey: true, serial: true } });
   const collection = mints.flatMap((m) => {
     const [kind, id] = m.itemKey.split(":") as ["nameplate" | "effect", string];
@@ -238,6 +238,7 @@ export default async function ProfilePage({
       nameplate={nameplate}
       profileEffect={profileEffect}
       crew={crew}
+      group={group}
       collection={collection}
       accentColor={look.accentColor}
       backgroundColor={look.backgroundColor}

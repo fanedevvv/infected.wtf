@@ -1,0 +1,15 @@
+{
+  "kind": "feature",
+  "title": "Crews are now Groups — boosts, banners and more",
+  "summary": "Groups got a full upgrade: a real home page, levels you unlock together, and a pill on every member's profile.",
+  "changes": [
+    "**Group pages** at infected.wtf/g/TAG with a banner, icon, about, links, members and stats",
+    "Your group shows as a **pill at the top of your profile** — tap it to see the members and jump to the group",
+    "**Boost** any group for 30 days to level it up — level 1 unlocks a profile strip, level 2 animated images, level 3 up to 100 members",
+    "Choose who can join: **open to all**, **ask to join** (you approve), or **invite only**",
+    "Upload your own **icon, banner and 350×19 profile strip**",
+    "Browse the top groups at infected.wtf/groups"
+  ],
+  "link": "https://infected.wtf/groups",
+  "linkLabel": "Browse groups"
+}

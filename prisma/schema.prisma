@@ -70,6 +70,8 @@ model User {
   crewsOwned            Crew[]               @relation("CrewOwner")
   crewMembership        CrewMember?
   crewInvites           CrewInvite[]
+  crewRequests          CrewRequest[]
+  crewBoosts            CrewBoost[]
   questClaims           QuestClaim[]
   viewsLogAsProfile     ViewsLog[]
 
@@ -664,11 +666,18 @@ model Crew {
   description String?      @db.VarChar(300)
   color       String       @default("#c6ff3d") @db.VarChar(7)
   emblem      String       @default("biohazard") @db.VarChar(20)
+  icon        String?      @db.VarChar(200)
+  banner      String?      @db.VarChar(200)
+  strip       String?      @db.VarChar(200)
+  joinPolicy  String       @default("request") @map("join_policy") @db.VarChar(10)
+  links       String?      @db.Text
   ownerId     Int          @map("owner_id")
   createdAt   DateTime     @default(now()) @map("created_at") @db.DateTime(0)
   owner       User         @relation("CrewOwner", fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_crew_owner")
   members     CrewMember[]
   invites     CrewInvite[]
+  requests    CrewRequest[]
+  boosts      CrewBoost[]
 
   @@index([ownerId], map: "idx_crew_owner")
   @@map("crews")
@@ -711,4 +720,31 @@ model QuestClaim {
 
   @@unique([userId, questId, period], map: "uniq_quest_claim")
   @@map("quest_claims")
+}
+
+model CrewRequest {
+  id        Int      @id @default(autoincrement())
+  crewId    Int      @map("crew_id")
+  userId    Int      @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  crew      Crew     @relation(fields: [crewId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_crew_request_crew")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_crew_request_user")
+
+  @@unique([crewId, userId], map: "uniq_crew_request")
+  @@index([userId], map: "idx_crew_request_user")
+  @@map("crew_requests")
+}
+
+model CrewBoost {
+  id        Int      @id @default(autoincrement())
+  crewId    Int      @map("crew_id")
+  userId    Int      @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  expiresAt DateTime @map("expires_at") @db.DateTime(0)
+  crew      Crew     @relation(fields: [crewId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_crew_boost_crew")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_crew_boost_user")
+
+  @@index([crewId, expiresAt], map: "idx_crew_boost_crew")
+  @@index([userId], map: "idx_crew_boost_user")
+  @@map("crew_boosts")
 }

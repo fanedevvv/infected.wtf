@@ -17,7 +17,7 @@ function buildCommands(username: string | null, isModerator: boolean): Command[]
     { label: "Decorations", href: "/dashboard?page=decorations", icon: "M12 2l2.4 7.2H22l-6 4.6 2.3 7.2L12 16.6 5.7 21l2.3-7.2-6-4.6h7.6z" },
     { label: "Collectibles", href: "/dashboard?page=collectibles", icon: "M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zM6 12h.01M10 12h8", keywords: "nameplate profile effect limited drop shop" },
     { label: "Quests", href: "/dashboard?page=quests", icon: "M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11", keywords: "missions rewards daily weekly" },
-    { label: "Crew", href: "/dashboard?page=crew", icon: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", keywords: "clan team squad tag" },
+    { label: "Group", href: "/dashboard?page=crew", icon: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", keywords: "crew clan team squad tag boost" },
     { label: "Infected Plus", href: "/dashboard?page=premium", icon: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm2.07-7.75-.9.92C13.45 11.9 13 12.5 13 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z", keywords: "premium upgrade subscription" },
     { label: "Customize profile", href: "/dashboard?page=editor", icon: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", keywords: "editor look colors fonts template music background" },
     { label: "Badges", href: "/dashboard?page=badges", icon: "M12 15a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM8.21 13.89 7 23l5-3 5 3-1.21-9.12" },
