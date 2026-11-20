@@ -12,6 +12,7 @@ import ProfileImmersive from "./ProfileImmersive";
 import ProfileClassic from "./ProfileClassic";
 import ProfileLayout from "./profile-layouts/ProfileLayouts";
 import { resolveLayout } from "@/lib/profile-layouts";
+import ProfileEffect from "./ProfileEffect";
 
 export interface ProfileViewProps {
   username: string;
@@ -24,6 +25,11 @@ export interface ProfileViewProps {
   avatar: string | null;
   avatarShape: string;
   activeDecoration?: string | null;
+  /** Collectibles: nameplate behind the name, effect over the page, crew tag, limited items owned (with serial). */
+  nameplate?: string | null;
+  profileEffect?: string | null;
+  crew?: { tag: string; color: string; name: string } | null;
+  collection?: { key: string; name: string; serial: number; supply: number; color: string }[];
   accentColor: string;
   backgroundColor: string;
   nameColor: string;
@@ -205,6 +211,7 @@ export default function ProfileView(p: ProfileViewProps) {
           <ProfileLayout layout={layout} p={p} entered={entered} {...votes} />
         )}
 
+        <ProfileEffect effect={p.profileEffect} active={entered} />
         {reportOpen && <ReportProfileModal slug={p.username} onClose={() => setReportOpen(false)} />}
 
       </div>

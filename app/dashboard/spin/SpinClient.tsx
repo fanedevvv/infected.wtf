@@ -13,6 +13,7 @@ const POSSIBLE_REWARDS = [
   { type: "tokens", title: "Tokens", sub: "10-100", color: "#9ca3af", highlight: false },
   { type: "tokens", title: "Tokens+", sub: "250", color: "#f97316", highlight: false },
   { type: "decoration", title: "Decoration", sub: "Random", color: "#c084fc", highlight: true },
+  { type: "collectible", title: "Collectible", sub: "Nameplate / effect", color: "#ff2a6d", highlight: true },
   { type: "premium_days", title: "Infected Plus", sub: "1-3 days", color: "#fbbf24", highlight: true },
   { type: "badge", title: "Verified", sub: "Badge", color: "#34d399", highlight: true },
 ];

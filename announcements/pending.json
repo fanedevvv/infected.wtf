@@ -1,0 +1,15 @@
+{
+  "kind": "feature",
+  "title": "Collectibles, Crews & Quests are here",
+  "summary": "Our biggest update yet — new ways to stand out, team up and earn.",
+  "changes": [
+    "**Nameplates** — an animated plate behind your name that shows everywhere: your page, comments, the leaderboard and crews",
+    "**Profile effects** — snow, sakura, embers, lightning, money rain and more play over your page when someone opens it",
+    "**Limited drops** — numbered collectibles with only 100 or 50 copies, shown on your profile with your serial (#12/100)",
+    "**Crews** — start a squad with your own tag next to every member's name, a crew page and a crew leaderboard",
+    "**Quests** — daily, weekly and one-time goals with tokens and collectibles you can't buy anywhere else",
+    "The **Daily Spin** can now drop collectibles, including spin-only ones"
+  ],
+  "link": "https://infected.wtf/dashboard?page=collectibles",
+  "linkLabel": "Open Collectibles"
+}

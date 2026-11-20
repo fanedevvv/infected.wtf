@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import EffectText from "../EffectText";
+import NameTag from "../NameTag";
 import DiscordPresenceCard from "../DiscordPresenceCard";
 import DiscordServerCard from "../DiscordServerCard";
 import GameIntegrationCards from "../GameIntegrationCards";
@@ -66,7 +67,7 @@ export function DisplayName({ p, entered, className = "" }: { p: ProfileViewProp
   const hasChampion = p.badges.some((b) => b.id === "champion");
   return (
     <div className={`profile-username fade-in-d1 ${hasChampion ? "champion-name" : ""} ${className}`} id="profile-display-name">
-      <EffectText text={p.displayName} effect={p.nameEffect} active={entered} />
+      <NameTag nameplate={p.nameplate} crew={p.crew}><EffectText text={p.displayName} effect={p.nameEffect} active={entered} /></NameTag>
     </div>
   );
 }
@@ -254,10 +255,25 @@ export function OwnerEdit({ p }: { p: ProfileViewProps }) {
 }
 
 /** Projects and comments, below the main layout. */
+/** Limited collectibles this profile owns, with their serial (e.g. "Winter Outbreak #12/100"). */
+export function Collection({ p }: { p: ProfileViewProps }) {
+  if (!p.collection?.length) return null;
+  return (
+    <div className="coll-strip" aria-label="Collection">
+      {p.collection.map((c) => (
+        <span key={c.key} className="coll-chip" style={{ ["--rar" as string]: c.color }} title="Limited collectible">
+          {c.name} <b>#{c.serial}/{c.supply}</b>
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export function BelowFold({ p, entered }: { p: ProfileViewProps; entered: boolean }) {
   if (!entered) return null;
   return (
     <div className="profile-social">
+      <Collection p={p} />
       {p.projects.length > 0 && <ProfileProjects projects={p.projects} />}
       <ProfileComments slug={p.username} viewerLoggedIn={p.viewerLoggedIn} />
     </div>

@@ -1,7 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+import NameTag from "@/components/NameTag";
+import type { NameDecor } from "@/lib/name-decor";
+
+// Nameplate + crew tag per user id, for every name on the board.
+const DecorCtx = createContext<Record<number, NameDecor>>({});
 import SafeImg from "@/components/SafeImg";
 
 type GlobalUser = { id: number; username: string; displayName: string; avatar: string; views: number; premium: boolean };
@@ -32,6 +37,7 @@ function PremBadge() {
 }
 
 function Podium({ users, metric }: { users: AnyUser[]; metric: Metric }) {
+  const decor = useContext(DecorCtx);
   const order: { rank: number; cls: string; user: AnyUser | undefined }[] = [
     { rank: 2, cls: "p2", user: users[1] },
     { rank: 1, cls: "p1", user: users[0] },
@@ -47,9 +53,9 @@ function Podium({ users, metric }: { users: AnyUser[]; metric: Metric }) {
               <SafeImg src={pod.user.avatar ? `/${pod.user.avatar}` : null} className="lb-podium-avatar" />
               <div className="lb-podium-name">
                 {pod.user.premium ? (
-                  <span className="lb-prem-badge-wrap">{pod.user.displayName || pod.user.username} <PremBadge /></span>
+                  <span className="lb-prem-badge-wrap"><NameTag name={pod.user.displayName || pod.user.username} nameplate={decor[pod.user.id]?.nameplate} crew={decor[pod.user.id]?.crew} linkCrew={false} /> <PremBadge /></span>
                 ) : (
-                  pod.user.displayName || pod.user.username
+                  <NameTag name={pod.user.displayName || pod.user.username} nameplate={decor[pod.user.id]?.nameplate} crew={decor[pod.user.id]?.crew} linkCrew={false} />
                 )}
               </div>
               <div className="lb-podium-views">
@@ -81,6 +87,7 @@ function Table({
   myUserId: number;
   emptyText: string;
 }) {
+  const decor = useContext(DecorCtx);
   const rest = users.slice(3);
   if (users.length > 0 && rest.length === 0) return null;
   const metricLabel = metric === "views" ? "Views" : metric === "localViews" ? "Local Views" : "Likes";
@@ -111,7 +118,7 @@ function Table({
                       <SafeImg src={u.avatar ? `/${u.avatar}` : null} className="lb-avatar" />
                       <div>
                         <div className="lb-display-name" style={{ display: "flex", alignItems: "center", gap: ".4rem", flexWrap: "wrap" }}>
-                          <span>{u.displayName || u.username}</span>
+                          <NameTag name={u.displayName || u.username} nameplate={decor[u.id]?.nameplate} crew={decor[u.id]?.crew} linkCrew={false} />
                           {u.premium && <PremBadge />}
                           {isMe && <span style={{ fontSize: ".7rem", color: "var(--accent)", fontWeight: 600 }}>YOU</span>}
                         </div>
@@ -179,6 +186,7 @@ function MetricSwitch({ value, onChange }: { value: "global" | "local" | "likes"
 }
 
 export default function LeaderboardTabs({
+  decor,
   globalUsers,
   localUsers,
   likesUsers,
@@ -194,6 +202,7 @@ export default function LeaderboardTabs({
   myViewsLocal,
   badgeRegionName,
 }: {
+  decor: Record<number, NameDecor>;
   globalUsers: GlobalUser[];
   localUsers: LocalUser[];
   likesUsers: LikesUser[];
@@ -246,6 +255,7 @@ export default function LeaderboardTabs({
   const showRankPills = loggedIn && !searchQuery && myProfileExists;
 
   return (
+    <DecorCtx.Provider value={decor}>
     <>
       <div style={{ maxWidth: 900, margin: "0 auto 1rem", padding: "0 1.25rem" }}>
         <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
@@ -332,5 +342,6 @@ export default function LeaderboardTabs({
 
       <div className="lb-divider" aria-hidden="true" />
     </>
+    </DecorCtx.Provider>
   );
 }

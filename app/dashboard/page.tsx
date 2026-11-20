@@ -14,6 +14,9 @@ import SpinPage from "./spin/page";
 import PremiumPage from "./premium/page";
 import ProjectsPage from "./projects/page";
 import EditorPage from "./editor/page";
+import CollectiblesPage from "./collectibles/page";
+import QuestsPage from "./quests/page";
+import CrewPage from "./crew/page";
 
 export default async function DashboardPage({
   searchParams,
@@ -53,6 +56,12 @@ export default async function DashboardPage({
       return <PremiumPage />;
     case "projects":
       return <ProjectsPage />;
+    case "collectibles":
+      return <CollectiblesPage />;
+    case "quests":
+      return <QuestsPage />;
+    case "crew":
+      return <CrewPage />;
     case "editor":
       return <EditorPage searchParams={Promise.resolve({ tile: params.tile, error: params.error, connected: params.connected })} />;
     default:

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import NameTag from "./NameTag";
 import { useRouter } from "next/navigation";
 
 type Comment = {
@@ -15,7 +16,7 @@ type Comment = {
   canDelete: boolean;
   canPin: boolean;
   isOwn: boolean;
-  author: { username: string; slug: string | null; displayName: string; avatar: string | null };
+  author: { username: string; slug: string | null; displayName: string; avatar: string | null; nameplate?: string | null; crew?: { tag: string; color: string; name: string } | null };
   replies?: Comment[];
 };
 
@@ -193,7 +194,8 @@ export default function ProfileComments({ slug, viewerLoggedIn }: { slug: string
       <>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="pc-avatar" src={avatar} alt="" onError={(e) => { (e.target as HTMLImageElement).src = "/assets/img/default-avatar.png"; }} />
-        <span className="pc-name">{c.author.displayName}</span>
+        {/* the whole author block is a link, so the crew tag is a plain chip here */}
+        <NameTag className="pc-name" name={c.author.displayName} nameplate={c.author.nameplate} crew={c.author.crew} linkCrew={false} />
       </>
     );
     const replyCount = c.replies?.length || 0;

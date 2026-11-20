@@ -66,6 +66,11 @@ model User {
   referralReceived      Referral?            @relation("Referred")
   socialLinks           SocialLink[]
   themesCreated         Theme[]
+  collectibleMints      CollectibleMint[]
+  crewsOwned            Crew[]               @relation("CrewOwner")
+  crewMembership        CrewMember?
+  crewInvites           CrewInvite[]
+  questClaims           QuestClaim[]
   viewsLogAsProfile     ViewsLog[]
 
   @@index([regIpHash], map: "idx_reg_ip_hash")
@@ -122,6 +127,10 @@ model Profile {
   isPrimary        Boolean   @default(true) @map("is_primary")
   decorationsOwned String?   @map("decorations_owned") @db.LongText
   activeDecoration String?   @map("active_decoration") @db.VarChar(30)
+  nameplatesOwned     String? @map("nameplates_owned") @db.LongText
+  activeNameplate     String? @map("active_nameplate") @db.VarChar(30)
+  profileEffectsOwned String? @map("profile_effects_owned") @db.LongText
+  activeProfileEffect String? @map("active_profile_effect") @db.VarChar(30)
   socialEmbedEnabled     Boolean @default(false) @map("social_embed_enabled")
   socialEmbedTitle       String? @map("social_embed_title") @db.VarChar(100)
   socialEmbedDescription String? @map("social_embed_description") @db.VarChar(300)
@@ -632,4 +641,74 @@ model Partner {
 
   @@index([active, displayOrder], map: "idx_partners_active_order")
   @@map("partners")
+}
+
+model CollectibleMint {
+  id       Int      @id @default(autoincrement())
+  itemKey  String   @map("item_key") @db.VarChar(40)
+  serial   Int
+  userId   Int      @map("user_id")
+  mintedAt DateTime @default(now()) @map("minted_at") @db.DateTime(0)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_mint_user")
+
+  @@unique([itemKey, serial], map: "uniq_mint_serial")
+  @@unique([itemKey, userId], map: "uniq_mint_user")
+  @@index([userId], map: "idx_mint_user")
+  @@map("collectible_mints")
+}
+
+model Crew {
+  id          Int          @id @default(autoincrement())
+  tag         String       @unique(map: "uniq_crew_tag") @db.VarChar(4)
+  name        String       @db.VarChar(40)
+  description String?      @db.VarChar(300)
+  color       String       @default("#c6ff3d") @db.VarChar(7)
+  emblem      String       @default("biohazard") @db.VarChar(20)
+  ownerId     Int          @map("owner_id")
+  createdAt   DateTime     @default(now()) @map("created_at") @db.DateTime(0)
+  owner       User         @relation("CrewOwner", fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_crew_owner")
+  members     CrewMember[]
+  invites     CrewInvite[]
+
+  @@index([ownerId], map: "idx_crew_owner")
+  @@map("crews")
+}
+
+model CrewMember {
+  id       Int      @id @default(autoincrement())
+  crewId   Int      @map("crew_id")
+  userId   Int      @unique(map: "uniq_crew_member_user") @map("user_id")
+  role     String   @default("member") @db.VarChar(10)
+  joinedAt DateTime @default(now()) @map("joined_at") @db.DateTime(0)
+  crew     Crew     @relation(fields: [crewId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_crew_member_crew")
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_crew_member_user")
+
+  @@index([crewId], map: "idx_crew_member_crew")
+  @@map("crew_members")
+}
+
+model CrewInvite {
+  id        Int      @id @default(autoincrement())
+  crewId    Int      @map("crew_id")
+  userId    Int      @map("user_id")
+  invitedBy Int      @map("invited_by")
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  crew      Crew     @relation(fields: [crewId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_crew_invite_crew")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_crew_invite_user")
+
+  @@unique([crewId, userId], map: "uniq_crew_invite")
+  @@index([userId], map: "idx_crew_invite_user")
+  @@map("crew_invites")
+}
+
+model QuestClaim {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  questId   String   @map("quest_id") @db.VarChar(40)
+  period    String   @db.VarChar(12)
+  claimedAt DateTime @default(now()) @map("claimed_at") @db.DateTime(0)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_quest_claim_user")
+
+  @@unique([userId, questId, period], map: "uniq_quest_claim")
+  @@map("quest_claims")
 }

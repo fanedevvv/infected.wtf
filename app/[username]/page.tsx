@@ -16,6 +16,8 @@ import { getWeatherForLocation } from "@/lib/weather";
 import { getTimezoneForLocation } from "@/lib/timezone";
 import { applyEmbedVariables } from "@/lib/social-embed";
 import Link from "next/link";
+import { canUse, getCollectible, RARITY_COLOR } from "@/lib/collectibles";
+import { crewTagFor } from "@/lib/crews";
 
 const DRAFT_STRING_FIELDS = ["displayName", "bio", "location", "job", "layoutTemplate", "playlistStyle"] as const;
 const DRAFT_COLOR_FIELDS = ["accentColor", "backgroundColor", "nameColor", "bioColor", "overlayColor"] as const;
@@ -126,6 +128,19 @@ export default async function ProfilePage({
   const badges = await getProfileBadges(profile.id);
   const isPremium = !!(user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date()));
 
+  // Collectibles: only show what this page can actually use (owned, or a Plus item while the owner has Plus).
+  const nameplateItem = getCollectible("nameplate", profile.activeNameplate);
+  const effectItem = getCollectible("effect", profile.activeProfileEffect);
+  const nameplate = canUse(nameplateItem, new Set(parseStringArray(profile.nameplatesOwned)), isPremium) ? nameplateItem!.id : null;
+  const profileEffect = canUse(effectItem, new Set(parseStringArray(profile.profileEffectsOwned)), isPremium) ? effectItem!.id : null;
+  const crew = await crewTagFor(user.id);
+  const mints = await prisma.collectibleMint.findMany({ where: { userId: user.id }, orderBy: { mintedAt: "asc" }, select: { itemKey: true, serial: true } });
+  const collection = mints.flatMap((m) => {
+    const [kind, id] = m.itemKey.split(":") as ["nameplate" | "effect", string];
+    const item = getCollectible(kind, id);
+    return item?.limited ? [{ key: m.itemKey, name: item.name, serial: m.serial, supply: item.limited.supply, color: RARITY_COLOR[item.rarity] }] : [];
+  });
+
   const integration = await prisma.integration.findFirst({ where: { userId: user.id, type: "discord" } });
   const discordInt = integration && integration.discordUserId && integration.visible ? integration : null;
   const discordServerInt = integration && integration.discordServerId && integration.discordServerVisible ? integration : null;
@@ -220,6 +235,10 @@ export default async function ProfilePage({
       banner={profile.banner}
       avatarShape={look.avatarShape}
       activeDecoration={profile.activeDecoration}
+      nameplate={nameplate}
+      profileEffect={profileEffect}
+      crew={crew}
+      collection={collection}
       accentColor={look.accentColor}
       backgroundColor={look.backgroundColor}
       nameColor={look.nameColor}

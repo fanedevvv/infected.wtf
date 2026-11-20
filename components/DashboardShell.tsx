@@ -269,6 +269,9 @@ export default function DashboardShell({ children, initialMode, initialAccent }:
             {t("Daily Spin")} <span className="sidebar-new-badge">{t("NEW")}</span>
           </SidebarLink>
           <SidebarLink href="/dashboard?page=decorations" active={activePage === "decorations"} icon="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2L12 16.6 5.7 21l2.3-7.2-6-4.6h7.6z">{t("Decorations")}</SidebarLink>
+          <SidebarLink href="/dashboard?page=collectibles" active={activePage === "collectibles"} icon="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zM6 12h.01M10 12h8">{t("Collectibles")}</SidebarLink>
+          <SidebarLink href="/dashboard?page=quests" active={activePage === "quests"} icon="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11">{t("Quests")}</SidebarLink>
+          <SidebarLink href="/dashboard?page=crew" active={activePage === "crew"} icon="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75">{t("Crew")}</SidebarLink>
           <SidebarLink href="/dashboard?page=premium" active={activePage === "premium"} icon="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm2.07-7.75-.9.92C13.45 11.9 13 12.5 13 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z">{t("Infected Plus")}</SidebarLink>
 
           <span className="sidebar-label">{t("Profile")}</span>

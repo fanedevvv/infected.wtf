@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { nameDecorFor } from "@/lib/name-decor";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
@@ -151,6 +152,9 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
       premium: isPremiumNow(u.isPremium, u.premiumExpiresAt),
     }));
 
+  // Nameplates + crew tags for every name on the board, in a few queries.
+  const decor = Object.fromEntries(await nameDecorFor([...topUsers, ...localUsers, ...likesUsers].map((u) => u.id)));
+
   let myRankGlobal = 0;
   let myViewsGlobal = 0;
   if (loggedIn) {
@@ -262,6 +266,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
         )}
 
         <LeaderboardTabs
+          decor={decor}
           globalUsers={topUsers}
           localUsers={localUsers}
           likesUsers={likesUsers}

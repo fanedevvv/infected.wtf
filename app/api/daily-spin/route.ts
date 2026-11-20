@@ -6,6 +6,7 @@ import { syncDiscordRoles } from "@/lib/discord-sync";
 import { getActiveProfileId } from "@/lib/active-profile";
 import { DECORATION_FALLBACK_TOKENS, SPIN_COOLDOWN_MS, rollSpinPrize } from "@/lib/spin";
 import { DECORATIONS } from "@/lib/decorations";
+import { ALL_COLLECTIBLES } from "@/lib/collectibles";
 import { parseStringArray, serializeStringArray } from "@/lib/json-array";
 
 export async function GET() {
@@ -67,6 +68,27 @@ async function spin() {
     // Saved in the same transaction as the cooldown, so a failed write can't grant the prize twice.
     if (decorationId) decorationsOwned = serializeStringArray(Array.from(owned));
   }
+  // Collectible prize: a nameplate or profile effect this page doesn't own — the spin-only ones (Jackpot, Lucky
+  // Sparks) or any shop one; tokens if it already has them all.
+  let collectibleUpdate: Record<string, string> | null = null;
+  if (prize.type === "collectible") {
+    const profile = activeProfileId ? await prisma.profile.findUnique({ where: { id: activeProfileId }, select: { nameplatesOwned: true, profileEffectsOwned: true } }) : null;
+    const ownedNp = new Set(parseStringArray(profile?.nameplatesOwned));
+    const ownedFx = new Set(parseStringArray(profile?.profileEffectsOwned));
+    const candidates = ALL_COLLECTIBLES.filter((c) => (c.source === "spin" || c.source === "shop") && !(c.kind === "nameplate" ? ownedNp : ownedFx).has(c.id));
+    // Spin-only items twice as likely, so the wheel feels special.
+    const pool = [...candidates, ...candidates.filter((c) => c.source === "spin")];
+    const won = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
+    if (won && activeProfileId) {
+      const set = won.kind === "nameplate" ? ownedNp : ownedFx;
+      set.add(won.id);
+      collectibleUpdate = { [won.kind === "nameplate" ? "nameplatesOwned" : "profileEffectsOwned"]: serializeStringArray([...set]) };
+      wonLabel = `${won.name} ${won.kind === "nameplate" ? "nameplate" : "profile effect"}`;
+    } else {
+      userUpdate.tokens = { increment: DECORATION_FALLBACK_TOKENS };
+      wonLabel = `${DECORATION_FALLBACK_TOKENS} Tokens (you own every collectible)`;
+    }
+  }
   if (prize.type === "tokens") {
     userUpdate.tokens = { increment: prize.amount };
   } else if (prize.type === "premium_days") {
@@ -78,6 +100,9 @@ async function spin() {
   const ops: Prisma.PrismaPromise<unknown>[] = [prisma.user.update({ where: { id: user.id }, data: userUpdate })];
   if (decorationsOwned && activeProfileId) {
     ops.push(prisma.profile.update({ where: { id: activeProfileId }, data: { decorationsOwned } }));
+  }
+  if (collectibleUpdate && activeProfileId) {
+    ops.push(prisma.profile.update({ where: { id: activeProfileId }, data: collectibleUpdate }));
   }
 
   if (prize.type === "badge" && activeProfileId) {

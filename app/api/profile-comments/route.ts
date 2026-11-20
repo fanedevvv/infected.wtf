@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-helpers";
+import { crewTagsFor, type CrewTag } from "@/lib/crews";
+import { canUse, getCollectible } from "@/lib/collectibles";
+import { parseStringArray } from "@/lib/json-array";
 
 const PAGE_SIZE = 20;
 const MAX_REPLIES = 50;
@@ -15,15 +18,20 @@ const commentInclude = {
   author: {
     select: {
       username: true,
-      profiles: { where: { isPrimary: true }, select: { slug: true, displayName: true, avatar: true }, take: 1 },
+      isPremium: true,
+      premiumExpiresAt: true,
+      profiles: { where: { isPrimary: true }, select: { slug: true, displayName: true, avatar: true, activeNameplate: true, nameplatesOwned: true }, take: 1 },
     },
   },
 } as const;
 
 type CommentRow = Awaited<ReturnType<typeof prisma.profileComment.findMany<{ include: typeof commentInclude }>>>[number];
 
-function serialize(c: CommentRow, viewer: Viewer, profileOwnerId: number, likedIds: Set<number>) {
+function serialize(c: CommentRow, viewer: Viewer, profileOwnerId: number, likedIds: Set<number>, crews: Map<number, CrewTag> = new Map()) {
   const authorProfile = c.author.profiles[0];
+  const authorPremium = !!c.author.isPremium && (!c.author.premiumExpiresAt || c.author.premiumExpiresAt > new Date());
+  const plate = getCollectible("nameplate", authorProfile?.activeNameplate);
+  const nameplate = canUse(plate, new Set(parseStringArray(authorProfile?.nameplatesOwned)), authorPremium) ? plate!.id : null;
   return {
     id: c.id,
     parentId: c.parentId,
@@ -40,6 +48,8 @@ function serialize(c: CommentRow, viewer: Viewer, profileOwnerId: number, likedI
       slug: authorProfile?.slug ?? null,
       displayName: authorProfile?.displayName || c.author.username,
       avatar: authorProfile?.avatar ?? null,
+      nameplate,
+      crew: crews.get(c.authorId) ?? null,
     },
   };
 }
@@ -93,10 +103,11 @@ export async function GET(req: NextRequest) {
     likes.forEach((l) => likedIds.add(l.commentId));
   }
 
+  const crews = await crewTagsFor([...topLevel, ...replies].map((c) => c.authorId));
   const repliesByParent = new Map<number, ReturnType<typeof serialize>[]>();
   for (const r of replies) {
     const list = repliesByParent.get(r.parentId!) || [];
-    list.push(serialize(r, viewer, profile.userId, likedIds));
+    list.push(serialize(r, viewer, profile.userId, likedIds, crews));
     repliesByParent.set(r.parentId!, list);
   }
 
@@ -105,7 +116,7 @@ export async function GET(req: NextRequest) {
     total,
     hasMore: rows.length > PAGE_SIZE,
     comments: topLevel.map((c) => ({
-      ...serialize(c, viewer, profile.userId, likedIds),
+      ...serialize(c, viewer, profile.userId, likedIds, crews),
       replies: repliesByParent.get(c.id) || [],
     })),
   });
@@ -157,7 +168,7 @@ export async function POST(req: NextRequest) {
     }).catch(() => {});
   }
 
-  return NextResponse.json({ success: true, comment: { ...serialize(comment, me, profile.userId, new Set()), replies: [] } });
+  return NextResponse.json({ success: true, comment: { ...serialize(comment, me, profile.userId, new Set(), await crewTagsFor([me.id])), replies: [] } });
 }
 
 export async function PATCH(req: NextRequest) {

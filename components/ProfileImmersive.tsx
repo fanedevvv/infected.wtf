@@ -19,6 +19,8 @@ import ClockWidget from "./ClockWidget";
 import { shapeStyle } from "@/lib/avatar-shapes";
 import type { ProfileViewProps } from "./ProfileView";
 import { useTilt } from "./profile-layouts/useTilt";
+import NameTag from "./NameTag";
+import { Collection } from "./profile-layouts/parts";
 
 type Tab = "home" | "widgets" | "projects";
 
@@ -190,7 +192,7 @@ export default function ProfileImmersive({
               {p.banner && <div className="im-banner" style={{ backgroundImage: `url(/${p.banner})` }} />}
               <div className="im-title">
                 <h1 className={`im-name ${hasChampion ? "champion-name" : ""}`} id="profile-display-name">
-                  <EffectText text={p.displayName} effect={p.nameEffect} active={entered} />
+                  <NameTag nameplate={p.nameplate} crew={p.crew}><EffectText text={p.displayName} effect={p.nameEffect} active={entered} /></NameTag>
                 </h1>
                 {p.badges.length > 0 && (
                   <div className="im-badges">
@@ -258,6 +260,8 @@ export default function ProfileImmersive({
                   ))}
                 </div>
               )}
+
+              <Collection p={p} />
 
               {spotify?.type === "spotify" && (
                 <div className="im-block">
